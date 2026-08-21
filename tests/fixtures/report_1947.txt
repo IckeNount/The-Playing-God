@@ -1,0 +1,146 @@
+THE PLAYING GOD | seed=1947 | day=365
+==========================================================================
+
+npc_001 | Mira | age 22
+  job=L1  money=359  skill=1.00  stress=0.04
+  reputation=+1.00  goal=advance_career
+  dominant behavior: socialize:73, help:60, rest:53
+  strongest tie: Iris +1.00 | weakest: Theo -0.36
+  major life events:
+    day 005 [career] Found a job paying 28/day
+    day 065 [relationship] Helping Niko created a close alliance
+    day 084 [relationship] Helping Noah created a close alliance
+    day 097 [relationship] Helping Noah created a close alliance
+    day 100 [misfortune] A risky move failed: -63
+    day 143 [growth] Reached expert-skill level
+    day 145 [relationship] Helping Sora created a close alliance
+
+npc_002 | Noah | age 39
+  job=L2  money=2412  skill=0.76  stress=0.15
+  reputation=+1.00  goal=advance_career
+  dominant behavior: help:74, socialize:73, risky_move:64
+  strongest tie: Sora +0.99 | weakest: Lina -0.03
+  major life events:
+    day 022 [career] Promoted to job level 2
+    day 096 [relationship] Helping Kai created a close alliance
+    day 112 [fortune] A risky move paid off: +119
+    day 137 [relationship] Became close with Ren
+    day 174 [relationship] Became close with Niko
+    day 189 [fortune] A risky move paid off: +117
+    day 244 [fortune] A risky move paid off: +114
+    day 321 [misfortune] A risky move failed: -63
+
+npc_003 | Lina | age 24
+  job=L1  money=1629  skill=1.00  stress=0.02
+  reputation=+1.00  goal=advance_career
+  dominant behavior: train:69, compete:62, risky_move:56
+  strongest tie: Iris +0.94 | weakest: Theo -0.24
+  major life events:
+    day 001 [career] Found a job paying 26/day
+    day 117 [misfortune] A risky move failed: -60
+    day 124 [growth] Reached skilled-worker level
+    day 152 [growth] Reached expert-skill level
+    day 196 [misfortune] A risky move failed: -64
+
+npc_004 | Ren | age 38
+  job=L1  money=-1049  skill=0.63  stress=0.93
+  reputation=-1.00  goal=build_savings
+  dominant behavior: rest:108, risky_move:90, socialize:51
+  strongest tie: Noah +0.67 | weakest: Ari -0.34
+  major life events:
+    day 012 [career] Found a job paying 27/day
+    day 028 [career] Lost job in workplace downsizing
+    day 044 [crisis] Entered severe debt
+    day 050 [career] Found a job paying 27/day
+    day 166 [career] Lost their job
+    day 177 [career] Found a job paying 25/day
+    day 210 [relationship] Helping Sora created a close alliance
+    day 323 [relationship] Became close with Niko
+
+npc_005 | Sora | age 38
+  job=L1  money=1222  skill=1.00  stress=0.11
+  reputation=+1.00  goal=advance_career
+  dominant behavior: risky_move:68, socialize:58, help:57
+  strongest tie: Iris +1.00 | weakest: Ari +0.01
+  major life events:
+    day 099 [relationship] Helping Iris created a close alliance
+    day 171 [relationship] Became close with Noah
+    day 201 [relationship] Helping Noah created a close alliance
+    day 219 [growth] Reached expert-skill level
+    day 239 [career] Lost job in workplace downsizing
+    day 273 [career] Found a job paying 36/day
+    day 316 [fortune] A risky move paid off: +122
+    day 336 [fortune] A risky move paid off: +131
+
+npc_006 | Kai | age 39
+  job=L1  money=-2408  skill=0.42  stress=0.93
+  reputation=-1.00  goal=build_savings
+  dominant behavior: risky_move:130, rest:101, compete:35
+  strongest tie: Iris +1.00 | weakest: Theo -0.28
+  major life events:
+    day 037 [crisis] Entered severe debt
+    day 078 [career] Found a job paying 26/day
+    day 172 [misfortune] A risky move failed: -63
+    day 206 [misfortune] A risky move failed: -60
+    day 252 [misfortune] A risky move failed: -63
+    day 255 [fortune] A risky move paid off: +112
+    day 281 [misfortune] A risky move failed: -62
+    day 293 [misfortune] A risky move failed: -63
+
+npc_007 | Ari | age 23
+  job=L1  money=2912  skill=1.00  stress=0.19
+  reputation=+1.00  goal=build_relationships
+  dominant behavior: compete:110, socialize:62, work:50
+  strongest tie: Iris +0.15 | weakest: Theo -1.00
+  major life events:
+    day 033 [growth] Reached skilled-worker level
+    day 038 [fortune] A risky move paid off: +119
+    day 086 [misfortune] A risky move failed: -65
+    day 098 [growth] Reached expert-skill level
+    day 102 [fortune] A risky move paid off: +111
+    day 128 [fortune] A risky move paid off: +116
+
+npc_008 | Niko | age 33
+  job=L1  money=4828  skill=1.00  stress=0.12
+  reputation=+1.00  goal=advance_career
+  dominant behavior: risky_move:74, compete:70, help:61
+  strongest tie: Mira +0.97 | weakest: Ari -0.62
+  major life events:
+    day 078 [relationship] Helping Mira created a close alliance
+    day 112 [fortune] A risky move paid off: +126
+    day 180 [growth] Reached expert-skill level
+    day 186 [fortune] A risky move paid off: +122
+    day 257 [fortune] A risky move paid off: +137
+    day 264 [fortune] A risky move paid off: +131
+    day 288 [relationship] Helping Iris created a close alliance
+    day 290 [fortune] A risky move paid off: +127
+
+npc_009 | Iris | age 38
+  job=L1  money=2692  skill=0.66  stress=0.09
+  reputation=+1.00  goal=advance_career
+  dominant behavior: help:85, risky_move:84, socialize:81
+  strongest tie: Mira +1.00 | weakest: Theo +0.39
+  major life events:
+    day 054 [relationship] Became close with Lina
+    day 071 [relationship] Helping Niko created a close alliance
+    day 096 [relationship] Helping Kai created a close alliance
+    day 169 [relationship] Helping Niko created a close alliance
+    day 291 [relationship] Became close with Ren
+    day 306 [fortune] A risky move paid off: +123
+    day 337 [fortune] A risky move paid off: +137
+    day 347 [fortune] A risky move paid off: +128
+
+npc_010 | Theo | age 33
+  job=L1  money=2716  skill=1.00  stress=0.13
+  reputation=+1.00  goal=advance_career
+  dominant behavior: compete:89, socialize:65, train:55
+  strongest tie: Noah +0.63 | weakest: Ari -1.00
+  major life events:
+    day 035 [growth] Reached skilled-worker level
+    day 083 [misfortune] A risky move failed: -63
+    day 090 [misfortune] A risky move failed: -62
+    day 123 [misfortune] A risky move failed: -62
+    day 200 [relationship] Helping Noah created a close alliance
+    day 276 [misfortune] A risky move failed: -62
+    day 351 [misfortune] A risky move failed: -61
+    day 360 [misfortune] A risky move failed: -61

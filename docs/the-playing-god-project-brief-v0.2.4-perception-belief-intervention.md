@@ -1,0 +1,466 @@
+# THE PLAYING GOD — V0.2.4
+## Perceived World, Belief & God Intervention Layer
+
+**Vision Update:** 2026-08-18  
+**Base:** V0.2 and V0.2.2 remain canonical. V0.2.3 provides the spatial/mobility prerequisite.  
+**Purpose:** Add imperfect perception, belief formation, prayer, sparse intervention, faith, and counterfactual divergence without giving the player direct control over NPCs.
+
+---
+
+# 1. Core Principle
+
+NPCs act on perceived reality, not omniscient world truth.
+
+```text
+WORLD TRUTH
+→ observation / exposure
+→ imperfect perception
+→ belief
+→ appraisal
+→ emotion / desire
+→ intention
+→ action
+→ consequence
+→ memory / belief update
+```
+
+```text
+world truth ≠ NPC perception ≠ NPC belief
+```
+
+Misunderstanding, uncertainty, misinformation, attribution, faith, and skepticism therefore become causal mechanisms.
+
+---
+
+# 2. Phase 4 Build Order
+
+```text
+4A  Spatial prerequisite
+4B  Perception / belief
+4C  Shrine / prayer
+4D  God intervention
+4E  Faith / causal attribution
+```
+
+V0.2.3 remains responsible for:
+
+```text
+locations
+roads
+movement
+routes
+co-location
+exposure
+encounters
+```
+
+Phase 4 builds on that physical layer rather than replacing it.
+
+---
+
+# 3. Perception & Belief
+
+An NPC should not automatically know the complete world state.
+
+Conceptual separation:
+
+```text
+REALITY
+what happened
+
+OBSERVATION
+what information reached the NPC
+
+PERCEPTION
+what the NPC noticed / understood
+
+BELIEF
+what the NPC currently thinks is true
+```
+
+Perception may depend on:
+
+```text
+location
+exposure
+attention
+memory
+capabilities
+trust
+emotion
+information source
+prior belief
+uncertainty
+```
+
+Beliefs may be:
+
+```text
+accurate
+incomplete
+incorrect
+uncertain
+contradictory
+socially inherited
+```
+
+The decision engine consumes the NPC's perceived state rather than direct omniscient truth whenever appropriate.
+
+---
+
+# 4. Shrine & Prayer
+
+Shrines are ordinary world locations with special behavioral meaning.
+
+Possible triggers:
+
+```text
+stress
+fear
+grief
+desire
+gratitude
+uncertainty
+habit
+existing faith
+```
+
+Pattern:
+
+```text
+need / emotion
+→ shrine utility increases
+→ NPC travels to shrine
+→ prayer event
+```
+
+Minimum structured prayer:
+
+```text
+Prayer
+├── agent_id
+├── desire_type
+├── intensity
+├── related_goal
+└── timestamp
+```
+
+Prayer does not guarantee intervention.
+
+---
+
+# 5. God Intervention
+
+The player changes conditions, not NPC decisions.
+
+Initial intervention types:
+
+```text
+dream
+sign
+opportunity
+```
+
+Later possibilities may include:
+
+```text
+warning
+encounter
+luck modifier
+protection
+misfortune
+```
+
+Pattern:
+
+```text
+PLAYER INTENTION
+→ intervention event
+→ world condition changes
+→ NPC may or may not perceive it
+→ NPC interprets it
+→ normal decision engine responds
+→ downstream consequences
+```
+
+Intervention must never directly force:
+
+```text
+belief
+decision
+success
+failure
+relationship
+```
+
+Every causal link may fail, be ignored, misunderstood, or create unintended effects.
+
+---
+
+# 6. Dreams & Signs
+
+Dreams and signs are noisy communication channels.
+
+```text
+player intention
+→ symbolic stimulus
+→ perception
+→ memory + prior belief + emotion
+→ interpretation
+→ possible action
+```
+
+The same stimulus may produce different interpretations across NPCs.
+
+The LLM may later generate language or symbolism, but the simulation remains responsible for causal meaning and effects.
+
+---
+
+# 7. Faith & Causal Attribution
+
+NPCs never receive proof that the player exists.
+
+Faith changes through perceived causality:
+
+```text
+prayer / desire
+→ later event
+→ temporal association
+→ interpretation
+→ attribution
+→ faith / skepticism update
+```
+
+Possible interpretations:
+
+```text
+miracle
+coincidence
+personal achievement
+help from another NPC
+institutional cause
+manipulation
+unknown cause
+```
+
+Faith is therefore a belief state influenced by experience, prior belief, evidence, social influence, and uncertainty.
+
+---
+
+# 8. Social Propagation
+
+Belief may spread through the existing social world.
+
+```text
+experience
+→ testimony / rumour
+→ trusted relationship
+→ social confirmation
+→ belief update
+```
+
+Possible influences:
+
+```text
+source trust
+repetition
+status
+emotional resonance
+group alignment
+contradictory evidence
+skepticism
+```
+
+Phase 4 only needs the mechanism. Large-scale religion, ideology, propaganda, and institutions remain later extensions.
+
+---
+
+# 9. Counterfactual Intervention
+
+The intervention system must preserve reproducibility.
+
+```text
+Seed X
++ no intervention
+→ baseline timeline
+
+Seed X
++ intervention at time T
+→ counterfactual timeline
+```
+
+Compare downstream divergence in:
+
+```text
+goals
+resources
+relationships
+stress
+belief
+location
+career
+life events
+```
+
+This is the main research bridge between the fictional god mechanic and the thesis experiment framework.
+
+---
+
+# 10. Minimal Data Direction
+
+Add only what Phase 4 requires.
+
+Conceptual entities:
+
+```text
+observations
+beliefs
+prayers
+interventions
+```
+
+Existing systems remain responsible for:
+
+```text
+agents
+relationships
+events
+locations
+roads
+movement
+```
+
+Belief changes, prayers, and interventions should also appear in causal event history when significant.
+
+---
+
+# 11. Phase 4 Completion Test
+
+A valid Phase 4 run should support a causal chain such as:
+
+```text
+NPC loses job
+→ stress increases
+→ shrine becomes attractive
+→ NPC travels to shrine
+→ prayer is recorded
+→ player creates opportunity
+→ NPC encounters opportunity
+→ NPC interprets event
+→ decision engine chooses response
+→ trajectory changes
+→ faith / skepticism updates
+```
+
+And:
+
+```text
+same seed
+baseline vs intervention
+→ measurable divergence
+```
+
+No LLM should be required for this test.
+
+---
+
+# 12. Out of Scope for Phase 4
+
+```text
+reproduction
+child development
+deep generations
+Ouroboros
+technology discovery
+civilization mutation
+large institutions
+macroeconomics
+politics
+semantic embeddings
+ML / RL expansion
+social media
+full religion systems
+3D visualization
+```
+
+These remain later systems from the broader V0.2 / V0.2.2 vision.
+
+---
+
+# 13. V0.2.4 Design Laws
+
+1. NPCs act on perceived reality, not guaranteed world truth.
+2. Reality, observation, perception, and belief remain distinct.
+3. Geography and exposure determine what information can physically reach an NPC.
+4. Prayer is a structured desire event, not a command to the player.
+5. Intervention changes conditions, never guaranteed outcomes.
+6. Dreams and signs are noisy communication channels.
+7. NPC interpretation depends on prior state, memory, belief, and context.
+8. Faith emerges from causal attribution under uncertainty.
+9. Identical interventions may produce different interpretations and trajectories.
+10. Beliefs may propagate through trusted social relationships.
+11. All important intervention effects must remain traceable in causal history.
+12. Baseline and intervention runs must remain reproducible from the same seed.
+13. The simulation must function without an LLM or API key.
+14. Phase 4 should remain lightweight, explainable, offline, and weak-hardware compatible.
+
+---
+
+# Canonical V0.2.4 Pattern
+
+```text
+REALITY
+= world state + events
+
+PERCEPTION
+= reachable information × attention × capability × uncertainty
+
+BELIEF
+= perception + memory + prior belief + social information
+
+PRAYER
+= desire + emotion + belief → structured request event
+
+GOD
+= sparse indirect perturbation of world conditions
+
+INTERPRETATION
+= intervention perception + prior belief + context
+
+FAITH
+= causal attribution under uncertainty
+
+ACTION
+= perceived state + belief + goals + needs + social context + stochastic choice
+
+COUNTERFACTUAL
+= same seed + different intervention history → trajectory divergence
+```
+
+---
+
+## Updated Vision
+
+**The Playing God now distinguishes reality from what its inhabitants believe reality to be.**
+
+NPCs occupy a causal physical world, encounter only a fraction of its information, build imperfect beliefs, seek meaning, pray, receive ambiguous interventions, interpret outcomes differently, and update their future behavior accordingly.
+
+The player does not control lives directly.
+
+The player perturbs reality and observes what autonomous agents make of it.
+
+```text
+WORLD
+→ EXPOSURE
+→ PERCEPTION
+→ BELIEF
+→ PRAYER
+→ INTERVENTION
+→ INTERPRETATION
+→ DECISION
+→ CONSEQUENCE
+→ FAITH
+→ NEW BELIEF
+```
+
+**Computer Engineering thesis identity:** a reproducible multi-agent causal simulation studying how imperfect information and sparse external perturbations propagate through autonomous agents and produce measurable trajectory divergence.

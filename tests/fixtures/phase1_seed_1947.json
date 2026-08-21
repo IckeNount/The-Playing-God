@@ -1,0 +1,2577 @@
+{
+  "seed": 1947,
+  "day": 365,
+  "agents": [
+    {
+      "id": "npc_001",
+      "name": "Mira",
+      "age": 22,
+      "traits": {
+        "discipline": 0.662,
+        "sociability": 0.538,
+        "ambition": 0.195,
+        "risk_tolerance": 0.398,
+        "empathy": 0.604
+      },
+      "sins": {
+        "pride": 0.388,
+        "greed": 0.382,
+        "lust": 0.617,
+        "envy": 0.542,
+        "gluttony": 0.402,
+        "wrath": 0.686,
+        "sloth": 0.185
+      },
+      "money": 358.84643345520374,
+      "employed": true,
+      "salary": 27.90377740338033,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.6900000000000005,
+      "stress": 0.04301000000000001,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_002": 0.9406000000000001,
+        "npc_003": 0.2881854650337553,
+        "npc_004": -0.1289549464698905,
+        "npc_005": 0.9703,
+        "npc_006": 0.07151089390909528,
+        "npc_007": 0.07362775448867301,
+        "npc_008": 0.9730241937260152,
+        "npc_009": 1.0,
+        "npc_010": -0.3645718699336952
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 5,
+          "kind": "career",
+          "description": "Found a job paying 28/day",
+          "significance": 0.94
+        },
+        {
+          "day": 5,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 35,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 65,
+          "kind": "relationship",
+          "description": "Helping Niko created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 67,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 84,
+          "kind": "relationship",
+          "description": "Helping Noah created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 97,
+          "kind": "relationship",
+          "description": "Helping Noah created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 100,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 100,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 101,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 101,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 105,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 106,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 115,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 117,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 140,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 143,
+          "kind": "growth",
+          "description": "Reached expert-skill level",
+          "significance": 0.86
+        },
+        {
+          "day": 145,
+          "kind": "relationship",
+          "description": "Helping Sora created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 159,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 160,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 161,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 168,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 175,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 184,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 188,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 207,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 220,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 238,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 252,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 295,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 342,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "train": 48,
+        "rest": 53,
+        "risky_move": 41,
+        "help": 60,
+        "job_hunt": 1,
+        "socialize": 73,
+        "work": 50,
+        "compete": 39
+      }
+    },
+    {
+      "id": "npc_002",
+      "name": "Noah",
+      "age": 39,
+      "traits": {
+        "discipline": 0.39,
+        "sociability": 0.662,
+        "ambition": 0.524,
+        "risk_tolerance": 0.279,
+        "empathy": 0.713
+      },
+      "sins": {
+        "pride": 0.257,
+        "greed": 0.845,
+        "lust": 0.243,
+        "envy": 0.397,
+        "gluttony": 0.302,
+        "wrath": 0.394,
+        "sloth": 0.573
+      },
+      "money": 2411.606377341623,
+      "employed": true,
+      "salary": 36.71408924852199,
+      "job_level": 2,
+      "skill": 0.7616593695468216,
+      "energy": 0.8200000000000004,
+      "stress": 0.15278999999999998,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": 0.92221,
+        "npc_003": -0.02747224729311389,
+        "npc_004": 0.7655735713169483,
+        "npc_005": 0.9936282397548526,
+        "npc_006": 0.7884150376942791,
+        "npc_007": 0.08165545624788567,
+        "npc_008": 0.9471499999999999,
+        "npc_009": 0.973575,
+        "npc_010": 0.6695362568913961
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 22,
+          "kind": "career",
+          "description": "Promoted to job level 2",
+          "significance": 0.92
+        },
+        {
+          "day": 44,
+          "kind": "misfortune",
+          "description": "A risky move failed: -65",
+          "significance": 0.78
+        },
+        {
+          "day": 46,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 69,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 96,
+          "kind": "relationship",
+          "description": "Helping Kai created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 112,
+          "kind": "fortune",
+          "description": "A risky move paid off: +119",
+          "significance": 0.8
+        },
+        {
+          "day": 137,
+          "kind": "relationship",
+          "description": "Became close with Ren",
+          "significance": 0.84
+        },
+        {
+          "day": 174,
+          "kind": "relationship",
+          "description": "Became close with Niko",
+          "significance": 0.84
+        },
+        {
+          "day": 176,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 189,
+          "kind": "fortune",
+          "description": "A risky move paid off: +117",
+          "significance": 0.8
+        },
+        {
+          "day": 228,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 233,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 234,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 244,
+          "kind": "fortune",
+          "description": "A risky move paid off: +114",
+          "significance": 0.8
+        },
+        {
+          "day": 258,
+          "kind": "misfortune",
+          "description": "A risky move failed: -65",
+          "significance": 0.78
+        },
+        {
+          "day": 283,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 299,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 309,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 321,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 353,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 365,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "socialize": 73,
+        "compete": 40,
+        "help": 74,
+        "train": 37,
+        "risky_move": 64,
+        "rest": 42,
+        "work": 35
+      }
+    },
+    {
+      "id": "npc_003",
+      "name": "Lina",
+      "age": 24,
+      "traits": {
+        "discipline": 0.822,
+        "sociability": 0.386,
+        "ambition": 0.74,
+        "risk_tolerance": 0.579,
+        "empathy": 0.299
+      },
+      "sins": {
+        "pride": 0.304,
+        "greed": 0.518,
+        "lust": 0.408,
+        "envy": 0.367,
+        "gluttony": 0.894,
+        "wrath": 0.357,
+        "sloth": 0.476
+      },
+      "money": 1628.6572739068597,
+      "employed": true,
+      "salary": 26.193742825913937,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.5000000000000004,
+      "stress": 0.02348499999999999,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": 0.22910589908497359,
+        "npc_002": 0.03736943633173505,
+        "npc_004": -0.02897410666237047,
+        "npc_005": 0.22203085551511564,
+        "npc_006": -0.008031376191508163,
+        "npc_007": -0.1524824523388511,
+        "npc_008": 0.14651879153280084,
+        "npc_009": 0.937306612591046,
+        "npc_010": -0.23538551972988364
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 1,
+          "kind": "career",
+          "description": "Found a job paying 26/day",
+          "significance": 0.94
+        },
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 117,
+          "kind": "misfortune",
+          "description": "A risky move failed: -60",
+          "significance": 0.78
+        },
+        {
+          "day": 119,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 121,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 123,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 124,
+          "kind": "growth",
+          "description": "Reached skilled-worker level",
+          "significance": 0.8
+        },
+        {
+          "day": 129,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 142,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 144,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 144,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 145,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 150,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 152,
+          "kind": "growth",
+          "description": "Reached expert-skill level",
+          "significance": 0.86
+        },
+        {
+          "day": 153,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 168,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 171,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 174,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 178,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 196,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 198,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 214,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 221,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 226,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 236,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 238,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 240,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 252,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 268,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 275,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 285,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 315,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 322,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 329,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 356,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 359,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "job_hunt": 1,
+        "train": 69,
+        "work": 55,
+        "rest": 51,
+        "risky_move": 56,
+        "socialize": 43,
+        "compete": 62,
+        "help": 28
+      }
+    },
+    {
+      "id": "npc_004",
+      "name": "Ren",
+      "age": 38,
+      "traits": {
+        "discipline": 0.568,
+        "sociability": 0.611,
+        "ambition": 0.172,
+        "risk_tolerance": 0.697,
+        "empathy": 0.32
+      },
+      "sins": {
+        "pride": 0.522,
+        "greed": 0.322,
+        "lust": 0.2,
+        "envy": 0.589,
+        "gluttony": 0.161,
+        "wrath": 0.214,
+        "sloth": 0.9
+      },
+      "money": -1048.9779627843818,
+      "employed": true,
+      "salary": 25.171786812064973,
+      "job_level": 1,
+      "skill": 0.6321697678978049,
+      "energy": 1.0,
+      "stress": 0.933,
+      "reputation": -1.0,
+      "goal": "build_savings",
+      "relationships": {
+        "npc_001": -0.12424621262211218,
+        "npc_002": 0.66509668225514,
+        "npc_003": -0.06296158299286254,
+        "npc_005": 0.2245983697575913,
+        "npc_006": 0.183123478580566,
+        "npc_007": -0.33555617494481244,
+        "npc_008": 0.6106497461019282,
+        "npc_009": 0.5175119431597109,
+        "npc_010": -0.21440432515606161
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 12,
+          "kind": "career",
+          "description": "Found a job paying 27/day",
+          "significance": 0.94
+        },
+        {
+          "day": 12,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 24,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 28,
+          "kind": "career",
+          "description": "Lost job in workplace downsizing",
+          "significance": 0.95
+        },
+        {
+          "day": 28,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 40,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        },
+        {
+          "day": 44,
+          "kind": "crisis",
+          "description": "Entered severe debt",
+          "significance": 0.9
+        },
+        {
+          "day": 50,
+          "kind": "career",
+          "description": "Found a job paying 27/day",
+          "significance": 0.94
+        },
+        {
+          "day": 50,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 119,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 138,
+          "kind": "status",
+          "description": "Lost badly to Ari in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 148,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 166,
+          "kind": "career",
+          "description": "Lost their job",
+          "significance": 0.96
+        },
+        {
+          "day": 166,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 171,
+          "kind": "status",
+          "description": "Lost badly to Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 177,
+          "kind": "career",
+          "description": "Found a job paying 25/day",
+          "significance": 0.94
+        },
+        {
+          "day": 177,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 190,
+          "kind": "relationship",
+          "description": "Became close with Noah",
+          "significance": 0.84
+        },
+        {
+          "day": 204,
+          "kind": "status",
+          "description": "Lost badly to Ari in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 210,
+          "kind": "relationship",
+          "description": "Helping Sora created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 218,
+          "kind": "status",
+          "description": "Lost badly to Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 220,
+          "kind": "status",
+          "description": "Lost badly to Mira in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 239,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        },
+        {
+          "day": 256,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 284,
+          "kind": "status",
+          "description": "Lost badly to Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 292,
+          "kind": "status",
+          "description": "Lost badly to Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 293,
+          "kind": "status",
+          "description": "Lost badly to Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 315,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 323,
+          "kind": "relationship",
+          "description": "Became close with Niko",
+          "significance": 0.84
+        },
+        {
+          "day": 346,
+          "kind": "growth",
+          "description": "Reached skilled-worker level",
+          "significance": 0.8
+        },
+        {
+          "day": 355,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 356,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "socialize": 51,
+        "risky_move": 90,
+        "rest": 108,
+        "train": 13,
+        "compete": 37,
+        "job_hunt": 12,
+        "work": 41,
+        "help": 13
+      }
+    },
+    {
+      "id": "npc_005",
+      "name": "Sora",
+      "age": 38,
+      "traits": {
+        "discipline": 0.461,
+        "sociability": 0.48,
+        "ambition": 0.538,
+        "risk_tolerance": 0.385,
+        "empathy": 0.522
+      },
+      "sins": {
+        "pride": 0.374,
+        "greed": 0.814,
+        "lust": 0.236,
+        "envy": 0.535,
+        "gluttony": 0.443,
+        "wrath": 0.153,
+        "sloth": 0.595
+      },
+      "money": 1222.2258499828188,
+      "employed": true,
+      "salary": 35.61918615174372,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.7450000000000003,
+      "stress": 0.10900000000000001,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": 0.9297779740710711,
+        "npc_002": 0.994743692198121,
+        "npc_003": 0.24542008453540792,
+        "npc_004": 0.2522373734819305,
+        "npc_006": 0.12321706781326396,
+        "npc_007": 0.010602988508851871,
+        "npc_008": 0.18736879127818573,
+        "npc_009": 1.0,
+        "npc_010": 0.029994292186088234
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 29,
+          "kind": "fortune",
+          "description": "A risky move paid off: +125",
+          "significance": 0.8
+        },
+        {
+          "day": 51,
+          "kind": "fortune",
+          "description": "A risky move paid off: +121",
+          "significance": 0.8
+        },
+        {
+          "day": 52,
+          "kind": "misfortune",
+          "description": "A risky move failed: -60",
+          "significance": 0.78
+        },
+        {
+          "day": 90,
+          "kind": "fortune",
+          "description": "A risky move paid off: +120",
+          "significance": 0.8
+        },
+        {
+          "day": 99,
+          "kind": "relationship",
+          "description": "Helping Iris created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 110,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 121,
+          "kind": "growth",
+          "description": "Reached skilled-worker level",
+          "significance": 0.8
+        },
+        {
+          "day": 129,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 131,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 139,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 150,
+          "kind": "fortune",
+          "description": "A risky move paid off: +117",
+          "significance": 0.8
+        },
+        {
+          "day": 160,
+          "kind": "fortune",
+          "description": "A risky move paid off: +111",
+          "significance": 0.8
+        },
+        {
+          "day": 171,
+          "kind": "relationship",
+          "description": "Became close with Noah",
+          "significance": 0.84
+        },
+        {
+          "day": 201,
+          "kind": "relationship",
+          "description": "Helping Noah created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 203,
+          "kind": "status",
+          "description": "Lost badly to Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 208,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 219,
+          "kind": "growth",
+          "description": "Reached expert-skill level",
+          "significance": 0.86
+        },
+        {
+          "day": 234,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 238,
+          "kind": "fortune",
+          "description": "A risky move paid off: +127",
+          "significance": 0.8
+        },
+        {
+          "day": 239,
+          "kind": "career",
+          "description": "Lost job in workplace downsizing",
+          "significance": 0.95
+        },
+        {
+          "day": 239,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 250,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 273,
+          "kind": "career",
+          "description": "Found a job paying 36/day",
+          "significance": 0.94
+        },
+        {
+          "day": 273,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 275,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 286,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 316,
+          "kind": "fortune",
+          "description": "A risky move paid off: +122",
+          "significance": 0.8
+        },
+        {
+          "day": 336,
+          "kind": "fortune",
+          "description": "A risky move paid off: +131",
+          "significance": 0.8
+        },
+        {
+          "day": 353,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "help": 57,
+        "rest": 52,
+        "work": 27,
+        "socialize": 58,
+        "train": 46,
+        "compete": 52,
+        "risky_move": 68,
+        "job_hunt": 5
+      }
+    },
+    {
+      "id": "npc_006",
+      "name": "Kai",
+      "age": 39,
+      "traits": {
+        "discipline": 0.176,
+        "sociability": 0.466,
+        "ambition": 0.181,
+        "risk_tolerance": 0.704,
+        "empathy": 0.737
+      },
+      "sins": {
+        "pride": 0.424,
+        "greed": 0.563,
+        "lust": 0.175,
+        "envy": 0.814,
+        "gluttony": 0.188,
+        "wrath": 0.852,
+        "sloth": 0.757
+      },
+      "money": -2407.5002136010953,
+      "employed": true,
+      "salary": 25.916201244755754,
+      "job_level": 1,
+      "skill": 0.4158382640636514,
+      "energy": 0.9600000000000001,
+      "stress": 0.933,
+      "reputation": -1.0,
+      "goal": "build_savings",
+      "relationships": {
+        "npc_001": 0.022877461942297853,
+        "npc_002": 0.7504971036449508,
+        "npc_003": -0.08797135142423564,
+        "npc_004": 0.3091579139579461,
+        "npc_005": 0.09679129872807299,
+        "npc_007": -0.22968618147132347,
+        "npc_008": 0.06999594875455188,
+        "npc_009": 1.0,
+        "npc_010": -0.2784962867801308
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> find_job",
+          "significance": 0.62
+        },
+        {
+          "day": 12,
+          "kind": "status",
+          "description": "Lost badly to Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 37,
+          "kind": "crisis",
+          "description": "Entered severe debt",
+          "significance": 0.9
+        },
+        {
+          "day": 43,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 46,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 48,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 78,
+          "kind": "career",
+          "description": "Found a job paying 26/day",
+          "significance": 0.94
+        },
+        {
+          "day": 78,
+          "kind": "goal",
+          "description": "Goal changed: find_job -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 83,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 108,
+          "kind": "misfortune",
+          "description": "A risky move failed: -60",
+          "significance": 0.78
+        },
+        {
+          "day": 133,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 153,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 157,
+          "kind": "status",
+          "description": "Lost badly to Ari in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 167,
+          "kind": "status",
+          "description": "Lost badly to Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 172,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 206,
+          "kind": "misfortune",
+          "description": "A risky move failed: -60",
+          "significance": 0.78
+        },
+        {
+          "day": 215,
+          "kind": "status",
+          "description": "Lost badly to Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 218,
+          "kind": "status",
+          "description": "Lost badly to Mira in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 228,
+          "kind": "status",
+          "description": "Lost badly to Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 252,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 255,
+          "kind": "fortune",
+          "description": "A risky move paid off: +112",
+          "significance": 0.8
+        },
+        {
+          "day": 281,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 293,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 303,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 304,
+          "kind": "status",
+          "description": "Lost badly to Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 311,
+          "kind": "status",
+          "description": "Lost badly to Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 323,
+          "kind": "status",
+          "description": "Lost badly to Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 356,
+          "kind": "status",
+          "description": "Lost badly to Noah in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "socialize": 28,
+        "risky_move": 130,
+        "help": 30,
+        "compete": 35,
+        "rest": 101,
+        "train": 13,
+        "job_hunt": 3,
+        "work": 25
+      }
+    },
+    {
+      "id": "npc_007",
+      "name": "Ari",
+      "age": 23,
+      "traits": {
+        "discipline": 0.715,
+        "sociability": 0.799,
+        "ambition": 0.737,
+        "risk_tolerance": 0.502,
+        "empathy": 0.3
+      },
+      "sins": {
+        "pride": 0.841,
+        "greed": 0.633,
+        "lust": 0.65,
+        "envy": 0.63,
+        "gluttony": 0.387,
+        "wrath": 0.849,
+        "sloth": 0.164
+      },
+      "money": 2912.2141424017736,
+      "employed": true,
+      "salary": 33.062918020834886,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.4750000000000012,
+      "stress": 0.18671499999999996,
+      "reputation": 1.0,
+      "goal": "build_relationships",
+      "relationships": {
+        "npc_001": 0.02843599602934961,
+        "npc_002": -0.043816218521337214,
+        "npc_003": -0.24234545295963256,
+        "npc_004": -0.42274206935886127,
+        "npc_005": -0.2509237321933205,
+        "npc_006": -0.4640989178356,
+        "npc_008": -0.5618260263044736,
+        "npc_009": 0.14737174132193342,
+        "npc_010": -1.0
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 3,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 3,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 5,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> build_savings",
+          "significance": 0.62
+        },
+        {
+          "day": 12,
+          "kind": "goal",
+          "description": "Goal changed: build_savings -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 13,
+          "kind": "status",
+          "description": "Outperformed Theo in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 22,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 26,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 29,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 33,
+          "kind": "growth",
+          "description": "Reached skilled-worker level",
+          "significance": 0.8
+        },
+        {
+          "day": 38,
+          "kind": "fortune",
+          "description": "A risky move paid off: +119",
+          "significance": 0.8
+        },
+        {
+          "day": 63,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 67,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 68,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 72,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 83,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 84,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 86,
+          "kind": "misfortune",
+          "description": "A risky move failed: -65",
+          "significance": 0.78
+        },
+        {
+          "day": 98,
+          "kind": "growth",
+          "description": "Reached expert-skill level",
+          "significance": 0.86
+        },
+        {
+          "day": 102,
+          "kind": "fortune",
+          "description": "A risky move paid off: +111",
+          "significance": 0.8
+        },
+        {
+          "day": 116,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 124,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 128,
+          "kind": "fortune",
+          "description": "A risky move paid off: +116",
+          "significance": 0.8
+        },
+        {
+          "day": 132,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 139,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 143,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 149,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 151,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 153,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 155,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 159,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 172,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 182,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 184,
+          "kind": "status",
+          "description": "Outperformed Mira in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 194,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 209,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 210,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 214,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 216,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 227,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 234,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 236,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 239,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 240,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 245,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 248,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 262,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 269,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 273,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 278,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 291,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 314,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 336,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 342,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "work": 50,
+        "train": 46,
+        "compete": 110,
+        "risky_move": 30,
+        "rest": 46,
+        "socialize": 62,
+        "help": 21
+      }
+    },
+    {
+      "id": "npc_008",
+      "name": "Niko",
+      "age": 33,
+      "traits": {
+        "discipline": 0.62,
+        "sociability": 0.261,
+        "ambition": 0.282,
+        "risk_tolerance": 0.61,
+        "empathy": 0.588
+      },
+      "sins": {
+        "pride": 0.84,
+        "greed": 0.865,
+        "lust": 0.339,
+        "envy": 0.805,
+        "gluttony": 0.665,
+        "wrath": 0.282,
+        "sloth": 0.318
+      },
+      "money": 4827.56294107056,
+      "employed": true,
+      "salary": 33.43949577367126,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.7200000000000015,
+      "stress": 0.12186999999999994,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": 0.9723570369005358,
+        "npc_002": 0.89365,
+        "npc_003": 0.06913894252639,
+        "npc_004": 0.37782672482787644,
+        "npc_005": 0.06300574106894913,
+        "npc_006": -0.1681030350216739,
+        "npc_007": -0.6170811968856281,
+        "npc_009": 0.862380533771963,
+        "npc_010": -0.5066859089474047
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 22,
+          "kind": "fortune",
+          "description": "A risky move paid off: +125",
+          "significance": 0.8
+        },
+        {
+          "day": 23,
+          "kind": "fortune",
+          "description": "A risky move paid off: +135",
+          "significance": 0.8
+        },
+        {
+          "day": 26,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 29,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 41,
+          "kind": "fortune",
+          "description": "A risky move paid off: +116",
+          "significance": 0.8
+        },
+        {
+          "day": 63,
+          "kind": "fortune",
+          "description": "A risky move paid off: +123",
+          "significance": 0.8
+        },
+        {
+          "day": 75,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 78,
+          "kind": "relationship",
+          "description": "Helping Mira created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 80,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 103,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 112,
+          "kind": "fortune",
+          "description": "A risky move paid off: +126",
+          "significance": 0.8
+        },
+        {
+          "day": 180,
+          "kind": "growth",
+          "description": "Reached expert-skill level",
+          "significance": 0.86
+        },
+        {
+          "day": 183,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 186,
+          "kind": "fortune",
+          "description": "A risky move paid off: +122",
+          "significance": 0.8
+        },
+        {
+          "day": 190,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 238,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 248,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 256,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 257,
+          "kind": "fortune",
+          "description": "A risky move paid off: +137",
+          "significance": 0.8
+        },
+        {
+          "day": 263,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 264,
+          "kind": "fortune",
+          "description": "A risky move paid off: +131",
+          "significance": 0.8
+        },
+        {
+          "day": 282,
+          "kind": "misfortune",
+          "description": "A risky move failed: -64",
+          "significance": 0.78
+        },
+        {
+          "day": 288,
+          "kind": "relationship",
+          "description": "Helping Iris created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 290,
+          "kind": "fortune",
+          "description": "A risky move paid off: +127",
+          "significance": 0.8
+        },
+        {
+          "day": 311,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 328,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 338,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 348,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 352,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 358,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        },
+        {
+          "day": 364,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "risky_move": 74,
+        "work": 53,
+        "help": 61,
+        "rest": 47,
+        "train": 30,
+        "compete": 70,
+        "socialize": 30
+      }
+    },
+    {
+      "id": "npc_009",
+      "name": "Iris",
+      "age": 38,
+      "traits": {
+        "discipline": 0.283,
+        "sociability": 0.632,
+        "ambition": 0.591,
+        "risk_tolerance": 0.339,
+        "empathy": 0.751
+      },
+      "sins": {
+        "pride": 0.455,
+        "greed": 0.886,
+        "lust": 0.816,
+        "envy": 0.348,
+        "gluttony": 0.195,
+        "wrath": 0.161,
+        "sloth": 0.807
+      },
+      "money": 2691.641383565996,
+      "employed": true,
+      "salary": 32.493284606431885,
+      "job_level": 1,
+      "skill": 0.6625020758039853,
+      "energy": 0.86,
+      "stress": 0.08999999999999998,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": 1.0,
+        "npc_002": 1.0,
+        "npc_003": 0.9555657680714843,
+        "npc_004": 0.6122428020014488,
+        "npc_005": 1.0,
+        "npc_006": 1.0,
+        "npc_007": 0.39684385185031745,
+        "npc_008": 1.0,
+        "npc_010": 0.3882751762604173
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 5,
+          "kind": "fortune",
+          "description": "A risky move paid off: +113",
+          "significance": 0.8
+        },
+        {
+          "day": 11,
+          "kind": "fortune",
+          "description": "A risky move paid off: +116",
+          "significance": 0.8
+        },
+        {
+          "day": 54,
+          "kind": "relationship",
+          "description": "Became close with Lina",
+          "significance": 0.84
+        },
+        {
+          "day": 66,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 71,
+          "kind": "relationship",
+          "description": "Helping Niko created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 96,
+          "kind": "relationship",
+          "description": "Helping Kai created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 113,
+          "kind": "fortune",
+          "description": "A risky move paid off: +137",
+          "significance": 0.8
+        },
+        {
+          "day": 153,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 161,
+          "kind": "fortune",
+          "description": "A risky move paid off: +139",
+          "significance": 0.8
+        },
+        {
+          "day": 169,
+          "kind": "relationship",
+          "description": "Helping Niko created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 192,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 200,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 216,
+          "kind": "fortune",
+          "description": "A risky move paid off: +128",
+          "significance": 0.8
+        },
+        {
+          "day": 222,
+          "kind": "fortune",
+          "description": "A risky move paid off: +139",
+          "significance": 0.8
+        },
+        {
+          "day": 223,
+          "kind": "fortune",
+          "description": "A risky move paid off: +128",
+          "significance": 0.8
+        },
+        {
+          "day": 226,
+          "kind": "fortune",
+          "description": "A risky move paid off: +122",
+          "significance": 0.8
+        },
+        {
+          "day": 237,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 273,
+          "kind": "fortune",
+          "description": "A risky move paid off: +127",
+          "significance": 0.8
+        },
+        {
+          "day": 276,
+          "kind": "fortune",
+          "description": "A risky move paid off: +125",
+          "significance": 0.8
+        },
+        {
+          "day": 282,
+          "kind": "fortune",
+          "description": "A risky move paid off: +131",
+          "significance": 0.8
+        },
+        {
+          "day": 291,
+          "kind": "relationship",
+          "description": "Became close with Ren",
+          "significance": 0.84
+        },
+        {
+          "day": 306,
+          "kind": "fortune",
+          "description": "A risky move paid off: +123",
+          "significance": 0.8
+        },
+        {
+          "day": 320,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 337,
+          "kind": "fortune",
+          "description": "A risky move paid off: +137",
+          "significance": 0.8
+        },
+        {
+          "day": 347,
+          "kind": "fortune",
+          "description": "A risky move paid off: +128",
+          "significance": 0.8
+        },
+        {
+          "day": 356,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        }
+      ],
+      "actions": {
+        "rest": 46,
+        "risky_move": 84,
+        "socialize": 81,
+        "help": 85,
+        "compete": 34,
+        "work": 17,
+        "train": 18
+      }
+    },
+    {
+      "id": "npc_010",
+      "name": "Theo",
+      "age": 33,
+      "traits": {
+        "discipline": 0.535,
+        "sociability": 0.621,
+        "ambition": 0.743,
+        "risk_tolerance": 0.405,
+        "empathy": 0.26
+      },
+      "sins": {
+        "pride": 0.525,
+        "greed": 0.427,
+        "lust": 0.451,
+        "envy": 0.336,
+        "gluttony": 0.325,
+        "wrath": 0.789,
+        "sloth": 0.112
+      },
+      "money": 2715.6407343582723,
+      "employed": true,
+      "salary": 32.91885772925397,
+      "job_level": 1,
+      "skill": 1.0,
+      "energy": 0.8550000000000018,
+      "stress": 0.128845,
+      "reputation": 1.0,
+      "goal": "advance_career",
+      "relationships": {
+        "npc_001": -0.3041072373589986,
+        "npc_002": 0.6321975069597293,
+        "npc_003": -0.2720946827395434,
+        "npc_004": -0.2707979667377325,
+        "npc_005": -0.054295938709550254,
+        "npc_006": -0.20079897157935755,
+        "npc_007": -1.0,
+        "npc_008": -0.1857680652633578,
+        "npc_009": 0.33894962479834706
+      },
+      "events": [
+        {
+          "day": 1,
+          "kind": "goal",
+          "description": "Goal changed: none -> improve_skill",
+          "significance": 0.62
+        },
+        {
+          "day": 19,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 29,
+          "kind": "goal",
+          "description": "Goal changed: improve_skill -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 35,
+          "kind": "growth",
+          "description": "Reached skilled-worker level",
+          "significance": 0.8
+        },
+        {
+          "day": 39,
+          "kind": "status",
+          "description": "Outperformed Niko in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 61,
+          "kind": "status",
+          "description": "Outperformed Mira in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 67,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 69,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 71,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 72,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 76,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 83,
+          "kind": "misfortune",
+          "description": "A risky move failed: -63",
+          "significance": 0.78
+        },
+        {
+          "day": 90,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 92,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 97,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 106,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 112,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 114,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 118,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 123,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 126,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 128,
+          "kind": "status",
+          "description": "Outperformed Mira in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 129,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 141,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 142,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 152,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 166,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 200,
+          "kind": "relationship",
+          "description": "Helping Noah created a close alliance",
+          "significance": 0.84
+        },
+        {
+          "day": 205,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 213,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 219,
+          "kind": "status",
+          "description": "Outperformed Iris in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 219,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 222,
+          "kind": "status",
+          "description": "Outperformed Lina in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 223,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 232,
+          "kind": "status",
+          "description": "Outperformed Sora in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 257,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 276,
+          "kind": "misfortune",
+          "description": "A risky move failed: -62",
+          "significance": 0.78
+        },
+        {
+          "day": 277,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 280,
+          "kind": "status",
+          "description": "Outperformed Kai in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 281,
+          "kind": "goal",
+          "description": "Goal changed: advance_career -> build_relationships",
+          "significance": 0.62
+        },
+        {
+          "day": 326,
+          "kind": "goal",
+          "description": "Goal changed: build_relationships -> advance_career",
+          "significance": 0.62
+        },
+        {
+          "day": 336,
+          "kind": "status",
+          "description": "Outperformed Ren in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 351,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        },
+        {
+          "day": 360,
+          "kind": "misfortune",
+          "description": "A risky move failed: -61",
+          "significance": 0.78
+        },
+        {
+          "day": 361,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        },
+        {
+          "day": 364,
+          "kind": "status",
+          "description": "Outperformed Noah in competition",
+          "significance": 0.72
+        }
+      ],
+      "actions": {
+        "train": 55,
+        "compete": 89,
+        "rest": 45,
+        "risky_move": 43,
+        "socialize": 65,
+        "help": 23,
+        "work": 45
+      }
+    }
+  ]
+}
