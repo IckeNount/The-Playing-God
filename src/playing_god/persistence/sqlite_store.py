@@ -16,7 +16,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 5
 
 
 class PersistenceError(RuntimeError):
@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS agents (
 
     skill REAL NOT NULL,
     energy REAL NOT NULL,
+    social_energy REAL NOT NULL,
     stress REAL NOT NULL,
     reputation REAL NOT NULL,
 
@@ -91,6 +92,8 @@ CREATE TABLE IF NOT EXISTS events (
     kind TEXT NOT NULL,
     description TEXT NOT NULL,
     significance REAL NOT NULL,
+    target_id TEXT,
+    location TEXT,
 
     PRIMARY KEY (agent_id, event_index),
 
@@ -164,6 +167,46 @@ def _migrate_agents_to_v3(
         conn.execute(
             "ALTER TABLE agents ADD COLUMN "
             "destination TEXT"
+        )
+
+
+def _migrate_events_to_v4(
+    conn: sqlite3.Connection,
+) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(events)"
+        ).fetchall()
+    }
+
+    if "target_id" not in columns:
+        conn.execute(
+            "ALTER TABLE events ADD COLUMN target_id TEXT"
+        )
+
+    if "location" not in columns:
+        conn.execute(
+            "ALTER TABLE events ADD COLUMN location TEXT"
+        )
+
+
+def _migrate_agents_to_v5(
+    conn: sqlite3.Connection,
+) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+
+    if "social_energy" not in columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN social_energy REAL"
+        )
+        conn.execute(
+            "UPDATE agents SET social_energy = energy"
         )
 
 def _validate_tables(conn: sqlite3.Connection) -> None:
@@ -260,6 +303,7 @@ def _save_agents(
                 job_level,
                 skill,
                 energy,
+                social_energy,
                 stress,
                 reputation,
                 goal,
@@ -268,7 +312,7 @@ def _save_agents(
                 destination
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -283,6 +327,7 @@ def _save_agents(
                 job_level = excluded.job_level,
                 skill = excluded.skill,
                 energy = excluded.energy,
+                social_energy = excluded.social_energy,
                 stress = excluded.stress,
                 reputation = excluded.reputation,
                 goal = excluded.goal,
@@ -302,6 +347,7 @@ def _save_agents(
                 agent.job_level,
                 agent.skill,
                 agent.energy,
+                agent.social_energy,
                 agent.stress,
                 agent.reputation,
                 agent.goal,
@@ -385,7 +431,9 @@ def _save_events(
                     day,
                     kind,
                     description,
-                    significance
+                    significance,
+                    target_id,
+                    location
                 FROM events
                 WHERE agent_id = ?
                   AND event_index = ?
@@ -404,6 +452,10 @@ def _save_events(
                     == event.description
                     and existing["significance"]
                     == event.significance
+                    and existing["target_id"]
+                    == event.target_id
+                    and existing["location"]
+                    == event.location
                 )
 
                 if not same_event:
@@ -423,9 +475,11 @@ def _save_events(
                     day,
                     kind,
                     description,
-                    significance
+                    significance,
+                    target_id,
+                    location
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     agent.id,
@@ -434,6 +488,8 @@ def _save_events(
                     event.kind,
                     event.description,
                     event.significance,
+                    event.target_id,
+                    event.location,
                 ),
             )
 
@@ -454,6 +510,8 @@ def save_world(
             conn.executescript(SCHEMA)
 
             _migrate_agents_to_v3(conn)
+            _migrate_events_to_v4(conn)
+            _migrate_agents_to_v5(conn)
 
             _save_world_state(
                 conn,
@@ -494,6 +552,7 @@ def _load_agents(
         "current_location",
         "destination",
     }.issubset(columns)
+    has_social_energy = "social_energy" in columns
 
     rows = conn.execute(
         """
@@ -544,6 +603,11 @@ def _load_agents(
             job_level=row["job_level"],
             skill=row["skill"],
             energy=row["energy"],
+            social_energy=(
+                row["social_energy"]
+                if has_social_energy
+                else row["energy"]
+            ),
             stress=row["stress"],
             reputation=row["reputation"],
             goal=row["goal"],
@@ -634,15 +698,20 @@ def _load_events(
     conn: sqlite3.Connection,
     agents_by_id: dict[str, Agent],
 ) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(events)"
+        ).fetchall()
+    }
+    has_encounter_context = {
+        "target_id",
+        "location",
+    }.issubset(columns)
+
     rows = conn.execute(
         """
-        SELECT
-            agent_id,
-            event_index,
-            day,
-            kind,
-            description,
-            significance
+        SELECT *
         FROM events
         ORDER BY agent_id, event_index
         """
@@ -689,6 +758,16 @@ def _load_events(
             kind=row["kind"],
             description=row["description"],
             significance=row["significance"],
+            target_id=(
+                row["target_id"]
+                if has_encounter_context
+                else None
+            ),
+            location=(
+                row["location"]
+                if has_encounter_context
+                else None
+            ),
         )
 
         agents_by_id[
@@ -738,7 +817,7 @@ def load_world(
                     "World database has no world_state."
                 )
 
-            if state["schema_version"] not in (1, 2, SCHEMA_VERSION):
+            if state["schema_version"] not in (1, 2, 3, 4, SCHEMA_VERSION):
                 raise WorldLoadError(
                     "Unsupported database schema "
                     f"version: "
@@ -791,6 +870,7 @@ def load_world(
                     "Stored RNG state is corrupted."
                 ) from exc
             world.rebuild_social_graph()
+            world.rebuild_spatial_map()
 
             for (
                 source_id,

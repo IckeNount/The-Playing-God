@@ -59,3 +59,32 @@ class WorldMap:
             weight="travel_time",
             method="dijkstra",
         )
+
+
+def create_default_world_map() -> WorldMap:
+    """Build the small fixed map shared by deterministic worlds."""
+    world_map = WorldMap()
+
+    for location in (
+        Location("home", "home", 0, 0),
+        Location("market", "market", 2, 0),
+        Location("work", "work", 4, 0),
+        Location("cafe", "cafe", 0, 2),
+        Location("park", "park", 2, 2),
+        Location("school", "school", 4, 2),
+    ):
+        world_map.add_location(location)
+
+    for road in (
+        Road("home", "market", 2, 8),
+        Road("market", "work", 2, 8),
+        Road("home", "cafe", 2, 6),
+        Road("cafe", "park", 2, 5),
+        Road("market", "park", 2, 5),
+        Road("park", "school", 2, 6),
+        Road("school", "work", 2, 6),
+        Road("market", "school", 3, 10),
+    ):
+        world_map.add_road(road)
+
+    return world_map

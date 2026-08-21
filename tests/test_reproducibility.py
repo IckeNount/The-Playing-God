@@ -6,6 +6,7 @@ import unittest
 from dataclasses import asdict
 from pathlib import Path
 
+from archive.phrase1_main import World as Phase1World
 from playing_god.core.world import World
 
 
@@ -23,6 +24,22 @@ def agent_snapshot(agent) -> dict:
 
 
 def world_snapshot(world: World) -> dict:
+    return {
+        "seed": world.seed,
+        "day": world.day,
+        "agents": [
+            agent_snapshot(agent)
+            for agent in world.agents
+        ],
+        "social": {
+            f"{source_id}->{target_id}": dict(data)
+            for source_id, target_id, data
+            in world.social.graph.edges(data=True)
+        },
+    }
+
+
+def phase1_snapshot(world: Phase1World) -> dict:
     return {
         "seed": world.seed,
         "day": world.day,
@@ -95,10 +112,10 @@ class ReproducibilityTests(unittest.TestCase):
 
     # ---------------------------------------------------------
     # Phase-1 regression:
-    # modular Phase 2 must reproduce frozen Phase 1.
+    # The archived Phase-1 engine must reproduce its frozen fixture.
     # ---------------------------------------------------------
 
-    def test_phase2_matches_phase1_seed_1947_fixture(self):
+    def test_archived_phase1_matches_frozen_fixture(self):
         if not FIXTURE_PATH.exists():
             self.fail(
                 "Missing Phase-1 fixture: "
@@ -111,21 +128,21 @@ class ReproducibilityTests(unittest.TestCase):
             )
         )
 
-        world = World(
+        world = Phase1World(
             seed=1947,
             population=10,
         )
 
         world.run(365)
 
-        actual = world_snapshot(world)
+        actual = phase1_snapshot(world)
 
         self.assertEqual(
             expected,
             actual,
             msg=(
-                "The Phase-2 refactor changed "
-                "Phase-1 seed=1947 behavior."
+                "The archived Phase-1 engine no longer "
+                "matches its frozen seed=1947 fixture."
             ),
         )
 

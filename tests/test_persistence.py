@@ -35,6 +35,11 @@ def world_snapshot(world: World) -> dict:
             agent.id: agent_snapshot(agent)
             for agent in world.agents
         },
+        "social": {
+            f"{source_id}->{target_id}": dict(data)
+            for source_id, target_id, data
+            in world.social.graph.edges(data=True)
+        },
     }
 
 
@@ -106,7 +111,32 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 3)
+        self.assertEqual(schema_version, 5)
+
+    def test_schema4_defaults_social_energy_to_physical_energy(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "ALTER TABLE agents "
+                "DROP COLUMN social_energy"
+            )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 4 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            self.assertEqual(agent.social_energy, agent.energy)
+
+        loaded.agents[0].social_energy = 0.31
+        save_world(loaded, self.db_path)
+        reloaded = load_world(self.db_path)
+
+        self.assertEqual(reloaded.agents[0].social_energy, 0.31)
 
     def test_phase2_database_defaults_missing_spatial_state(self):
         world = World(seed=1947)
@@ -148,6 +178,8 @@ class PersistenceTests(unittest.TestCase):
                     event.kind,
                     event.description,
                     event.significance,
+                    event.target_id,
+                    event.location,
                 )
                 for event in agent.events
             ]
@@ -170,6 +202,8 @@ class PersistenceTests(unittest.TestCase):
                     event.kind,
                     event.description,
                     event.significance,
+                    event.target_id,
+                    event.location,
                 )
                 for event in agent.events
             ]
@@ -195,6 +229,43 @@ class PersistenceTests(unittest.TestCase):
                     f"for {agent.id}"
                 ),
             )
+
+    def test_schema3_events_load_without_encounter_context(self):
+        world = World(seed=1947, population=2)
+        world.run(1)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "ALTER TABLE events DROP COLUMN target_id"
+            )
+            conn.execute(
+                "ALTER TABLE events DROP COLUMN location"
+            )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 3 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            for event in agent.events:
+                self.assertIsNone(event.target_id)
+                self.assertIsNone(event.location)
+
+        save_world(loaded, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(events)"
+                )
+            }
+
+        self.assertIn("target_id", columns)
+        self.assertIn("location", columns)
 
     # ---------------------------------------------------------
     # TEST 4

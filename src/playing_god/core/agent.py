@@ -65,6 +65,11 @@ class Agent:
     stress: float
     reputation: float
 
+    social_energy: float | None = field(
+        default=None,
+        kw_only=True,
+    )
+
     goal: str = ""
 
     relationships: dict[str, float] = field(default_factory=dict)
@@ -74,9 +79,14 @@ class Agent:
     current_location: str = "home"
     destination: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.social_energy is None:
+            self.social_energy = self.energy
+
     def normalize(self) -> None:
         self.skill = clamp(self.skill)
         self.energy = clamp(self.energy)
+        self.social_energy = clamp(self.social_energy)
         self.stress = clamp(self.stress)
         self.reputation = clamp(
             self.reputation,
@@ -90,3 +100,12 @@ class Agent:
                 -1.0,
                 1.0,
             )
+
+    @property
+    def physical_energy(self) -> float:
+        """Explicit Phase 4 name for the legacy energy state."""
+        return self.energy
+
+    @physical_energy.setter
+    def physical_energy(self, value: float) -> None:
+        self.energy = value

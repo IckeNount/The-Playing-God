@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from itertools import combinations
-from dataclasses import dataclass
 import random
 
 @dataclass(frozen=True)
@@ -8,10 +7,6 @@ class Exposure:
     agent_a: str
     agent_b: str
     location: str
-
-from dataclasses import dataclass
-import random
-
 
 @dataclass(frozen=True)
 class Interaction:
@@ -21,12 +16,26 @@ class Interaction:
 
 
 def interaction_probability(agent_a, agent_b) -> float:
-    sociability_a = getattr(agent_a, "sociability", 0.5)
-    sociability_b = getattr(agent_b, "sociability", 0.5)
+    traits_a = getattr(agent_a, "traits", {})
+    traits_b = getattr(agent_b, "traits", {})
+
+    sociability_a = traits_a.get(
+        "sociability",
+        getattr(agent_a, "sociability", 0.5),
+    )
+    sociability_b = traits_b.get(
+        "sociability",
+        getattr(agent_b, "sociability", 0.5),
+    )
 
     probability = 0.2 + 0.6 * (
         (sociability_a + sociability_b) / 2
     )
+    social_energy = (
+        getattr(agent_a, "social_energy", 1.0)
+        + getattr(agent_b, "social_energy", 1.0)
+    ) / 2
+    probability *= social_energy
 
     return max(0.0, min(1.0, probability))
 

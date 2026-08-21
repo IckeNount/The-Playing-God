@@ -1,10 +1,25 @@
 from __future__ import annotations
 
+from itertools import islice
+
 from playing_god.core.agent import Agent, NAMES, SINS, TRAITS
 from playing_god.core.decision import belonging_need, choose, money_pressure
 from playing_god.core.events import Event
+from playing_god.core.exposure import (
+    Interaction,
+    detect_exposures,
+    resolve_interactions,
+)
+from playing_god.core.mobility import choose_destination, travel
 from playing_god.core.rng import create_rng
+from playing_god.core.spatial import create_default_world_map
 from .social import SocialGraph
+
+
+MIN_RELATIONSHIP_FAMILIARITY = 0.22
+MIN_VISIT_FAMILIARITY = 0.34
+MIN_VISIT_AFFINITY = 0.18
+
 
 class World:
     def __init__(
@@ -19,9 +34,15 @@ class World:
         self.agents = self._create_agents(population)
         self._create_relationships()
         self.rebuild_social_graph()
+        self.rebuild_spatial_map()
 
     def rebuild_social_graph(self) -> None:
         self.social = SocialGraph.from_agents(self.agents)
+
+    def rebuild_spatial_map(self) -> None:
+        self.world_map = create_default_world_map()
+        self.last_exposures = []
+        self.last_interactions = []
 
     def apply_social_event(
         self,
@@ -66,22 +87,28 @@ class World:
                 if employed
                 else 0
             )
+            age = self.rng.randint(20, 38)
+            money = self.rng.uniform(120, 520)
+            energy = self.rng.uniform(0.55, 0.95)
+            stress = self.rng.uniform(0.10, 0.45)
+            reputation = self.rng.uniform(-0.10, 0.20)
 
             people.append(
                 Agent(
                     id=f"npc_{i + 1:03d}",
                     name=NAMES[i],
-                    age=self.rng.randint(20, 38),
+                    age=age,
                     traits=traits,
                     sins=sins,
-                    money=self.rng.uniform(120, 520),
+                    money=money,
                     employed=employed,
                     salary=salary,
                     job_level=level,
                     skill=skill,
-                    energy=self.rng.uniform(0.55, 0.95),
-                    stress=self.rng.uniform(0.10, 0.45),
-                    reputation=self.rng.uniform(-0.10, 0.20),
+                    energy=energy,
+                    social_energy=energy,
+                    stress=stress,
+                    reputation=reputation,
                 )
             )
 
@@ -102,6 +129,9 @@ class World:
         kind: str,
         description: str,
         significance: float,
+        *,
+        target_id: str | None = None,
+        location: str | None = None,
     ) -> None:
         a.events.append(
             Event(
@@ -109,6 +139,8 @@ class World:
                 kind=kind,
                 description=description,
                 significance=significance,
+                target_id=target_id,
+                location=location,
             )
         )
 
@@ -139,12 +171,154 @@ class World:
                 0.62,
             )
 
-    def other_person(self, a: Agent) -> Agent:
-        others = [
-            b
-            for b in self.agents
-            if b.id != a.id
+    def move_for_action(
+        self,
+        a: Agent,
+        action: str,
+    ) -> None:
+        destination = choose_destination(a, action)
+        visit_target = None
+
+        if destination == "cafe":
+            visit_target = self.visit_target(a, action)
+
+            if visit_target is not None:
+                destination = visit_target.current_location
+
+        if destination == a.current_location:
+            return
+
+        result = travel(
+            a,
+            self.world_map,
+            destination,
+        )
+
+        route = " -> ".join(result.route)
+        purpose = f"for {action}"
+
+        if visit_target is not None:
+            purpose = f"to visit {visit_target.name}"
+
+        self.record(
+            a,
+            "travel",
+            f"Travelled {route} {purpose}",
+            0.10,
+        )
+
+    def resolve_daily_interactions(self) -> list[Interaction]:
+        """Resolve only interaction opportunities created by co-location."""
+        self.last_exposures = detect_exposures(self.agents)
+
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        encounter_seed = (
+            self.seed * 1_000_003
+            + self.day * 97_409
+        )
+        encounter_rng = create_rng(encounter_seed)
+
+        self.last_interactions = resolve_interactions(
+            self.last_exposures,
+            agents_by_id,
+            encounter_rng,
+        )
+
+        for interaction in self.last_interactions:
+            self.social.update_relationship(
+                interaction.agent_a,
+                interaction.agent_b,
+                familiarity=0.04,
+            )
+            self.social.update_relationship(
+                interaction.agent_b,
+                interaction.agent_a,
+                familiarity=0.04,
+            )
+
+            first = agents_by_id[interaction.agent_a]
+            second = agents_by_id[interaction.agent_b]
+
+            for participant in (first, second):
+                participant.social_energy -= (
+                    0.02
+                    + 0.02
+                    * (1 - participant.traits["sociability"])
+                )
+                participant.normalize()
+
+            self.record(
+                first,
+                "interaction",
+                f"Interacted with {second.name} at "
+                f"{interaction.location}",
+                0.20,
+                target_id=second.id,
+                location=interaction.location,
+            )
+            self.record(
+                second,
+                "interaction",
+                f"Interacted with {first.name} at "
+                f"{interaction.location}",
+                0.20,
+                target_id=first.id,
+                location=interaction.location,
+            )
+
+        return self.last_interactions
+
+    def sync_social_affinities(self) -> None:
+        """Mirror authoritative Agent affinity into the social graph."""
+        for agent in self.agents:
+            for target_id, affinity in agent.relationships.items():
+                relationship = self.social.get_relationship(
+                    agent.id,
+                    target_id,
+                )
+                current = relationship["affinity"]
+
+                if current != affinity:
+                    self.social.update_relationship(
+                        agent.id,
+                        target_id,
+                        affinity=affinity - current,
+                    )
+
+    def exposed_people(self, a: Agent) -> list[Agent]:
+        target_ids = set()
+
+        for exposure in detect_exposures(self.agents):
+            if exposure.agent_a == a.id:
+                target_ids.add(exposure.agent_b)
+            elif exposure.agent_b == a.id:
+                target_ids.add(exposure.agent_a)
+
+        return [
+            agent
+            for agent in self.agents
+            if agent.id in target_ids
         ]
+
+    def other_person(
+        self,
+        a: Agent,
+        candidates: list[Agent] | None = None,
+    ) -> Agent | None:
+        others = candidates
+
+        if others is None:
+            others = [
+                b
+                for b in self.agents
+                if b.id != a.id
+            ]
+
+        if not others:
+            return None
 
         weights = [
             0.25 + abs(a.relationships[b.id])
@@ -156,6 +330,76 @@ class World:
             weights=weights,
             k=1,
         )[0]
+
+    def relationship_target(self, a: Agent) -> Agent | None:
+        familiar = []
+
+        for other in self.exposed_people(a):
+            outward = self.social.get_relationship(
+                a.id,
+                other.id,
+            )["familiarity"]
+            inward = self.social.get_relationship(
+                other.id,
+                a.id,
+            )["familiarity"]
+
+            if min(outward, inward) >= MIN_RELATIONSHIP_FAMILIARITY:
+                familiar.append(other)
+
+        return self.other_person(a, familiar)
+
+    def visit_target(
+        self,
+        a: Agent,
+        action: str,
+    ) -> Agent | None:
+        if action not in {"socialize", "help"}:
+            return None
+
+        candidates = []
+
+        for other in self.agents:
+            if other.id == a.id:
+                continue
+
+            if other.current_location not in self.world_map.locations:
+                continue
+
+            outward = self.social.get_relationship(a.id, other.id)
+            inward = self.social.get_relationship(other.id, a.id)
+
+            if (
+                min(
+                    outward["familiarity"],
+                    inward["familiarity"],
+                ) < MIN_VISIT_FAMILIARITY
+            ):
+                continue
+
+            if (
+                min(
+                    outward["affinity"],
+                    inward["affinity"],
+                ) < MIN_VISIT_AFFINITY
+            ):
+                continue
+
+            score = (
+                outward["familiarity"]
+                + inward["familiarity"]
+                + outward["affinity"]
+                + inward["affinity"]
+            )
+            candidates.append((score, other))
+
+        if not candidates:
+            return None
+
+        return max(
+            candidates,
+            key=lambda candidate: candidate[0],
+        )[1]
 
     def act(
         self,
@@ -293,7 +537,15 @@ class World:
                 )
 
         elif action == "socialize":
-            b = self.other_person(a)
+            b = self.relationship_target(a)
+
+            a.money -= 5
+            a.social_energy -= 0.06
+            a.stress -= 0.035
+
+            if b is None:
+                a.normalize()
+                return
 
             before = a.relationships[b.id]
 
@@ -311,10 +563,6 @@ class World:
                 change
                 * self.rng.uniform(0.65, 1.05)
             )
-
-            a.money -= 5
-            a.energy -= 0.06
-            a.stress -= 0.035
 
             after = a.relationships[b.id]
 
@@ -338,7 +586,11 @@ class World:
                 )
 
         elif action == "help":
-            b = self.other_person(a)
+            b = self.relationship_target(a)
+
+            if b is None:
+                a.normalize()
+                return
 
             cost = min(
                 10,
@@ -361,9 +613,14 @@ class World:
 
             a.relationships[b.id] += gain
             b.relationships[a.id] += gain * 1.1
+            self.social.apply_social_event(
+                a.id,
+                b.id,
+                "help",
+            )
 
             a.reputation += 0.012
-            a.energy -= 0.045
+            a.social_energy -= 0.045
 
             if before < 0.42 <= a.relationships[b.id]:
                 self.record(
@@ -377,7 +634,11 @@ class World:
                 )
 
         elif action == "compete":
-            b = self.other_person(a)
+            b = self.relationship_target(a)
+
+            if b is None:
+                a.normalize()
+                return
 
             edge = (
                 a.skill
@@ -400,6 +661,7 @@ class World:
             )
 
             a.energy -= 0.07
+            a.social_energy -= 0.04
             a.stress += 0.05
 
             if edge > 0:
@@ -487,6 +749,7 @@ class World:
         elif action == "rest":
             a.money -= 3
             a.energy += 0.22
+            a.social_energy += 0.22
             a.stress -= 0.11
 
         a.normalize()
@@ -515,7 +778,17 @@ class World:
             a.money < -250
             and not any(
                 e.kind == "crisis"
-                for e in a.events[-30:]
+                for e in islice(
+                    (
+                        event
+                        for event in reversed(a.events)
+                        if event.kind not in {
+                            "travel",
+                            "interaction",
+                        }
+                    ),
+                    30,
+                )
             )
         ):
             self.record(
@@ -543,6 +816,7 @@ class World:
             )
 
         a.energy += 0.035
+        a.social_energy += 0.035
         a.stress -= 0.012
 
         a.normalize()
@@ -577,12 +851,20 @@ class World:
                     self.rng,
                 )
 
+                self.move_for_action(
+                    a,
+                    action,
+                )
+
                 self.act(
                     a,
                     action,
                 )
 
                 self.end_day(a)
+
+            self.sync_social_affinities()
+            self.resolve_daily_interactions()
 
         # Preserve Phase-1 aging for uninterrupted runs,
         # while also making split runs equivalent.

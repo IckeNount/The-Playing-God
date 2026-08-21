@@ -9,3 +9,5 @@ class Event:
     kind: str
     description: str
     significance: float
+    target_id: str | None = None
+    location: str | None = None

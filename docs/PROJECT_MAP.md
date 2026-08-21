@@ -12,11 +12,11 @@ scripts
        -> social graph
 
 core world
-  -> agent + decision + events + RNG + social graph
+  -> agent + decision + events + RNG + social graph + mobility + spatial map
 
-mobility + exposure
-  -> agent/spatial models
-  (currently tested components, not integrated into World.run)
+exposure
+  -> agent spatial state
+  -> daily interaction opportunities in core world
 ```
 
 Simulation code must not depend on `.agent/`, memory documents, or coding-agent tooling.
@@ -60,11 +60,13 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 - `src/playing_god/core/spatial.py` — `Location`, `Road`, and `WorldMap`.
 - `src/playing_god/core/mobility.py` — destination choice, travel, and event data.
+- `src/playing_god/visualization/spatial_map.py` — read-only fixed-map, NPC-position, and route renderer.
+- `scripts/show_spatial_map.py` — persisted-world spatial visualization entry point.
 - Agent location fields live in `src/playing_god/core/agent.py`.
 
-**Focused tests:** `tests/test_spatial.py`, `tests/test_mobility.py`, `tests/test_exposure.py`.
+**Focused tests:** `tests/test_spatial.py`, `tests/test_mobility.py`, `tests/test_exposure.py`, `tests/test_spatial_visualization.py`.
 
-**Current limitation:** Agent `current_location` and `destination` persist, but movement and exposure do not yet participate in `World.run()`. Do not describe Phase 4 as complete until movement, co-location, encounters, and persistence form one causal flow.
+**Current state:** The full movement → exposure → interaction → relationship → visit movement loop participates in `World.run()`, successful encounters retain who/where context, physical/social energy are separate, and the optional renderer inspects locations, roads, NPC positions, and supplied routes without mutating the world.
 
 ## `persistence` — durable world state
 
@@ -72,7 +74,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 3, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 5, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
@@ -113,4 +115,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-The next research-facing integration is completion of Phase 4 spatial mobility and encounters. Later briefs cover perception/belief/intervention, society and institutions, generations, culture, discovery, and recursive simulation. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phase 4 satisfies the master brief's exit condition. The next research-facing integration is Phase 5 perception/belief/intervention, beginning with distinct world truth, observation, perception, and belief state from V0.2.4. Later phases cover society and institutions, generations, culture, discovery, and recursive simulation. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

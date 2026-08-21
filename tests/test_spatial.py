@@ -5,6 +5,7 @@ from playing_god.core.spatial import (
     Location,
     Road,
     WorldMap,
+    create_default_world_map,
 )
 
 class SpatialModelTests(unittest.TestCase):
@@ -65,6 +66,18 @@ class SpatialModelTests(unittest.TestCase):
         self.assertEqual(
             route,
             ["home", "market", "shrine"],
+        )
+
+    def test_default_map_supports_daily_destinations(self):
+        world_map = create_default_world_map()
+
+        self.assertEqual(
+            set(world_map.locations),
+            {"home", "work", "market", "school", "park", "cafe"},
+        )
+        self.assertEqual(
+            world_map.find_route("home", "work"),
+            ["home", "market", "work"],
         )
 
 if __name__ == "__main__":

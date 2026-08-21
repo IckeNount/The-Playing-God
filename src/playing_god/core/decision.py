@@ -32,6 +32,7 @@ def scores(a: Agent) -> dict[str, float]:
     belonging = belonging_need(a)
     status = status_need(a)
     tired = 1 - a.energy
+    socially_tired = 1 - a.social_energy
 
     return {
         "work": (
@@ -63,7 +64,7 @@ def scores(a: Agent) -> dict[str, float]:
             1.3 * t["sociability"]
             + belonging
             + 0.35 * s["lust"]
-            - 0.5 * tired
+            - 0.5 * socially_tired
             - 0.3 * a.stress
         ),
 
@@ -72,7 +73,7 @@ def scores(a: Agent) -> dict[str, float]:
             + 0.5 * belonging
             + 0.2 * s["pride"]
             - 0.8 * money
-            - 0.4 * tired
+            - 0.4 * socially_tired
         ),
 
         "compete": (
@@ -82,6 +83,7 @@ def scores(a: Agent) -> dict[str, float]:
             + 0.4 * status
             - 0.7 * t["empathy"]
             + 0.2 * s["wrath"]
+            - 0.35 * socially_tired
         ),
 
         "risky_move": (
