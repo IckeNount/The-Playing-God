@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from playing_god.core.events import Event
+from playing_god.core.perception import Belief, Observation
 
 
 NAMES = [
@@ -75,6 +76,9 @@ class Agent:
     relationships: dict[str, float] = field(default_factory=dict)
     events: list[Event] = field(default_factory=list)
     actions: Counter = field(default_factory=Counter)
+
+    observations: list[Observation] = field(default_factory=list)
+    beliefs: dict[str, Belief] = field(default_factory=dict)
 
     current_location: str = "home"
     destination: str | None = None

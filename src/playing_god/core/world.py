@@ -11,6 +11,11 @@ from playing_god.core.exposure import (
     resolve_interactions,
 )
 from playing_god.core.mobility import choose_destination, travel
+from playing_god.core.perception import (
+    Observation,
+    belief_key,
+    receive_observation,
+)
 from playing_god.core.rng import create_rng
 from playing_god.core.spatial import create_default_world_map
 from .social import SocialGraph
@@ -183,7 +188,10 @@ class World:
             visit_target = self.visit_target(a, action)
 
             if visit_target is not None:
-                destination = visit_target.current_location
+                destination = self.believed_location(
+                    a,
+                    visit_target,
+                )
 
         if destination == a.current_location:
             return
@@ -267,6 +275,31 @@ class World:
                 0.20,
                 target_id=first.id,
                 location=interaction.location,
+            )
+
+            receive_observation(
+                first,
+                Observation(
+                    day=self.day,
+                    kind="agent_location",
+                    subject_id=second.id,
+                    value=interaction.location,
+                    source_id=second.id,
+                    reliability=1.0,
+                    location=interaction.location,
+                ),
+            )
+            receive_observation(
+                second,
+                Observation(
+                    day=self.day,
+                    kind="agent_location",
+                    subject_id=first.id,
+                    value=interaction.location,
+                    source_id=first.id,
+                    reliability=1.0,
+                    location=interaction.location,
+                ),
             )
 
         return self.last_interactions
@@ -363,7 +396,7 @@ class World:
             if other.id == a.id:
                 continue
 
-            if other.current_location not in self.world_map.locations:
+            if self.believed_location(a, other) is None:
                 continue
 
             outward = self.social.get_relationship(a.id, other.id)
@@ -400,6 +433,26 @@ class World:
             candidates,
             key=lambda candidate: candidate[0],
         )[1]
+
+    def believed_location(
+        self,
+        observer: Agent,
+        subject: Agent,
+    ) -> str | None:
+        belief = observer.beliefs.get(
+            belief_key(
+                "agent_location",
+                subject.id,
+            )
+        )
+
+        if belief is None or belief.confidence <= 0.0:
+            return None
+
+        if belief.value not in self.world_map.locations:
+            return None
+
+        return belief.value
 
     def act(
         self,

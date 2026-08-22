@@ -111,7 +111,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 5)
+        self.assertEqual(schema_version, 6)
 
     def test_schema4_defaults_social_energy_to_physical_energy(self):
         world = World(seed=1947)
@@ -137,6 +137,64 @@ class PersistenceTests(unittest.TestCase):
         reloaded = load_world(self.db_path)
 
         self.assertEqual(reloaded.agents[0].social_energy, 0.31)
+
+    def test_observations_and_beliefs_survive_restart(self):
+        world = World(seed=1947, population=2)
+        first, second = world.agents
+        first.current_location = "market"
+        second.current_location = "market"
+        first.traits["sociability"] = 1.0
+        second.traits["sociability"] = 1.0
+        world.day = 1
+        world.resolve_daily_interactions()
+
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(
+            world_snapshot(world),
+            world_snapshot(loaded),
+        )
+
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+
+        self.assertEqual(schema_version, 6)
+
+    def test_schema5_defaults_to_empty_perception_state(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DROP TABLE observations")
+            conn.execute("DROP TABLE beliefs")
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 5 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            self.assertEqual(agent.observations, [])
+            self.assertEqual(agent.beliefs, {})
+
+        save_world(loaded, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master "
+                    "WHERE type = 'table'"
+                )
+            }
+
+        self.assertIn("observations", tables)
+        self.assertIn("beliefs", tables)
 
     def test_phase2_database_defaults_missing_spatial_state(self):
         world = World(seed=1947)
@@ -409,6 +467,10 @@ class PersistenceTests(unittest.TestCase):
             len(agent.events)
             for agent in world.agents
         )
+        expected_observation_count = sum(
+            len(agent.observations)
+            for agent in world.agents
+        )
 
         save_world(
             world,
@@ -457,6 +519,13 @@ class PersistenceTests(unittest.TestCase):
                 """
             ).fetchone()[0]
 
+            observation_rows = conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM observations
+                """
+            ).fetchone()[0]
+
         self.assertEqual(
             agent_rows,
             expected_agent_count,
@@ -465,6 +534,11 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(
             event_rows,
             expected_event_count,
+        )
+
+        self.assertEqual(
+            observation_rows,
+            expected_observation_count,
         )
 
     # ---------------------------------------------------------

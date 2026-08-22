@@ -8,6 +8,11 @@ from pathlib import Path
 
 from playing_god.core.agent import Agent
 from playing_god.core.events import Event
+from playing_god.core.perception import (
+    Belief,
+    Observation,
+    belief_key,
+)
 from playing_god.core.rng import (
     create_rng,
     restore_state,
@@ -16,7 +21,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 class PersistenceError(RuntimeError):
@@ -101,6 +106,42 @@ CREATE TABLE IF NOT EXISTS events (
         REFERENCES agents(id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS observations (
+    agent_id TEXT NOT NULL,
+    observation_index INTEGER NOT NULL,
+
+    day INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    value TEXT NOT NULL,
+    source_id TEXT,
+    reliability REAL NOT NULL,
+    location TEXT,
+
+    PRIMARY KEY (agent_id, observation_index),
+
+    FOREIGN KEY (agent_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS beliefs (
+    agent_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+
+    value TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    updated_day INTEGER NOT NULL,
+    evidence_count INTEGER NOT NULL,
+
+    PRIMARY KEY (agent_id, kind, subject_id),
+
+    FOREIGN KEY (agent_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE
+);
 """
 
 
@@ -109,6 +150,11 @@ REQUIRED_TABLES = {
     "agents",
     "relationships",
     "events",
+}
+
+PERCEPTION_TABLES = {
+    "observations",
+    "beliefs",
 }
 
 
@@ -230,6 +276,30 @@ def _validate_tables(conn: sqlite3.Connection) -> None:
 
         raise WorldLoadError(
             f"Invalid world database. "
+            f"Missing tables: {names}"
+        )
+
+
+def _validate_perception_tables(
+    conn: sqlite3.Connection,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
+    ).fetchall()
+    found = {
+        row["name"]
+        for row in rows
+    }
+    missing = PERCEPTION_TABLES - found
+
+    if missing:
+        names = ", ".join(sorted(missing))
+        raise WorldLoadError(
+            "Invalid perception state. "
             f"Missing tables: {names}"
         )
 
@@ -494,6 +564,108 @@ def _save_events(
             )
 
 
+def _save_observations(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    for agent in world.agents:
+        for index, observation in enumerate(agent.observations):
+            existing = conn.execute(
+                """
+                SELECT
+                    day,
+                    kind,
+                    subject_id,
+                    value,
+                    source_id,
+                    reliability,
+                    location
+                FROM observations
+                WHERE agent_id = ?
+                  AND observation_index = ?
+                """,
+                (
+                    agent.id,
+                    index,
+                ),
+            ).fetchone()
+
+            values = (
+                observation.day,
+                observation.kind,
+                observation.subject_id,
+                observation.value,
+                observation.source_id,
+                observation.reliability,
+                observation.location,
+            )
+
+            if existing is not None:
+                if tuple(existing) != values:
+                    raise PersistenceError(
+                        "Existing observation history was "
+                        "modified unexpectedly: "
+                        f"{agent.id} observation {index}"
+                    )
+
+                continue
+
+            conn.execute(
+                """
+                INSERT INTO observations (
+                    agent_id,
+                    observation_index,
+                    day,
+                    kind,
+                    subject_id,
+                    value,
+                    source_id,
+                    reliability,
+                    location
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    agent.id,
+                    index,
+                    *values,
+                ),
+            )
+
+
+def _save_beliefs(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    conn.execute("DELETE FROM beliefs")
+
+    for agent in world.agents:
+        for belief in agent.beliefs.values():
+            conn.execute(
+                """
+                INSERT INTO beliefs (
+                    agent_id,
+                    kind,
+                    subject_id,
+                    value,
+                    confidence,
+                    updated_day,
+                    evidence_count
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    agent.id,
+                    belief.kind,
+                    belief.subject_id,
+                    belief.value,
+                    belief.confidence,
+                    belief.updated_day,
+                    belief.evidence_count,
+                ),
+            )
+
+
 def save_world(
     world: World,
     db_path: str | Path,
@@ -529,6 +701,16 @@ def save_world(
             )
 
             _save_events(
+                conn,
+                world,
+            )
+
+            _save_observations(
+                conn,
+                world,
+            )
+
+            _save_beliefs(
                 conn,
                 world,
             )
@@ -778,6 +960,121 @@ def _load_events(
         last_day[agent_id] = row["day"]
 
 
+def _load_observations(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM observations
+        ORDER BY agent_id, observation_index
+        """
+    ).fetchall()
+    expected_index = {
+        agent_id: 0
+        for agent_id in agents_by_id
+    }
+    last_day = {
+        agent_id: -1
+        for agent_id in agents_by_id
+    }
+
+    for row in rows:
+        agent_id = row["agent_id"]
+
+        if agent_id not in agents_by_id:
+            raise WorldLoadError(
+                "Observation references missing agent: "
+                f"{agent_id}"
+            )
+
+        expected = expected_index[agent_id]
+
+        if row["observation_index"] != expected:
+            raise WorldLoadError(
+                "Observation history contains a missing "
+                "or duplicated index for "
+                f"{agent_id}. Expected {expected}, "
+                f"found {row['observation_index']}."
+            )
+
+        if row["day"] < last_day[agent_id]:
+            raise WorldLoadError(
+                "Observation history is not chronological "
+                f"for {agent_id}."
+            )
+
+        if not 0.0 <= row["reliability"] <= 1.0:
+            raise WorldLoadError(
+                "Observation reliability is outside "
+                f"[0, 1] for {agent_id}."
+            )
+
+        agents_by_id[agent_id].observations.append(
+            Observation(
+                day=row["day"],
+                kind=row["kind"],
+                subject_id=row["subject_id"],
+                value=row["value"],
+                source_id=row["source_id"],
+                reliability=row["reliability"],
+                location=row["location"],
+            )
+        )
+        expected_index[agent_id] += 1
+        last_day[agent_id] = row["day"]
+
+
+def _load_beliefs(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM beliefs
+        ORDER BY agent_id, kind, subject_id
+        """
+    ).fetchall()
+
+    for row in rows:
+        agent_id = row["agent_id"]
+
+        if agent_id not in agents_by_id:
+            raise WorldLoadError(
+                "Belief references missing agent: "
+                f"{agent_id}"
+            )
+
+        if not 0.0 <= row["confidence"] <= 1.0:
+            raise WorldLoadError(
+                "Belief confidence is outside "
+                f"[0, 1] for {agent_id}."
+            )
+
+        if row["evidence_count"] < 1:
+            raise WorldLoadError(
+                "Belief evidence count must be positive "
+                f"for {agent_id}."
+            )
+
+        belief = Belief(
+            kind=row["kind"],
+            subject_id=row["subject_id"],
+            value=row["value"],
+            confidence=row["confidence"],
+            updated_day=row["updated_day"],
+            evidence_count=row["evidence_count"],
+        )
+        agents_by_id[agent_id].beliefs[
+            belief_key(
+                belief.kind,
+                belief.subject_id,
+            )
+        ] = belief
+
+
 def load_world(
     db_path: str | Path,
 ) -> World:
@@ -817,12 +1114,26 @@ def load_world(
                     "World database has no world_state."
                 )
 
-            if state["schema_version"] not in (1, 2, 3, 4, SCHEMA_VERSION):
+            if state["schema_version"] not in (
+                1,
+                2,
+                3,
+                4,
+                5,
+                SCHEMA_VERSION,
+            ):
                 raise WorldLoadError(
                     "Unsupported database schema "
                     f"version: "
                     f"{state['schema_version']}"
                 )
+
+            has_perception_state = (
+                state["schema_version"] >= 6
+            )
+
+            if has_perception_state:
+                _validate_perception_tables(conn)
 
             agents = _load_agents(conn)
 
@@ -840,6 +1151,16 @@ def load_world(
                 conn,
                 agents_by_id,
             )
+
+            if has_perception_state:
+                _load_observations(
+                    conn,
+                    agents_by_id,
+                )
+                _load_beliefs(
+                    conn,
+                    agents_by_id,
+                )
 
             # Do NOT call World(seed).
             #

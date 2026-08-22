@@ -36,6 +36,10 @@ from playing_god.core.mobility import (
     travel_event_data,
     TravelResult,
 )
+from playing_god.core.perception import (
+    Observation,
+    receive_observation,
+)
 
 from playing_god.core.spatial import (
     Location,
@@ -45,6 +49,43 @@ from playing_god.core.spatial import (
 from playing_god.core.world import World
 
 class MobilityTests(unittest.TestCase):
+
+    def make_strong_tie(self, world, actor, target):
+        actor.relationships[target.id] = 0.30
+        target.relationships[actor.id] = 0.30
+        world.social.update_relationship(
+            actor.id,
+            target.id,
+            familiarity=0.30,
+        )
+        world.social.update_relationship(
+            target.id,
+            actor.id,
+            familiarity=0.30,
+        )
+        world.sync_social_affinities()
+
+    def give_location_belief(
+        self,
+        actor,
+        target,
+        location,
+        *,
+        attention=1.0,
+    ):
+        receive_observation(
+            actor,
+            Observation(
+                day=1,
+                kind="agent_location",
+                subject_id=target.id,
+                value=location,
+                source_id=target.id,
+                reliability=1.0,
+                location=location,
+            ),
+            attention=attention,
+        )
 
     def test_tired_agent_goes_home(self):
         agent = SimpleNamespace(
@@ -222,19 +263,8 @@ class MobilityTests(unittest.TestCase):
         actor, target = world.agents
         actor.current_location = "home"
         target.current_location = "park"
-        actor.relationships[target.id] = 0.30
-        target.relationships[actor.id] = 0.30
-        world.social.update_relationship(
-            actor.id,
-            target.id,
-            familiarity=0.30,
-        )
-        world.social.update_relationship(
-            target.id,
-            actor.id,
-            familiarity=0.30,
-        )
-        world.sync_social_affinities()
+        self.make_strong_tie(world, actor, target)
+        self.give_location_belief(actor, target, "park")
 
         world.move_for_action(actor, "socialize")
 
@@ -242,6 +272,38 @@ class MobilityTests(unittest.TestCase):
         self.assertIn(target, world.exposed_people(actor))
         self.assertIn(
             f"to visit {target.name}",
+            actor.events[-1].description,
+        )
+
+    def test_stale_location_belief_can_cause_failed_visit(self):
+        world = World(seed=1947, population=2)
+        actor, target = world.agents
+        actor.current_location = "home"
+        target.current_location = "park"
+        self.make_strong_tie(world, actor, target)
+        self.give_location_belief(actor, target, "market")
+
+        world.move_for_action(actor, "socialize")
+
+        self.assertEqual(actor.current_location, "market")
+        self.assertNotIn(target, world.exposed_people(actor))
+        self.assertIn(
+            f"to visit {target.name}",
+            actor.events[-1].description,
+        )
+
+    def test_strong_tie_without_location_belief_uses_cafe(self):
+        world = World(seed=1947, population=2)
+        actor, target = world.agents
+        actor.current_location = "home"
+        target.current_location = "park"
+        self.make_strong_tie(world, actor, target)
+
+        world.move_for_action(actor, "socialize")
+
+        self.assertEqual(actor.current_location, "cafe")
+        self.assertIn(
+            "for socialize",
             actor.events[-1].description,
         )
 
