@@ -374,6 +374,8 @@ The system can support defensible experimental questions about causality, emerge
 
 **Status:** **HUMAN-REVIEW REQUIRED BEFORE IMPLEMENTATION**
 
+**Detailed research boundary:** [`phase-10-functional-consciousness.md`](research/phase-10-functional-consciousness.md)
+
 **Purpose:** Explore whether an NPC can develop increasingly persistent internal models of self, world, other agents, uncertainty, values, and hidden causes without prematurely claiming sentience.
 
 This phase must begin as a separate research design problem, not as an implementation impulse.

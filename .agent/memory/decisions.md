@@ -175,3 +175,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Compatibility:** Historical content remains available in the archive. Phase 5's detailed brief now defines 5A–5E directly; no runtime code or simulation behavior depends on these documentation paths.
 
 **Affected:** `AGENTS.md`, `README.md`, `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/PROJECT_MAP.md`, `docs/phases/`, `docs/archive/`, `.agent/memory/CURRENT.md`
+
+## 2026-08-22 — Preserve consciousness work as gated Phase 10 research
+
+**Area:** research-docs, coding-agent-memory
+
+**Decision:** Keep the functional-consciousness architecture, candidate experiments, ablations, ethical limits, and scientific non-claims in `docs/research/phase-10-functional-consciousness.md`. Its status is `RESEARCH — HUMAN REVIEW REQUIRED`; it is not an active phase brief and does not authorize implementation.
+
+**Reason:** The research gives future Phase 10 a concrete computer-engineering direction, but implementing it during Phase 5 would skip required social, developmental, discovery, and experimental foundations. Separating research from `docs/phases/` lets coding agents preserve the vision without mistaking it for the next task.
+
+**Boundary:** The current milestone remains Phase 5B. Do not introduce ML/RL frameworks, world-model infrastructure, emotion labels, or consciousness mechanisms from the Phase 10 research unless a human-approved experiment passes the roadmap gate and `docs/STATUS.md` advances the project.
+
+**Affected:** `AGENTS.md`, `docs/ROADMAP.md`, `docs/PROJECT_MAP.md`, `docs/research/phase-10-functional-consciousness.md`

@@ -51,3 +51,4 @@ For low-risk, reversible work affecting roughly five files or fewer, proceed fro
 - Do not introduce databases, services, frameworks, semantic indexes, containers, or deployment infrastructure without a measured need the current stack cannot meet.
 - Keep the system usable on weak hardware and avoid speculative abstractions.
 - The canonical long-term vision is `docs/ROADMAP.md`; `docs/STATUS.md` records current progress, and `docs/phases/` refines individual milestones.
+- Documents under `docs/research/` preserve human-review-gated directions. They do not authorize implementation or change the current phase unless `docs/STATUS.md` explicitly says so.

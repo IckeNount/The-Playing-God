@@ -119,6 +119,7 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 - `docs/STATUS.md` — current phase, completed step, and next implementation target.
 - `docs/phases/phase-04-spatial-mobility.md` — Phase 4 spatial/mobility requirements.
 - `docs/phases/phase-05-belief-intervention.md` — Phase 5 perception, prayer, intervention, faith, and counterfactual direction.
+- `docs/research/phase-10-functional-consciousness.md` — human-review-gated functional cognition research; it is not an active implementation brief.
 - `docs/archive/` — superseded versioned vision snapshots retained as research history, not active phase instructions.
 - `docs/memory-implementation.md` — coding-agent memory principles and staged infrastructure.
 
