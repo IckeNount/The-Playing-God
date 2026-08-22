@@ -6,7 +6,7 @@
 
 **Prerequisite:** [`Phase 4 — Spatial World, Mobility & Encounters`](phase-04-spatial-mobility.md)
 
-**Historical source:** Vision brief 0.2.4, normalized to the roadmap phase number on 2026-08-22.
+**Historical source:** Pre-normalization belief/intervention vision, reorganized as Phase 5 on 2026-08-22. Historical document versions must not be used as phase numbers.
 
 **Purpose:** Add imperfect perception, belief formation, prayer, sparse intervention, faith, and counterfactual divergence without giving the player direct control over NPCs.
 
@@ -141,6 +141,8 @@ uncertainty
 habit
 existing faith
 ```
+
+These are human-readable interpretations, not required emotion fields. The initial implementation should derive prayer utility from measurable existing state such as stress, goal blockage, loss events, uncertainty, habit, and faith; it must not add `fear`, `grief`, or similar flags merely to manufacture the example.
 
 Pattern:
 
@@ -420,6 +422,7 @@ These remain later systems from the archived vision documents.
 12. Baseline and intervention runs must remain reproducible from the same seed.
 13. The simulation must function without an LLM or API key.
 14. Phase 5 should remain lightweight, explainable, offline, and weak-hardware compatible.
+15. Human emotion words in this brief describe possible interpretations; they do not authorize hard-coded emotion labels or Phase 10 cognitive mechanisms.
 
 ---
 

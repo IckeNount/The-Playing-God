@@ -308,7 +308,7 @@ an LLM swarm
 a chatbot world
 a city-building game
 a real-world prediction engine
-a consciousness simulator
+a claim of consciousness or sentience
 a claim to model human psychology accurately
 ```
 
@@ -326,7 +326,7 @@ The project does not claim to:
 
 - predict specific real people
 - diagnose psychological conditions
-- prove or simulate consciousness
+- prove phenomenal consciousness or sentience
 - prove supernatural causation
 - reproduce real societies exactly
 - predict real historical events
@@ -338,6 +338,8 @@ The research target is the **behavior of the computational system itself**.
 ## Documentation
 
 The `docs/` directory preserves the evolving research architecture, project briefs, subsystem boundaries, implementation decisions, and future phase definitions.
+
+Human-review-gated future research lives under `docs/research/`; those documents do not change the active phase or authorize implementation.
 
 Start with:
 
