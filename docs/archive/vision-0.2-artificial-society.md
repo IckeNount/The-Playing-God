@@ -1,4 +1,6 @@
-# THE PLAYING GOD — V0.2
+# The Playing God — Archived Vision 0.2
+
+> Historical snapshot. Superseded by `docs/ROADMAP.md`; this document's version number is not a project phase.
 
 ## Identity
 

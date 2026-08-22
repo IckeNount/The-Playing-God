@@ -1,4 +1,6 @@
-# THE PLAYING GOD — V0.2.2
+# The Playing God — Archived Vision 0.2.2
+
+> Historical snapshot. Superseded by `docs/ROADMAP.md`; this document's version number is not a project phase.
 
 **Vision Update:** 2026-08-17  
 **Base:** V0.2 remains canonical. V0.2.2 adds the developmental, generational, discovery, recurrence, vector, and open-ended-civilization direction discussed afterward.

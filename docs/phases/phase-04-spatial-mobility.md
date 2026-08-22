@@ -1,8 +1,11 @@
-# THE PLAYING GOD — V0.2.3
-## Spatial World, Mobility & Encounter Layer
+# Phase 4 — Spatial World, Mobility & Encounters
 
-**Vision Update:** 2026-08-17  
-**Base:** V0.2 and V0.2.2 remain canonical.  
+**Status:** Complete
+
+**Roadmap:** [`Phase 4`](../ROADMAP.md#phase-4--spatial-world-mobility--encounters)
+
+**Historical source:** Vision brief 0.2.3, normalized to the roadmap phase number on 2026-08-22.
+
 **Purpose:** Add the missing physical-world layer that explains where NPCs are, how they travel, how they encounter others, and how geography becomes causal.
 
 ---
@@ -546,7 +549,7 @@ Spatial state must remain reproducible under deterministic seeds.
 
 ---
 
-# Canonical V0.2.3 Pattern
+# Canonical Phase 4 Pattern
 
 ```text
 SPACE

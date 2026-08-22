@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-The coding-agent memory foundation (M1/M2/M4) is installed. Phase 4 is complete by the master brief's exit condition: the deterministic simulation can explain location, travel motive/route, possible exposure, actual interaction, repeated-contact relationship change, and relationship-driven movement, with a separate lightweight path renderer.
+Phase 4 is complete. Phase 5A — Perception and Belief is complete at its initial foundation scope: world truth, received observations, interpreted perceptions, and current beliefs are distinct, and relationship-driven visits use the actor's believed location rather than live world truth. Phase 5B — Shrine and Prayer is next.
 
 ## Recent completed work
 
@@ -23,16 +23,20 @@ The coding-agent memory foundation (M1/M2/M4) is installed. Phase 4 is complete 
 - Successful interactions now append reciprocal events containing the other agent ID and location. SQLite schema version 4 persists this context; version 3 events load with `None` context and migrate on save.
 - `Agent.energy` remains the backward-compatible physical-energy state and `physical_energy` alias; bounded `social_energy` separately affects social decisions, trips, encounter probability, social actions, and recovery. SQLite schema version 5 persists it and defaults older worlds from physical energy without new RNG draws.
 - Added a read-only Matplotlib spatial debug map for fixed locations, roads, current NPC positions, optional highlighted routes, and simulation day. `scripts/show_spatial_map.py` loads persisted worlds; renderer tests verify it does not mutate simulation state.
+- Successful interactions now give each participant an append-only direct observation of the other's location. Deterministic perception updates a separate belief, which remains stale if truth later changes without new evidence.
+- SQLite schema version 6 persists observation histories and current beliefs. Version 1–5 worlds load with empty perception state and migrate on save without consuming RNG draws.
+- Strong-tie visits require a positive-confidence location belief. Current beliefs route normally, stale beliefs can cause failed rendezvous, and missing/invalid beliefs fall back to ordinary cafe travel without new RNG draws.
+- Documentation now uses stable phase-based names: `docs/ROADMAP.md`, `docs/STATUS.md`, and `docs/phases/phase-XX-*.md`. Superseded versioned vision briefs live under `docs/archive/` and no longer drive phase numbering.
 
 ## Active architectural concern
 
-Phase 5's perception boundary is not implemented: agents still consume world truth directly, with no distinct observation, perception, or belief state. The V0.2.4 brief internally calls this build sequence Phase 4, while the canonical master brief labels it Phase 5; follow the master phase numbering and the V0.2.4 subsystem order.
+Perception currently covers only direct interaction-derived location evidence. Phase 5B shrine/prayer state and behavior are not implemented.
 
 ## Known failures and blockers
 
-- Full suite after the Phase 4 spatial debug map: 53 tests pass.
+- Full suite after belief-driven visit movement: 61 tests pass.
 - Persistence tests emit unclosed-SQLite `ResourceWarning` messages. They do not currently fail the suite but should be diagnosed separately.
 
 ## Next logical task
 
-Begin Phase 5 with the smallest offline perception/belief foundation from V0.2.4: keep world truth, received observations, and agent belief state distinct before changing decisions or adding prayer/intervention behavior.
+Begin Phase 5B: add a shrine as an ordinary world location and the smallest structured, deterministic prayer mechanism before implementing Phase 5C interventions.

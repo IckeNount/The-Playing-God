@@ -1,9 +1,15 @@
-# THE PLAYING GOD — MASTER AGENT BRIEF V0.3
+# The Playing God — Project Roadmap
 
 **Document Role:** Canonical project-manager handoff for AI coding agents  
 **Project Type:** Master of Computer Engineering thesis / artificial-life and artificial-society simulation  
 **Status:** Living vision document  
 **Rule:** This document defines **what the project is becoming, why each phase exists, what must be proven, and when a phase is allowed to expand**. It does **not** prescribe folder structures, code style, class names, or line-by-line implementation.
+
+**Current progress:** See [`STATUS.md`](STATUS.md).
+
+**Detailed active briefs:** See [`phases/`](phases/).
+
+**Historical vision snapshots:** See [`archive/`](archive/). Version numbers in the archive describe document revisions, not project phases.
 
 ---
 
@@ -198,6 +204,8 @@ A meaningful change in one NPC can propagate into another NPC's decisions and fu
 
 ## Phase 4 — Spatial World, Mobility & Encounters
 
+**Detailed brief:** [`phase-04-spatial-mobility.md`](phases/phase-04-spatial-mobility.md)
+
 **Purpose:** Give physical causality to social contact.
 
 Relationships must no longer appear merely because two agents exist in the same database.
@@ -229,6 +237,8 @@ how repeated contact changed the social graph
 ---
 
 ## Phase 5 — Belief, Intervention & Counterfactual Fate
+
+**Detailed brief:** [`phase-05-belief-intervention.md`](phases/phase-05-belief-intervention.md)
 
 **Purpose:** Introduce the "God" mechanic as sparse causal intervention rather than direct NPC control.
 

@@ -137,3 +137,41 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Rejected:** Browser UI, 3D/game rendering, continuous animation, procedural layout, and renderer-owned position state.
 
 **Affected:** `src/playing_god/visualization/spatial_map.py`, `scripts/show_spatial_map.py`, `tests/test_spatial_visualization.py`
+
+## 2026-08-22 — Separate received evidence from current belief
+
+**Area:** perception-belief, social, persistence
+
+**Decision:** A successful interaction gives each participant an append-only `agent_location` observation about the other participant. A deterministic perception step converts observation reliability and attention into confidence, then replaces the current belief value while retaining an evidence count. World truth never refreshes beliefs directly.
+
+**Reason:** A location belief provides the smallest concrete proof of the Phase 5 boundary: an NPC can directly learn where someone was, that person can move, and the NPC's belief remains stale until new evidence arrives. The generic observation/perception/belief records support later information types without requiring an LLM or changing RNG order.
+
+**Deferred:** Random perceptual error, misinformation, social testimony, decision consumption, prayer, intervention, and faith attribution. Direct successful interaction currently has reliability and attention `1.0`; imperfection first appears as incomplete and stale information rather than fabricated error.
+
+**Compatibility:** SQLite schema version 6 stores append-only observations and replaceable current beliefs. Version 1–5 worlds load with empty perception state and migrate on save. Seeded, split-run, save/load, and archived Phase-1 contracts remain intact.
+
+**Affected:** `src/playing_god/core/perception.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_perception.py`, `tests/test_persistence.py`
+
+## 2026-08-22 — Route visits by believed location
+
+**Area:** perception-belief, spatial-mobility, social
+
+**Decision:** Relationship-driven visits select only strong ties for whom the actor has a positive-confidence `agent_location` belief pointing to a valid map location. Travel uses that belief value, never the target NPC's live `current_location`.
+
+**Reason:** This makes the perception boundary causally meaningful with the smallest existing decision path. A current belief can produce a meeting, a stale belief can produce a failed rendezvous, and absent knowledge cannot grant omniscient tracking.
+
+**Fallback:** Missing, zero-confidence, or invalid location beliefs leave the ordinary cafe destination unchanged. Relationship thresholds, Dijkstra routing, travel logging, and RNG order remain unchanged.
+
+**Affected:** `src/playing_god/core/world.py`, `tests/test_mobility.py`
+
+## 2026-08-22 — Use phase-based names for active research documents
+
+**Area:** research-docs, coding-agent-memory
+
+**Decision:** `docs/ROADMAP.md` is the canonical phase sequence, `docs/STATUS.md` states current progress, and active detailed briefs use `docs/phases/phase-XX-*.md`. Superseded versioned vision documents live under `docs/archive/`.
+
+**Reason:** Historical document versions such as 0.2.3 and 0.2.4 had phase numbers that no longer matched the canonical roadmap. Stable role- and phase-based names let humans and agents identify current authority without translating version history.
+
+**Compatibility:** Historical content remains available in the archive. Phase 5's detailed brief now defines 5A–5E directly; no runtime code or simulation behavior depends on these documentation paths.
+
+**Affected:** `AGENTS.md`, `README.md`, `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/PROJECT_MAP.md`, `docs/phases/`, `docs/archive/`, `.agent/memory/CURRENT.md`

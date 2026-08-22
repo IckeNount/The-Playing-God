@@ -50,4 +50,4 @@ For low-risk, reversible work affecting roughly five files or fewer, proceed fro
 - Do not duplicate detailed knowledge across this file, `PROJECT_MAP.md`, and episodic memory.
 - Do not introduce databases, services, frameworks, semantic indexes, containers, or deployment infrastructure without a measured need the current stack cannot meet.
 - Keep the system usable on weak hardware and avoid speculative abstractions.
-- The canonical long-term vision is `docs/the-playing-god-master-agent-brief-v0.3.md`; phase briefs refine individual milestones.
+- The canonical long-term vision is `docs/ROADMAP.md`; `docs/STATUS.md` records current progress, and `docs/phases/` refines individual milestones.

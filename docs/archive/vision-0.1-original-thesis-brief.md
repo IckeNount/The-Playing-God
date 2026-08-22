@@ -1,4 +1,6 @@
-# THE PLAYING GOD
+# The Playing God — Archived Vision 0.1
+
+> Historical snapshot. Superseded by `docs/ROADMAP.md`; this document's version number is not a project phase.
 ## Project Brief for a Master of Computer Engineering Thesis
 
 **Working Title:**  

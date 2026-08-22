@@ -100,19 +100,21 @@ Optional generative AI may later decide **how those events are expressed in lang
 - social graph inspection
 - interaction-driven state changes
 
-### Phase 4 — Spatial Mobility & Encounters 🚧
+### Phase 4 — Spatial Mobility & Encounters ✅
 
-Implemented foundations include:
+- locations, roads, and weighted routes
+- event-driven movement and persisted spatial state
+- co-location exposure and reproducible interaction resolution
+- familiarity and relationship-driven visits
+- separate physical and social energy
+- read-only path visualization
 
-- locations and roads
-- weighted spatial graph
-- route calculation
-- destination selection
-- travel state
-- exposure detection
-- interaction resolution
+### Phase 5 — Belief, Intervention & Counterfactual Fate 🚧
 
-Current integration work is connecting movement, co-location, encounters, social consequences, and persistence into one continuous world lifecycle.
+- 5A perception/belief foundation complete
+- observations, perceptions, and beliefs remain distinct from world truth
+- location beliefs persist and affect visit movement
+- 5B shrine/prayer is the next implementation step
 
 ---
 
@@ -176,6 +178,7 @@ src/playing_god/
 │   ├── events.py
 │   ├── exposure.py
 │   ├── mobility.py
+│   ├── perception.py
 │   ├── rng.py
 │   ├── social.py
 │   ├── spatial.py
@@ -185,12 +188,14 @@ src/playing_god/
 │   └── sqlite_store.py
 │
 └── visualization/
-    └── social_graph.py
+    ├── social_graph.py
+    └── spatial_map.py
 
 scripts/
 ├── run_simulation.py
 ├── inspect_agent.py
-└── show_social_graph.py
+├── show_social_graph.py
+└── show_spatial_map.py
 
 tests/
 docs/
@@ -337,8 +342,9 @@ The `docs/` directory preserves the evolving research architecture, project brie
 Start with:
 
 ```text
+docs/STATUS.md
+docs/ROADMAP.md
 docs/PROJECT_MAP.md
-docs/the-playing-god-master-agent-brief-v0.3.md
 ```
 
 ---

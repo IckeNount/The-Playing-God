@@ -7,12 +7,13 @@ Use this map to find the owning subsystem before opening source. It describes th
 ```text
 scripts
   -> persistence
-       -> core world + agent + events + RNG + social graph
+       -> core world + agent + events + perception + RNG + social graph
   -> visualization
        -> social graph
 
 core world
   -> agent + decision + events + RNG + social graph + mobility + spatial map
+  -> perception / belief
 
 exposure
   -> agent spatial state
@@ -66,15 +67,29 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_spatial.py`, `tests/test_mobility.py`, `tests/test_exposure.py`, `tests/test_spatial_visualization.py`.
 
-**Current state:** The full movement → exposure → interaction → relationship → visit movement loop participates in `World.run()`, successful encounters retain who/where context, physical/social energy are separate, and the optional renderer inspects locations, roads, NPC positions, and supplied routes without mutating the world.
+**Current state:** The full movement → exposure → interaction → relationship → visit movement loop participates in `World.run()`. Visits route to the actor's believed target location, so stale information can cause a failed rendezvous. Successful encounters retain who/where context, physical/social energy are separate, and the optional renderer inspects locations, roads, NPC positions, and supplied routes without mutating the world.
 
-## `persistence` — durable world state
+## `perception-belief` — received evidence and agent knowledge
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, relationship dimensions, and immutable event history.
+**Owns:** append-only observations, deterministic perception, and each agent's current revisable beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 5, and persistence errors.
+- `src/playing_god/core/perception.py` — `Observation`, `Perception`, `Belief`, and deterministic belief updating.
+- Per-agent observation history and belief state live in `src/playing_god/core/agent.py`.
+- Successful-interaction observations are produced in `src/playing_god/core/world.py`.
+
+**Focused tests:** `tests/test_perception.py`, plus persistence and split-run checks.
+
+**Important boundary:** World state remains causal truth. Observations contain only information that reached an NPC, perceptions interpret that evidence, and beliefs may remain stale after truth changes. Relationship-driven visits are the first decision path to consume belief state; missing or unusable location beliefs fall back to ordinary social travel.
+
+## `persistence` — durable world state
+
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, relationship dimensions, immutable event/observation history, and current beliefs.
+
+**Entry points:**
+
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 6, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
@@ -100,9 +115,11 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 **Entry points:**
 
-- `docs/the-playing-god-master-agent-brief-v0.3.md` — canonical long-term handoff.
-- `docs/the-playing-god-project-brief-v0.2.3-spatial-mobility.md` — spatial/mobility requirements.
-- `docs/the-playing-god-project-brief-v0.2.4-perception-belief-intervention.md` — perception, prayer, and intervention direction.
+- `docs/ROADMAP.md` — canonical phase sequence, outcomes, and exit conditions.
+- `docs/STATUS.md` — current phase, completed step, and next implementation target.
+- `docs/phases/phase-04-spatial-mobility.md` — Phase 4 spatial/mobility requirements.
+- `docs/phases/phase-05-belief-intervention.md` — Phase 5 perception, prayer, intervention, faith, and counterfactual direction.
+- `docs/archive/` — superseded versioned vision snapshots retained as research history, not active phase instructions.
 - `docs/memory-implementation.md` — coding-agent memory principles and staged infrastructure.
 
 ## `coding-agent-memory` — navigation and rationale
@@ -115,4 +132,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phase 4 satisfies the master brief's exit condition. The next research-facing integration is Phase 5 perception/belief/intervention, beginning with distinct world truth, observation, perception, and belief state from V0.2.4. Later phases cover society and institutions, generations, culture, discovery, and recursive simulation. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phase 4 satisfies the roadmap exit condition. Phase 5A is complete at its initial perception/belief foundation scope, and Phase 5B shrine/prayer is next. Indirect intervention, faith attribution, and counterfactual comparison remain planned as 5C–5E. Later phases cover society and institutions, generations, culture, discovery, and recursive simulation. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

@@ -1,8 +1,13 @@
-# THE PLAYING GOD — V0.2.4
-## Perceived World, Belief & God Intervention Layer
+# Phase 5 — Belief, Intervention & Counterfactual Fate
 
-**Vision Update:** 2026-08-18  
-**Base:** V0.2 and V0.2.2 remain canonical. V0.2.3 provides the spatial/mobility prerequisite.  
+**Status:** In progress — 5A complete; 5B is next
+
+**Roadmap:** [`Phase 5`](../ROADMAP.md#phase-5--belief-intervention--counterfactual-fate)
+
+**Prerequisite:** [`Phase 4 — Spatial World, Mobility & Encounters`](phase-04-spatial-mobility.md)
+
+**Historical source:** Vision brief 0.2.4, normalized to the roadmap phase number on 2026-08-22.
+
 **Purpose:** Add imperfect perception, belief formation, prayer, sparse intervention, faith, and counterfactual divergence without giving the player direct control over NPCs.
 
 ---
@@ -32,17 +37,17 @@ Misunderstanding, uncertainty, misinformation, attribution, faith, and skepticis
 
 ---
 
-# 2. Phase 4 Build Order
+# 2. Phase 5 Build Order
 
-```text
-4A  Spatial prerequisite
-4B  Perception / belief
-4C  Shrine / prayer
-4D  God intervention
-4E  Faith / causal attribution
-```
+| Step | Status | Outcome |
+|---|---|---|
+| 5A — Perception and belief | Complete | World truth, received observations, perceptions, and beliefs are distinct; beliefs persist and affect visit movement. |
+| 5B — Shrine and prayer | Next | Add an ordinary shrine location and structured, deterministic prayer behavior. |
+| 5C — Indirect intervention | Planned | Add dreams, signs, and opportunities that change conditions without forcing decisions. |
+| 5D — Faith and causal attribution | Planned | Let NPCs interpret outcomes and update faith or skepticism. |
+| 5E — Counterfactual comparison | Planned | Compare reproducible baseline and intervention timelines. |
 
-V0.2.3 remains responsible for:
+Phase 4 remains responsible for:
 
 ```text
 locations
@@ -54,7 +59,19 @@ exposure
 encounters
 ```
 
-Phase 4 builds on that physical layer rather than replacing it.
+Phase 5 builds on that physical layer rather than replacing it.
+
+## Current implementation position
+
+The 5A foundation is complete at its intended initial scope:
+
+- successful interaction creates reciprocal location observations;
+- deterministic perception produces confidence without new RNG draws;
+- current beliefs remain distinct from changing world truth;
+- SQLite schema version 6 persists observations and beliefs;
+- strong-tie visits use believed locations, so stale knowledge can cause failed rendezvous.
+
+The next implementation target is 5B. Prayer and intervention are not implemented yet.
 
 ---
 
@@ -271,7 +288,7 @@ contradictory evidence
 skepticism
 ```
 
-Phase 4 only needs the mechanism. Large-scale religion, ideology, propaganda, and institutions remain later extensions.
+Phase 5 only needs the mechanism. Large-scale religion, ideology, propaganda, and institutions remain later extensions.
 
 ---
 
@@ -308,7 +325,7 @@ This is the main research bridge between the fictional god mechanic and the thes
 
 # 10. Minimal Data Direction
 
-Add only what Phase 4 requires.
+Add only what Phase 5 requires.
 
 Conceptual entities:
 
@@ -334,9 +351,9 @@ Belief changes, prayers, and interventions should also appear in causal event hi
 
 ---
 
-# 11. Phase 4 Completion Test
+# 11. Phase 5 Completion Test
 
-A valid Phase 4 run should support a causal chain such as:
+A valid Phase 5 run should support a causal chain such as:
 
 ```text
 NPC loses job
@@ -364,7 +381,7 @@ No LLM should be required for this test.
 
 ---
 
-# 12. Out of Scope for Phase 4
+# 12. Out of Scope for Phase 5
 
 ```text
 reproduction
@@ -383,11 +400,11 @@ full religion systems
 3D visualization
 ```
 
-These remain later systems from the broader V0.2 / V0.2.2 vision.
+These remain later systems from the archived vision documents.
 
 ---
 
-# 13. V0.2.4 Design Laws
+# 13. Phase 5 Design Laws
 
 1. NPCs act on perceived reality, not guaranteed world truth.
 2. Reality, observation, perception, and belief remain distinct.
@@ -402,11 +419,11 @@ These remain later systems from the broader V0.2 / V0.2.2 vision.
 11. All important intervention effects must remain traceable in causal history.
 12. Baseline and intervention runs must remain reproducible from the same seed.
 13. The simulation must function without an LLM or API key.
-14. Phase 4 should remain lightweight, explainable, offline, and weak-hardware compatible.
+14. Phase 5 should remain lightweight, explainable, offline, and weak-hardware compatible.
 
 ---
 
-# Canonical V0.2.4 Pattern
+# Canonical Phase 5 Pattern
 
 ```text
 REALITY
