@@ -4,6 +4,7 @@ import math
 import random
 
 from playing_god.core.agent import Agent, clamp
+from playing_god.core.prayer import prayer_need
 
 
 def money_pressure(a: Agent) -> float:
@@ -12,7 +13,11 @@ def money_pressure(a: Agent) -> float:
 
 def belonging_need(a: Agent) -> float:
     positive_ties = [max(0, x) for x in a.relationships.values()]
-    average = sum(positive_ties) / len(positive_ties)
+    average = (
+        sum(positive_ties) / len(positive_ties)
+        if positive_ties
+        else 0.0
+    )
     return clamp(0.55 - average)
 
 
@@ -94,6 +99,8 @@ def scores(a: Agent) -> dict[str, float]:
             - 0.5 * t["discipline"]
         ),
 
+        "pray": prayer_need(a),
+
         "rest": (
             1.5 * tired
             + 1.1 * a.stress
@@ -103,10 +110,22 @@ def scores(a: Agent) -> dict[str, float]:
     }
 
 
-def choose(a: Agent, rng: random.Random) -> str:
+def choose(
+    a: Agent,
+    rng: random.Random,
+    *,
+    score_adjustments: dict[str, float] | None = None,
+) -> str:
+    action_scores = scores(a)
+
+    if score_adjustments:
+        for action, adjustment in score_adjustments.items():
+            if action in action_scores:
+                action_scores[action] += adjustment
+
     available = [
         (name, score)
-        for name, score in scores(a).items()
+        for name, score in action_scores.items()
         if score > -50
     ]
 

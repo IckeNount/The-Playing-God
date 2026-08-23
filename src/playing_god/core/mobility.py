@@ -12,6 +12,7 @@ ACTIVITY_DESTINATIONS = {
     "help": "cafe",
     "compete": "park",
     "risky_move": "market",
+    "pray": "shrine",
     "rest": "home",
 }
 
@@ -43,6 +44,9 @@ def choose_destination(
         and getattr(agent, "social_energy", 1.0) < 0.25
     ):
         return "home"
+
+    if activity == "pray":
+        return "shrine"
 
     if agent.stress > 0.75:
         return "park"

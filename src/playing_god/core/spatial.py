@@ -72,6 +72,7 @@ def create_default_world_map() -> WorldMap:
         Location("cafe", "cafe", 0, 2),
         Location("park", "park", 2, 2),
         Location("school", "school", 4, 2),
+        Location("shrine", "shrine", 2, 4),
     ):
         world_map.add_location(location)
 
@@ -84,6 +85,8 @@ def create_default_world_map() -> WorldMap:
         Road("park", "school", 2, 6),
         Road("school", "work", 2, 6),
         Road("market", "school", 3, 10),
+        Road("park", "shrine", 2, 6),
+        Road("school", "shrine", 3, 8),
     ):
         world_map.add_road(road)
 

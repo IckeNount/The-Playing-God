@@ -187,3 +187,59 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Boundary:** The current milestone remains Phase 5B. Do not introduce ML/RL frameworks, world-model infrastructure, emotion labels, or consciousness mechanisms from the Phase 10 research unless a human-approved experiment passes the roadmap gate and `docs/STATUS.md` advances the project.
 
 **Affected:** `AGENTS.md`, `docs/ROADMAP.md`, `docs/PROJECT_MAP.md`, `docs/research/phase-10-functional-consciousness.md`
+
+## 2026-08-23 — Make prayer an ordinary seeded action with no guaranteed response
+
+**Area:** core-simulation, spatial-mobility, shrine-prayer, persistence
+
+**Decision:** Add a connected shrine to the fixed map and let `pray` participate in the existing seeded weighted action choice. Prayer utility and intensity use only current stress, goal blockage, physical energy, and prior prayer count. A structured prayer and matching causal event are created only after the NPC reaches the shrine.
+
+**Reason:** This implements the smallest inspectable need → travel → prayer chain without inventing faith, emotion flags, supernatural causation, or a second decision engine. Prayer itself consumes no random draws and guarantees no intervention or outcome.
+
+**Compatibility:** SQLite schema version 7 stores append-only prayer history. Version 1–6 worlds load with empty prayer state and migrate on save. Current seeded, split-run, save/load, and archived Phase-1 contracts remain intact.
+
+**Affected:** `src/playing_god/core/prayer.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/decision.py`, `src/playing_god/core/mobility.py`, `src/playing_god/core/spatial.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_prayer.py`, `tests/test_persistence.py`, `tests/test_mobility.py`, `tests/test_spatial.py`
+
+## 2026-08-23 — Model intervention as a fallible world stimulus
+
+**Area:** indirect-intervention, perception-belief, core-simulation, persistence
+
+**Decision:** Represent dreams, signs, and opportunities as immutable target-specific conditions with strength, theme, suggested action, creation/expiry days, and optional location. Dreams are eligible without location; signs and opportunities require the target to reach their location. Existing traits and stress deterministically classify the response as missed, ignored, aligned, or misinterpreted.
+
+**Reason:** The player changes an information condition, not agent state or a decision. Noticed stimuli pass through ordinary observation/perception with no divine source. An interpreted stimulus only supplies a bounded temporary score adjustment to the existing seeded chooser, so the selected action and its outcome remain autonomous and uncertain.
+
+**Compatibility:** Intervention resolution consumes no world RNG. SQLite schema version 8 stores append-only interventions and responses; version 1–7 worlds load with empty intervention state. Active-intervention continuation matches uninterrupted execution.
+
+**Deferred:** Faith attribution, claims of supernatural causation, intervention resources, multi-target propagation, and formal baseline/counterfactual comparison.
+
+**Affected:** `src/playing_god/core/intervention.py`, `src/playing_god/core/world.py`, `src/playing_god/core/decision.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_intervention.py`, `tests/test_persistence.py`, `tests/test_reproducibility.py`
+
+## 2026-08-23 — Treat faith as revisable attribution, not causal truth
+
+**Area:** faith-attribution, shrine-prayer, indirect-intervention, persistence
+
+**Decision:** Store one bounded faith value per NPC and derive skepticism as `1 - faith`. After each day, classify only significant supported outcome events and append an attribution to miracle, coincidence, personal effort, social help, institutional cause, manipulation, or unknown. Cause selection uses prior faith, existing traits, a recent matching prayer, a remembered interpreted intervention response, explicit cause evidence, and event significance.
+
+**Reason:** This supplies an inspectable prayer → stimulus → outcome → interpretation → belief-update chain while preserving the distinction between NPC inference and simulation truth. Explicit social or institutional causes cannot be silently relabeled as miracles. Attribution and faith updates consume no RNG draws or LLM output.
+
+**Memory boundary:** A perceived response can support attribution for 30 simulated days even after its stimulus expires; expiry governs future exposure and action influence, not erasure of received evidence. Faith only feeds back modestly into normal prayer utility at this stage.
+
+**Compatibility:** SQLite schema version 9 stores current faith and append-only exact-event attribution history. Version 1–8 worlds load with neutral faith and empty attribution state. Seeded, split-run, repeated-save, and save/load behavior remain reproducible.
+
+**Deferred:** Social testimony and propagation, doctrine or religious institutions, intervention resources, and formal baseline/counterfactual comparison.
+
+**Affected:** `src/playing_god/core/faith.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/prayer.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_faith.py`, `tests/test_persistence.py`, `tests/test_reproducibility.py`
+
+## 2026-08-23 — Compare interventions as isolated same-seed worlds
+
+**Area:** counterfactual-comparison, reproducibility, thesis-methodology
+
+**Decision:** Build baseline and intervention branches as separate fresh `World` instances with identical seed, population, and duration. Apply an immutable intervention schedule only to the intervention branch, advance both one day at a time, and compare immutable final agent snapshots plus the first day and event where trajectories differ.
+
+**Reason:** This satisfies the Phase 5 research bridge without coupling experiments to SQLite, copying mutable world internals, or reducing comparison to event counts. The returned worlds preserve complete histories for inspection, while structured differences expose resources, career, state, geography, relationships, beliefs, prayer, faith attribution, actions, and causal events.
+
+**Scientific boundary:** The paired worlds hold random initialization constant and are exactly reproducible. They use the existing single world RNG stream, so once an intervention changes behavior, branch-specific code paths may consume later draws differently. Results are total deterministic model divergence, not a per-event common-random-number treatment estimate and never proof of supernatural causation.
+
+**Rejected:** Database cloning as experiment state, a generic recursive dictionary diff, event-count-only comparison, and an RNG-kernel migration inside Phase 5.
+
+**Affected:** `src/playing_god/core/counterfactual.py`, `scripts/compare_counterfactual.py`, `tests/test_counterfactual.py`, `docs/phases/phase-05-belief-intervention.md`

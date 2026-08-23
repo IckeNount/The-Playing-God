@@ -109,12 +109,13 @@ Optional generative AI may later decide **how those events are expressed in lang
 - separate physical and social energy
 - read-only path visualization
 
-### Phase 5 — Belief, Intervention & Counterfactual Fate 🚧
+### Phase 5 — Belief, Intervention & Counterfactual Fate ✅
 
-- 5A perception/belief foundation complete
-- observations, perceptions, and beliefs remain distinct from world truth
-- location beliefs persist and affect visit movement
-- 5B shrine/prayer is the next implementation step
+- imperfect perception and persistent beliefs remain distinct from world truth
+- shrine prayer records structured desires without guaranteed response
+- dreams, signs, and opportunities are fallible indirect interventions
+- outcomes receive inspectable causal attribution that updates faith or skepticism
+- paired same-seed worlds produce reproducible, first-event-linked trajectory comparisons
 
 ---
 
@@ -164,7 +165,7 @@ Seed 1947
 → alternative history
 ```
 
-Comparing the resulting trajectories allows the project to study **counterfactual effects and butterfly-like propagation** without confusing intervention effects with unrelated random initialization.
+Comparing the resulting trajectories allows the project to study **counterfactual model divergence and butterfly-like propagation** while holding random initialization constant.
 
 ---
 
@@ -174,11 +175,15 @@ Comparing the resulting trajectories allows the project to study **counterfactua
 src/playing_god/
 ├── core/
 │   ├── agent.py
+│   ├── counterfactual.py
 │   ├── decision.py
 │   ├── events.py
 │   ├── exposure.py
+│   ├── faith.py
+│   ├── intervention.py
 │   ├── mobility.py
 │   ├── perception.py
+│   ├── prayer.py
 │   ├── rng.py
 │   ├── social.py
 │   ├── spatial.py
@@ -192,6 +197,7 @@ src/playing_god/
     └── spatial_map.py
 
 scripts/
+├── compare_counterfactual.py
 ├── run_simulation.py
 ├── inspect_agent.py
 ├── show_social_graph.py
@@ -226,6 +232,23 @@ python3 scripts/run_simulation.py \
 ```
 
 Generated SQLite worlds are local runtime state and are not committed to the repository.
+
+Compare a baseline with one same-seed intervention branch:
+
+```bash
+python3 scripts/compare_counterfactual.py \
+  --seed 1947 \
+  --days 60 \
+  --day 0 \
+  --kind dream \
+  --target npc_001 \
+  --theme "an open office door" \
+  --action job_hunt \
+  --strength 1.0 \
+  --duration 14
+```
+
+The comparison reports deterministic behavior inside the model; it is not proof of supernatural or real-world causation.
 
 ---
 
@@ -280,8 +303,6 @@ individual development
 
 Potential later systems include:
 
-- belief and faith
-- indirect player intervention
 - institutions
 - economy
 - migration
@@ -290,7 +311,6 @@ Potential later systems include:
 - cultural transmission
 - technological discovery
 - causal event graphs
-- counterfactual timeline comparison
 - lightweight ML analysis
 - optional generative language
 - 2D visualization

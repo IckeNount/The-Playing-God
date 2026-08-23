@@ -4,7 +4,9 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from playing_god.core.events import Event
+from playing_god.core.faith import Attribution
 from playing_god.core.perception import Belief, Observation
+from playing_god.core.prayer import Prayer
 
 
 NAMES = [
@@ -70,6 +72,10 @@ class Agent:
         default=None,
         kw_only=True,
     )
+    faith: float = field(
+        default=0.5,
+        kw_only=True,
+    )
 
     goal: str = ""
 
@@ -79,6 +85,8 @@ class Agent:
 
     observations: list[Observation] = field(default_factory=list)
     beliefs: dict[str, Belief] = field(default_factory=dict)
+    prayers: list[Prayer] = field(default_factory=list)
+    attributions: list[Attribution] = field(default_factory=list)
 
     current_location: str = "home"
     destination: str | None = None
@@ -91,6 +99,7 @@ class Agent:
         self.skill = clamp(self.skill)
         self.energy = clamp(self.energy)
         self.social_energy = clamp(self.social_energy)
+        self.faith = clamp(self.faith)
         self.stress = clamp(self.stress)
         self.reputation = clamp(
             self.reputation,
@@ -113,3 +122,7 @@ class Agent:
     @physical_energy.setter
     def physical_energy(self, value: float) -> None:
         self.energy = value
+
+    @property
+    def skepticism(self) -> float:
+        return 1 - self.faith

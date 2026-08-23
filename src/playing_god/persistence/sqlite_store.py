@@ -8,11 +8,19 @@ from pathlib import Path
 
 from playing_god.core.agent import Agent
 from playing_god.core.events import Event
+from playing_god.core.faith import ATTRIBUTION_CAUSES, Attribution
+from playing_god.core.intervention import (
+    INTERPRETATIONS,
+    INTERVENTION_KINDS,
+    Intervention,
+    InterventionResponse,
+)
 from playing_god.core.perception import (
     Belief,
     Observation,
     belief_key,
 )
+from playing_god.core.prayer import Prayer
 from playing_god.core.rng import (
     create_rng,
     restore_state,
@@ -21,7 +29,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 9
 
 
 class PersistenceError(RuntimeError):
@@ -58,6 +66,7 @@ CREATE TABLE IF NOT EXISTS agents (
     energy REAL NOT NULL,
     social_energy REAL NOT NULL,
     stress REAL NOT NULL,
+    faith REAL NOT NULL,
     reputation REAL NOT NULL,
 
     goal TEXT NOT NULL,
@@ -142,6 +151,91 @@ CREATE TABLE IF NOT EXISTS beliefs (
         REFERENCES agents(id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS prayers (
+    agent_id TEXT NOT NULL,
+    prayer_index INTEGER NOT NULL,
+
+    desire_type TEXT NOT NULL,
+    intensity REAL NOT NULL,
+    related_goal TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+
+    PRIMARY KEY (agent_id, prayer_index),
+
+    FOREIGN KEY (agent_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS interventions (
+    id TEXT PRIMARY KEY,
+    intervention_index INTEGER NOT NULL UNIQUE,
+
+    kind TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    theme TEXT NOT NULL,
+    suggested_action TEXT NOT NULL,
+    strength REAL NOT NULL,
+    created_day INTEGER NOT NULL,
+    expires_day INTEGER NOT NULL,
+    location TEXT,
+
+    FOREIGN KEY (target_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS intervention_responses (
+    intervention_id TEXT PRIMARY KEY,
+    response_index INTEGER NOT NULL UNIQUE,
+
+    agent_id TEXT NOT NULL,
+    day INTEGER NOT NULL,
+    noticed INTEGER NOT NULL,
+    interpretation TEXT NOT NULL,
+    interpreted_action TEXT,
+    confidence REAL NOT NULL,
+
+    FOREIGN KEY (intervention_id)
+        REFERENCES interventions(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (agent_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS attributions (
+    agent_id TEXT NOT NULL,
+    attribution_index INTEGER NOT NULL,
+
+    day INTEGER NOT NULL,
+    outcome_event_index INTEGER NOT NULL,
+    outcome_kind TEXT NOT NULL,
+    outcome_valence TEXT NOT NULL,
+    cause TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    faith_before REAL NOT NULL,
+    faith_after REAL NOT NULL,
+    prayer_timestamp INTEGER,
+    intervention_id TEXT,
+
+    PRIMARY KEY (agent_id, attribution_index),
+    UNIQUE (agent_id, outcome_event_index),
+
+    FOREIGN KEY (agent_id)
+        REFERENCES agents(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (agent_id, outcome_event_index)
+        REFERENCES events(agent_id, event_index)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (intervention_id)
+        REFERENCES interventions(id)
+        ON DELETE SET NULL
+);
 """
 
 
@@ -155,6 +249,19 @@ REQUIRED_TABLES = {
 PERCEPTION_TABLES = {
     "observations",
     "beliefs",
+}
+
+PRAYER_TABLES = {
+    "prayers",
+}
+
+INTERVENTION_TABLES = {
+    "interventions",
+    "intervention_responses",
+}
+
+ATTRIBUTION_TABLES = {
+    "attributions",
 }
 
 
@@ -255,6 +362,23 @@ def _migrate_agents_to_v5(
             "UPDATE agents SET social_energy = energy"
         )
 
+
+def _migrate_agents_to_v9(
+    conn: sqlite3.Connection,
+) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+
+    if "faith" not in columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "faith REAL NOT NULL DEFAULT 0.5"
+        )
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -300,6 +424,78 @@ def _validate_perception_tables(
         names = ", ".join(sorted(missing))
         raise WorldLoadError(
             "Invalid perception state. "
+            f"Missing tables: {names}"
+        )
+
+
+def _validate_prayer_tables(
+    conn: sqlite3.Connection,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
+    ).fetchall()
+    found = {
+        row["name"]
+        for row in rows
+    }
+    missing = PRAYER_TABLES - found
+
+    if missing:
+        names = ", ".join(sorted(missing))
+        raise WorldLoadError(
+            "Invalid prayer state. "
+            f"Missing tables: {names}"
+        )
+
+
+def _validate_intervention_tables(
+    conn: sqlite3.Connection,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
+    ).fetchall()
+    found = {
+        row["name"]
+        for row in rows
+    }
+    missing = INTERVENTION_TABLES - found
+
+    if missing:
+        names = ", ".join(sorted(missing))
+        raise WorldLoadError(
+            "Invalid intervention state. "
+            f"Missing tables: {names}"
+        )
+
+
+def _validate_attribution_tables(
+    conn: sqlite3.Connection,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
+    ).fetchall()
+    found = {
+        row["name"]
+        for row in rows
+    }
+    missing = ATTRIBUTION_TABLES - found
+
+    if missing:
+        names = ", ".join(sorted(missing))
+        raise WorldLoadError(
+            "Invalid attribution state. "
             f"Missing tables: {names}"
         )
 
@@ -375,6 +571,7 @@ def _save_agents(
                 energy,
                 social_energy,
                 stress,
+                faith,
                 reputation,
                 goal,
                 actions_json,
@@ -382,7 +579,7 @@ def _save_agents(
                 destination
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -399,6 +596,7 @@ def _save_agents(
                 energy = excluded.energy,
                 social_energy = excluded.social_energy,
                 stress = excluded.stress,
+                faith = excluded.faith,
                 reputation = excluded.reputation,
                 goal = excluded.goal,
                 actions_json = excluded.actions_json,
@@ -419,6 +617,7 @@ def _save_agents(
                 agent.energy,
                 agent.social_energy,
                 agent.stress,
+                agent.faith,
                 agent.reputation,
                 agent.goal,
                 json.dumps(dict(agent.actions)),
@@ -666,6 +865,447 @@ def _save_beliefs(
             )
 
 
+def _save_prayers(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    for agent in world.agents:
+        for index, prayer in enumerate(agent.prayers):
+            if prayer.agent_id != agent.id:
+                raise PersistenceError(
+                    "Prayer owner does not match "
+                    f"its agent: {prayer.agent_id} != {agent.id}"
+                )
+
+            if not 0.0 <= prayer.intensity <= 1.0:
+                raise PersistenceError(
+                    "Prayer intensity is outside "
+                    f"[0, 1] for {agent.id}."
+                )
+
+            existing = conn.execute(
+                """
+                SELECT
+                    desire_type,
+                    intensity,
+                    related_goal,
+                    timestamp
+                FROM prayers
+                WHERE agent_id = ?
+                  AND prayer_index = ?
+                """,
+                (
+                    agent.id,
+                    index,
+                ),
+            ).fetchone()
+
+            values = (
+                prayer.desire_type,
+                prayer.intensity,
+                prayer.related_goal,
+                prayer.timestamp,
+            )
+
+            if existing is not None:
+                if tuple(existing) != values:
+                    raise PersistenceError(
+                        "Existing prayer history was "
+                        "modified unexpectedly: "
+                        f"{agent.id} prayer {index}"
+                    )
+
+                continue
+
+            conn.execute(
+                """
+                INSERT INTO prayers (
+                    agent_id,
+                    prayer_index,
+                    desire_type,
+                    intensity,
+                    related_goal,
+                    timestamp
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    agent.id,
+                    index,
+                    *values,
+                ),
+            )
+
+
+def _save_interventions(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    agent_ids = {
+        agent.id
+        for agent in world.agents
+    }
+
+    for index, intervention in enumerate(world.interventions):
+        expected_id = f"intervention_{index + 1:06d}"
+        if intervention.id != expected_id:
+            raise PersistenceError(
+                "Intervention history has an invalid ID. "
+                f"Expected {expected_id}, found {intervention.id}."
+            )
+
+        if intervention.kind not in INTERVENTION_KINDS:
+            raise PersistenceError(
+                "Unknown intervention kind: "
+                f"{intervention.kind}"
+            )
+
+        if intervention.target_id not in agent_ids:
+            raise PersistenceError(
+                "Intervention references missing agent: "
+                f"{intervention.target_id}"
+            )
+
+        if not 0.0 <= intervention.strength <= 1.0:
+            raise PersistenceError(
+                "Intervention strength is outside "
+                f"[0, 1] for {intervention.id}."
+            )
+
+        values = (
+            index,
+            intervention.kind,
+            intervention.target_id,
+            intervention.theme,
+            intervention.suggested_action,
+            intervention.strength,
+            intervention.created_day,
+            intervention.expires_day,
+            intervention.location,
+        )
+        existing = conn.execute(
+            """
+            SELECT
+                intervention_index,
+                kind,
+                target_id,
+                theme,
+                suggested_action,
+                strength,
+                created_day,
+                expires_day,
+                location
+            FROM interventions
+            WHERE id = ?
+            """,
+            (intervention.id,),
+        ).fetchone()
+
+        if existing is not None:
+            if tuple(existing) != values:
+                raise PersistenceError(
+                    "Existing intervention history was "
+                    "modified unexpectedly: "
+                    f"{intervention.id}"
+                )
+            continue
+
+        conn.execute(
+            """
+            INSERT INTO interventions (
+                id,
+                intervention_index,
+                kind,
+                target_id,
+                theme,
+                suggested_action,
+                strength,
+                created_day,
+                expires_day,
+                location
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                intervention.id,
+                *values,
+            ),
+        )
+
+
+def _save_intervention_responses(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    intervention_targets = {
+        intervention.id: intervention.target_id
+        for intervention in world.interventions
+    }
+
+    for index, response in enumerate(
+        world.intervention_responses
+    ):
+        if response.intervention_id not in intervention_targets:
+            raise PersistenceError(
+                "Response references missing intervention: "
+                f"{response.intervention_id}"
+            )
+
+        if (
+            response.agent_id
+            != intervention_targets[response.intervention_id]
+        ):
+            raise PersistenceError(
+                "Intervention response owner does not match "
+                f"its target: {response.agent_id} != "
+                f"{intervention_targets[response.intervention_id]}"
+            )
+
+        if response.interpretation not in INTERPRETATIONS:
+            raise PersistenceError(
+                "Unknown intervention interpretation: "
+                f"{response.interpretation}"
+            )
+
+        if not 0.0 <= response.confidence <= 1.0:
+            raise PersistenceError(
+                "Intervention confidence is outside "
+                f"[0, 1] for {response.intervention_id}."
+            )
+
+        values = (
+            index,
+            response.agent_id,
+            response.day,
+            int(response.noticed),
+            response.interpretation,
+            response.interpreted_action,
+            response.confidence,
+        )
+        existing = conn.execute(
+            """
+            SELECT
+                response_index,
+                agent_id,
+                day,
+                noticed,
+                interpretation,
+                interpreted_action,
+                confidence
+            FROM intervention_responses
+            WHERE intervention_id = ?
+            """,
+            (response.intervention_id,),
+        ).fetchone()
+
+        if existing is not None:
+            if tuple(existing) != values:
+                raise PersistenceError(
+                    "Existing intervention response was "
+                    "modified unexpectedly: "
+                    f"{response.intervention_id}"
+                )
+            continue
+
+        conn.execute(
+            """
+            INSERT INTO intervention_responses (
+                intervention_id,
+                response_index,
+                agent_id,
+                day,
+                noticed,
+                interpretation,
+                interpreted_action,
+                confidence
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                response.intervention_id,
+                *values,
+            ),
+        )
+
+
+def _save_attributions(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    response_agents = {
+        response.intervention_id: response.agent_id
+        for response in world.intervention_responses
+    }
+
+    for agent in world.agents:
+        previous_faith_after = None
+
+        for index, attribution in enumerate(agent.attributions):
+            if attribution.agent_id != agent.id:
+                raise PersistenceError(
+                    "Attribution owner does not match "
+                    f"its agent: {attribution.agent_id} != {agent.id}"
+                )
+
+            if attribution.cause not in ATTRIBUTION_CAUSES:
+                raise PersistenceError(
+                    "Unknown attribution cause: "
+                    f"{attribution.cause}"
+                )
+
+            if attribution.outcome_valence not in {
+                "positive",
+                "negative",
+            }:
+                raise PersistenceError(
+                    "Unknown attribution valence: "
+                    f"{attribution.outcome_valence}"
+                )
+
+            if not 0.0 <= attribution.confidence <= 1.0:
+                raise PersistenceError(
+                    "Attribution confidence is outside "
+                    f"[0, 1] for {agent.id}."
+                )
+
+            if not (
+                0.0 <= attribution.faith_before <= 1.0
+                and 0.0 <= attribution.faith_after <= 1.0
+            ):
+                raise PersistenceError(
+                    "Attribution faith state is outside "
+                    f"[0, 1] for {agent.id}."
+                )
+
+            if (
+                previous_faith_after is not None
+                and attribution.faith_before
+                != previous_faith_after
+            ):
+                raise PersistenceError(
+                    "Attribution faith history is discontinuous "
+                    f"for {agent.id}."
+                )
+
+            if not 0 <= attribution.outcome_event_index < len(agent.events):
+                raise PersistenceError(
+                    "Attribution references missing event: "
+                    f"{agent.id} event "
+                    f"{attribution.outcome_event_index}"
+                )
+
+            event = agent.events[attribution.outcome_event_index]
+            if (
+                event.day != attribution.day
+                or event.kind != attribution.outcome_kind
+            ):
+                raise PersistenceError(
+                    "Attribution outcome does not match its event: "
+                    f"{agent.id} attribution {index}"
+                )
+
+            if (
+                attribution.prayer_timestamp is not None
+                and not any(
+                    prayer.timestamp == attribution.prayer_timestamp
+                    for prayer in agent.prayers
+                )
+            ):
+                raise PersistenceError(
+                    "Attribution references missing prayer: "
+                    f"{agent.id} day {attribution.prayer_timestamp}"
+                )
+
+            if (
+                attribution.intervention_id is not None
+                and response_agents.get(attribution.intervention_id)
+                != agent.id
+            ):
+                raise PersistenceError(
+                    "Attribution references missing intervention response: "
+                    f"{attribution.intervention_id}"
+                )
+
+            values = (
+                attribution.day,
+                attribution.outcome_event_index,
+                attribution.outcome_kind,
+                attribution.outcome_valence,
+                attribution.cause,
+                attribution.confidence,
+                attribution.faith_before,
+                attribution.faith_after,
+                attribution.prayer_timestamp,
+                attribution.intervention_id,
+            )
+            existing = conn.execute(
+                """
+                SELECT
+                    day,
+                    outcome_event_index,
+                    outcome_kind,
+                    outcome_valence,
+                    cause,
+                    confidence,
+                    faith_before,
+                    faith_after,
+                    prayer_timestamp,
+                    intervention_id
+                FROM attributions
+                WHERE agent_id = ?
+                  AND attribution_index = ?
+                """,
+                (
+                    agent.id,
+                    index,
+                ),
+            ).fetchone()
+
+            if existing is not None:
+                if tuple(existing) != values:
+                    raise PersistenceError(
+                        "Existing attribution history was "
+                        "modified unexpectedly: "
+                        f"{agent.id} attribution {index}"
+                    )
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO attributions (
+                        agent_id,
+                        attribution_index,
+                        day,
+                        outcome_event_index,
+                        outcome_kind,
+                        outcome_valence,
+                        cause,
+                        confidence,
+                        faith_before,
+                        faith_after,
+                        prayer_timestamp,
+                        intervention_id
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        agent.id,
+                        index,
+                        *values,
+                    ),
+                )
+
+            previous_faith_after = attribution.faith_after
+
+        if (
+            previous_faith_after is not None
+            and previous_faith_after != agent.faith
+        ):
+            raise PersistenceError(
+                "Current faith does not match attribution history "
+                f"for {agent.id}."
+            )
+
+
 def save_world(
     world: World,
     db_path: str | Path,
@@ -684,6 +1324,7 @@ def save_world(
             _migrate_agents_to_v3(conn)
             _migrate_events_to_v4(conn)
             _migrate_agents_to_v5(conn)
+            _migrate_agents_to_v9(conn)
 
             _save_world_state(
                 conn,
@@ -715,6 +1356,26 @@ def save_world(
                 world,
             )
 
+            _save_prayers(
+                conn,
+                world,
+            )
+
+            _save_interventions(
+                conn,
+                world,
+            )
+
+            _save_intervention_responses(
+                conn,
+                world,
+            )
+
+            _save_attributions(
+                conn,
+                world,
+            )
+
     except sqlite3.DatabaseError as exc:
         raise PersistenceError(
             f"Could not save world database: {path}"
@@ -735,6 +1396,7 @@ def _load_agents(
         "destination",
     }.issubset(columns)
     has_social_energy = "social_energy" in columns
+    has_faith = "faith" in columns
 
     rows = conn.execute(
         """
@@ -791,6 +1453,11 @@ def _load_agents(
                 else row["energy"]
             ),
             stress=row["stress"],
+            faith=(
+                row["faith"]
+                if has_faith
+                else 0.5
+            ),
             reputation=row["reputation"],
             goal=row["goal"],
             relationships={},
@@ -1075,6 +1742,393 @@ def _load_beliefs(
         ] = belief
 
 
+def _load_prayers(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM prayers
+        ORDER BY agent_id, prayer_index
+        """
+    ).fetchall()
+    expected_index = {
+        agent_id: 0
+        for agent_id in agents_by_id
+    }
+    last_timestamp = {
+        agent_id: -1
+        for agent_id in agents_by_id
+    }
+
+    for row in rows:
+        agent_id = row["agent_id"]
+
+        if agent_id not in agents_by_id:
+            raise WorldLoadError(
+                "Prayer references missing agent: "
+                f"{agent_id}"
+            )
+
+        expected = expected_index[agent_id]
+        if row["prayer_index"] != expected:
+            raise WorldLoadError(
+                "Prayer history contains a missing "
+                "or duplicated index for "
+                f"{agent_id}. Expected {expected}, "
+                f"found {row['prayer_index']}."
+            )
+
+        if row["timestamp"] < last_timestamp[agent_id]:
+            raise WorldLoadError(
+                "Prayer history is not chronological "
+                f"for {agent_id}."
+            )
+
+        if not 0.0 <= row["intensity"] <= 1.0:
+            raise WorldLoadError(
+                "Prayer intensity is outside "
+                f"[0, 1] for {agent_id}."
+            )
+
+        agents_by_id[agent_id].prayers.append(
+            Prayer(
+                agent_id=agent_id,
+                desire_type=row["desire_type"],
+                intensity=row["intensity"],
+                related_goal=row["related_goal"],
+                timestamp=row["timestamp"],
+            )
+        )
+        expected_index[agent_id] += 1
+        last_timestamp[agent_id] = row["timestamp"]
+
+
+def _load_interventions(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+) -> list[Intervention]:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM interventions
+        ORDER BY intervention_index
+        """
+    ).fetchall()
+    interventions = []
+
+    for expected_index, row in enumerate(rows):
+        if row["intervention_index"] != expected_index:
+            raise WorldLoadError(
+                "Intervention history contains a missing "
+                "or duplicated index. "
+                f"Expected {expected_index}, "
+                f"found {row['intervention_index']}."
+            )
+
+        expected_id = f"intervention_{expected_index + 1:06d}"
+        if row["id"] != expected_id:
+            raise WorldLoadError(
+                "Intervention history has an invalid ID. "
+                f"Expected {expected_id}, found {row['id']}."
+            )
+
+        if row["target_id"] not in agents_by_id:
+            raise WorldLoadError(
+                "Intervention references missing agent: "
+                f"{row['target_id']}"
+            )
+
+        if row["kind"] not in INTERVENTION_KINDS:
+            raise WorldLoadError(
+                "Unknown intervention kind: "
+                f"{row['kind']}"
+            )
+
+        if not 0.0 <= row["strength"] <= 1.0:
+            raise WorldLoadError(
+                "Intervention strength is outside "
+                f"[0, 1] for {row['id']}."
+            )
+
+        if row["expires_day"] < row["created_day"]:
+            raise WorldLoadError(
+                "Intervention expires before creation: "
+                f"{row['id']}"
+            )
+
+        interventions.append(
+            Intervention(
+                id=row["id"],
+                kind=row["kind"],
+                target_id=row["target_id"],
+                theme=row["theme"],
+                suggested_action=row["suggested_action"],
+                strength=row["strength"],
+                created_day=row["created_day"],
+                expires_day=row["expires_day"],
+                location=row["location"],
+            )
+        )
+
+    return interventions
+
+
+def _load_intervention_responses(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+    intervention_targets: dict[str, str],
+) -> list[InterventionResponse]:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM intervention_responses
+        ORDER BY response_index
+        """
+    ).fetchall()
+    responses = []
+    last_day = -1
+
+    for expected_index, row in enumerate(rows):
+        if row["response_index"] != expected_index:
+            raise WorldLoadError(
+                "Intervention response history contains a "
+                "missing or duplicated index. "
+                f"Expected {expected_index}, "
+                f"found {row['response_index']}."
+            )
+
+        if row["intervention_id"] not in intervention_targets:
+            raise WorldLoadError(
+                "Response references missing intervention: "
+                f"{row['intervention_id']}"
+            )
+
+        if (
+            row["agent_id"]
+            != intervention_targets[row["intervention_id"]]
+        ):
+            raise WorldLoadError(
+                "Intervention response owner does not match "
+                f"its target: {row['intervention_id']}"
+            )
+
+        if row["agent_id"] not in agents_by_id:
+            raise WorldLoadError(
+                "Intervention response references missing agent: "
+                f"{row['agent_id']}"
+            )
+
+        if row["day"] < last_day:
+            raise WorldLoadError(
+                "Intervention response history is not chronological."
+            )
+
+        if row["noticed"] not in (0, 1):
+            raise WorldLoadError(
+                "Intervention response noticed state is invalid: "
+                f"{row['intervention_id']}"
+            )
+
+        if row["interpretation"] not in INTERPRETATIONS:
+            raise WorldLoadError(
+                "Unknown intervention interpretation: "
+                f"{row['interpretation']}"
+            )
+
+        if not 0.0 <= row["confidence"] <= 1.0:
+            raise WorldLoadError(
+                "Intervention confidence is outside "
+                f"[0, 1] for {row['intervention_id']}."
+            )
+
+        noticed = bool(row["noticed"])
+        interpreted_action = row["interpreted_action"]
+        interpretation = row["interpretation"]
+        if (
+            (interpretation == "missed" and noticed)
+            or (interpretation != "missed" and not noticed)
+            or (
+                interpretation in {"missed", "ignored"}
+                and interpreted_action is not None
+            )
+            or (
+                interpretation in {"aligned", "misinterpreted"}
+                and interpreted_action is None
+            )
+        ):
+            raise WorldLoadError(
+                "Inconsistent intervention response: "
+                f"{row['intervention_id']}"
+            )
+
+        responses.append(
+            InterventionResponse(
+                intervention_id=row["intervention_id"],
+                agent_id=row["agent_id"],
+                day=row["day"],
+                noticed=noticed,
+                interpretation=interpretation,
+                interpreted_action=interpreted_action,
+                confidence=row["confidence"],
+            )
+        )
+        last_day = row["day"]
+
+    return responses
+
+
+def _load_attributions(
+    conn: sqlite3.Connection,
+    agents_by_id: dict[str, Agent],
+    response_ids: set[str],
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT *
+        FROM attributions
+        ORDER BY agent_id, attribution_index
+        """
+    ).fetchall()
+    expected_index = {
+        agent_id: 0
+        for agent_id in agents_by_id
+    }
+    previous_faith_after: dict[str, float] = {}
+    last_day = {
+        agent_id: -1
+        for agent_id in agents_by_id
+    }
+
+    for row in rows:
+        agent_id = row["agent_id"]
+        if agent_id not in agents_by_id:
+            raise WorldLoadError(
+                "Attribution references missing agent: "
+                f"{agent_id}"
+            )
+
+        expected = expected_index[agent_id]
+        if row["attribution_index"] != expected:
+            raise WorldLoadError(
+                "Attribution history contains a missing "
+                "or duplicated index for "
+                f"{agent_id}. Expected {expected}, "
+                f"found {row['attribution_index']}."
+            )
+
+        if row["day"] < last_day[agent_id]:
+            raise WorldLoadError(
+                "Attribution history is not chronological "
+                f"for {agent_id}."
+            )
+
+        if row["cause"] not in ATTRIBUTION_CAUSES:
+            raise WorldLoadError(
+                "Unknown attribution cause: "
+                f"{row['cause']}"
+            )
+
+        if row["outcome_valence"] not in {"positive", "negative"}:
+            raise WorldLoadError(
+                "Unknown attribution valence: "
+                f"{row['outcome_valence']}"
+            )
+
+        if not 0.0 <= row["confidence"] <= 1.0:
+            raise WorldLoadError(
+                "Attribution confidence is outside "
+                f"[0, 1] for {agent_id}."
+            )
+
+        if not (
+            0.0 <= row["faith_before"] <= 1.0
+            and 0.0 <= row["faith_after"] <= 1.0
+        ):
+            raise WorldLoadError(
+                "Attribution faith state is outside "
+                f"[0, 1] for {agent_id}."
+            )
+
+        if (
+            agent_id in previous_faith_after
+            and row["faith_before"]
+            != previous_faith_after[agent_id]
+        ):
+            raise WorldLoadError(
+                "Attribution faith history is discontinuous "
+                f"for {agent_id}."
+            )
+
+        agent = agents_by_id[agent_id]
+        event_index = row["outcome_event_index"]
+        if not 0 <= event_index < len(agent.events):
+            raise WorldLoadError(
+                "Attribution references missing event: "
+                f"{agent_id} event {event_index}"
+            )
+
+        event = agent.events[event_index]
+        if (
+            event.day != row["day"]
+            or event.kind != row["outcome_kind"]
+        ):
+            raise WorldLoadError(
+                "Attribution outcome does not match its event: "
+                f"{agent_id} attribution {expected}"
+            )
+
+        prayer_timestamp = row["prayer_timestamp"]
+        if (
+            prayer_timestamp is not None
+            and not any(
+                prayer.timestamp == prayer_timestamp
+                for prayer in agent.prayers
+            )
+        ):
+            raise WorldLoadError(
+                "Attribution references missing prayer: "
+                f"{agent_id} day {prayer_timestamp}"
+            )
+
+        intervention_id = row["intervention_id"]
+        if (
+            intervention_id is not None
+            and intervention_id not in response_ids
+        ):
+            raise WorldLoadError(
+                "Attribution references missing intervention response: "
+                f"{intervention_id}"
+            )
+
+        agent.attributions.append(
+            Attribution(
+                agent_id=agent_id,
+                day=row["day"],
+                outcome_event_index=event_index,
+                outcome_kind=row["outcome_kind"],
+                outcome_valence=row["outcome_valence"],
+                cause=row["cause"],
+                confidence=row["confidence"],
+                faith_before=row["faith_before"],
+                faith_after=row["faith_after"],
+                prayer_timestamp=prayer_timestamp,
+                intervention_id=intervention_id,
+            )
+        )
+        expected_index[agent_id] += 1
+        last_day[agent_id] = row["day"]
+        previous_faith_after[agent_id] = row["faith_after"]
+
+    for agent_id, faith_after in previous_faith_after.items():
+        if agents_by_id[agent_id].faith != faith_after:
+            raise WorldLoadError(
+                "Current faith does not match attribution history "
+                f"for {agent_id}."
+            )
+
+
 def load_world(
     db_path: str | Path,
 ) -> World:
@@ -1120,6 +2174,9 @@ def load_world(
                 3,
                 4,
                 5,
+                6,
+                7,
+                8,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -1131,9 +2188,27 @@ def load_world(
             has_perception_state = (
                 state["schema_version"] >= 6
             )
+            has_prayer_state = (
+                state["schema_version"] >= 7
+            )
+            has_intervention_state = (
+                state["schema_version"] >= 8
+            )
+            has_attribution_state = (
+                state["schema_version"] >= 9
+            )
 
             if has_perception_state:
                 _validate_perception_tables(conn)
+
+            if has_prayer_state:
+                _validate_prayer_tables(conn)
+
+            if has_intervention_state:
+                _validate_intervention_tables(conn)
+
+            if has_attribution_state:
+                _validate_attribution_tables(conn)
 
             agents = _load_agents(conn)
 
@@ -1162,6 +2237,40 @@ def load_world(
                     agents_by_id,
                 )
 
+            if has_prayer_state:
+                _load_prayers(
+                    conn,
+                    agents_by_id,
+                )
+
+            interventions = []
+            intervention_responses = []
+            if has_intervention_state:
+                interventions = _load_interventions(
+                    conn,
+                    agents_by_id,
+                )
+                intervention_responses = (
+                    _load_intervention_responses(
+                        conn,
+                        agents_by_id,
+                        {
+                            intervention.id: intervention.target_id
+                            for intervention in interventions
+                        },
+                    )
+                )
+
+            if has_attribution_state:
+                _load_attributions(
+                    conn,
+                    agents_by_id,
+                    {
+                        response.intervention_id
+                        for response in intervention_responses
+                    },
+                )
+
             # Do NOT call World(seed).
             #
             # That would generate a temporary population
@@ -1171,6 +2280,8 @@ def load_world(
             world.seed = state["seed"]
             world.day = state["day"]
             world.agents = agents
+            world.interventions = interventions
+            world.intervention_responses = intervention_responses
 
             world.rng = create_rng(
                 world.seed
@@ -1192,6 +2303,26 @@ def load_world(
                 ) from exc
             world.rebuild_social_graph()
             world.rebuild_spatial_map()
+
+            for intervention in world.interventions:
+                if (
+                    intervention.kind == "dream"
+                    and intervention.location is not None
+                ):
+                    raise WorldLoadError(
+                        "Dream intervention has a location: "
+                        f"{intervention.id}"
+                    )
+
+                if (
+                    intervention.kind != "dream"
+                    and intervention.location
+                    not in world.world_map.locations
+                ):
+                    raise WorldLoadError(
+                        "Intervention has an invalid location: "
+                        f"{intervention.id}"
+                    )
 
             for (
                 source_id,

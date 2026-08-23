@@ -36,6 +36,14 @@ def world_snapshot(world: World) -> dict:
             for source_id, target_id, data
             in world.social.graph.edges(data=True)
         },
+        "interventions": [
+            asdict(intervention)
+            for intervention in world.interventions
+        ],
+        "intervention_responses": [
+            asdict(response)
+            for response in world.intervention_responses
+        ],
     }
 
 

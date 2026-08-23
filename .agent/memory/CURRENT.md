@@ -1,10 +1,10 @@
 # Current Engineering State
 
-**Updated:** 2026-08-22
+**Updated:** 2026-08-23
 
 ## Current milestone
 
-Phase 4 is complete. Phase 5A — Perception and Belief is complete at its initial foundation scope: world truth, received observations, interpreted perceptions, and current beliefs are distinct, and relationship-driven visits use the actor's believed location rather than live world truth. Phase 5B — Shrine and Prayer is next.
+Phases 4 and 5 are complete. Phase 5A–5E now cover perception/belief, shrine/prayer, indirect intervention, faith attribution, and paired counterfactual comparison at foundation scope. Phase 6 — Society, Information & Institutions requires scope refinement next.
 
 ## Recent completed work
 
@@ -27,16 +27,29 @@ Phase 4 is complete. Phase 5A — Perception and Belief is complete at its initi
 - SQLite schema version 6 persists observation histories and current beliefs. Version 1–5 worlds load with empty perception state and migrate on save without consuming RNG draws.
 - Strong-tie visits require a positive-confidence location belief. Current beliefs route normally, stale beliefs can cause failed rendezvous, and missing/invalid beliefs fall back to ordinary cafe travel without new RNG draws.
 - Documentation now uses stable phase-based names: `docs/ROADMAP.md`, `docs/STATUS.md`, and `docs/phases/phase-XX-*.md`. Superseded versioned vision briefs live under `docs/archive/` and no longer drive phase numbering.
+- The fixed map includes a shrine connected by ordinary roads. `pray` participates in normal seeded action choice using existing stress, goal blockage, energy, and prayer habit; only an NPC at the shrine creates a structured prayer and matching causal event.
+- SQLite schema version 7 persists append-only prayer histories with desire type, intensity, related goal, and simulated-day timestamp. Version 1–6 worlds load with empty prayer state and migrate on save.
+- Target-specific `dream`, `sign`, and `opportunity` interventions are time-bounded world conditions. Dreams can reach a target anywhere; signs/opportunities require co-location and can expire unseen.
+- Existing state deterministically produces missed, ignored, aligned, or misinterpreted responses without consuming world RNG. Noticed stimuli create ordinary observations and events with no divine source; interpreted stimuli only add temporary normal-action score adjustments.
+- SQLite schema version 8 persists append-only interventions and responses. Version 1–7 worlds load with empty intervention state and migrate on save.
+- Each NPC has a bounded `faith` value initialized neutrally at `0.5`; `skepticism` is its computed complement rather than separately mutable state. Faith modestly affects later prayer utility.
+- Significant outcomes are deterministically classified and linked to an append-only attribution: miracle, coincidence, personal effort, social help, institutional cause, manipulation, or unknown. Explicit identifiable causes outrank supernatural inference.
+- Recent matching prayer, remembered interpreted intervention response, prior faith, traits, and event significance shape causal attribution without RNG or LLM input. The response memory window is 30 days and is independent of stimulus expiry.
+- Attribution records link the exact outcome event index to evidence and preserve faith before/after. Matching causal events remain explicit that the record is an NPC inference, not proof of world causation.
+- SQLite schema version 9 persists current faith and append-only attribution history. Version 1–8 worlds load with neutral faith and empty attribution state, then migrate on save.
+- A scheduled counterfactual comparison runs isolated same-seed baseline and intervention worlds day by day. The baseline exactly matches an ordinary run, empty schedules remain identical, and repeated comparisons are exact.
+- Immutable agent snapshots cover dynamic resources, career, state, location, relationships/social graph, beliefs, histories, actions, prayers, and attribution. Results identify changed fields, affected agents, first differing events, and the first divergence day.
+- `scripts/compare_counterfactual.py` runs a one-intervention comparison and labels its output as deterministic model divergence rather than supernatural proof.
 
 ## Active architectural concern
 
-Perception currently covers only direct interaction-derived location evidence. Phase 5B shrine/prayer state and behavior are not implemented.
+The current world uses one seeded RNG stream. Same-seed branches have identical initialization and remain exactly reproducible, but an intervention-induced behavior change can alter later RNG draw allocation. Phase 5 comparisons therefore measure total model trajectory divergence, not an isolated treatment effect with per-event common random numbers. Keyed/substream RNG would require an intentional kernel migration before stronger causal claims.
 
 ## Known failures and blockers
 
-- Full suite after belief-driven visit movement: 61 tests pass.
+- Full suite after Phase 5 counterfactual comparison: 103 tests pass.
 - Persistence tests emit unclosed-SQLite `ResourceWarning` messages. They do not currently fail the suite but should be diagnosed separately.
 
 ## Next logical task
 
-Begin Phase 5B: add a shrine as an ordinary world location and the smallest structured, deterministic prayer mechanism before implementing Phase 5C interventions.
+Refine and approve the first Phase 6 scope, likely beginning with a minimal 6A economy mechanism grounded in existing employment, money, help, and resource flows.

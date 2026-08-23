@@ -111,6 +111,30 @@ class MobilityTests(unittest.TestCase):
 
         self.assertEqual(destination, "park")
 
+    def test_prayer_takes_stressed_agent_to_shrine(self):
+        agent = SimpleNamespace(
+            energy=0.80,
+            stress=0.90,
+            goal="advance_career",
+            employed=True,
+        )
+
+        destination = choose_destination(agent, "pray")
+
+        self.assertEqual(destination, "shrine")
+
+    def test_too_tired_agent_cannot_travel_to_pray(self):
+        agent = SimpleNamespace(
+            energy=0.20,
+            stress=0.90,
+            goal="advance_career",
+            employed=True,
+        )
+
+        destination = choose_destination(agent, "pray")
+
+        self.assertEqual(destination, "home")
+
     def test_normal_agent_goes_to_work(self):
         agent = SimpleNamespace(
             energy=0.80,

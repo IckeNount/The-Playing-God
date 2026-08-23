@@ -3,19 +3,39 @@ from __future__ import annotations
 from itertools import islice
 
 from playing_god.core.agent import Agent, NAMES, SINS, TRAITS
-from playing_god.core.decision import belonging_need, choose, money_pressure
+from playing_god.core.decision import (
+    belonging_need,
+    choose,
+    money_pressure,
+    scores as decision_scores,
+)
 from playing_god.core.events import Event
 from playing_god.core.exposure import (
     Interaction,
     detect_exposures,
     resolve_interactions,
 )
+from playing_god.core.faith import (
+    Attribution,
+    classify_outcome,
+    create_attribution,
+    recent_matching_prayer,
+)
 from playing_god.core.mobility import choose_destination, travel
+from playing_god.core.intervention import (
+    INTERVENTION_KINDS,
+    Intervention,
+    InterventionResponse,
+    classify_interpretation,
+    intervention_attention,
+    intervention_confidence,
+)
 from playing_god.core.perception import (
     Observation,
     belief_key,
     receive_observation,
 )
+from playing_god.core.prayer import create_prayer
 from playing_god.core.rng import create_rng
 from playing_god.core.spatial import create_default_world_map
 from .social import SocialGraph
@@ -35,6 +55,10 @@ class World:
         self.seed = seed
         self.rng = create_rng(seed)
         self.day = 0
+        self.interventions: list[Intervention] = []
+        self.intervention_responses: list[
+            InterventionResponse
+        ] = []
 
         self.agents = self._create_agents(population)
         self._create_relationships()
@@ -60,6 +84,323 @@ class World:
             target_id,
             event_type,
         )
+
+    def create_intervention(
+        self,
+        *,
+        kind: str,
+        target_id: str,
+        theme: str,
+        suggested_action: str,
+        strength: float = 0.70,
+        location: str | None = None,
+        duration: int = 7,
+    ) -> Intervention:
+        """Create a condition that may influence, never force, an NPC."""
+        if kind not in INTERVENTION_KINDS:
+            raise ValueError(f"Unknown intervention kind: {kind}")
+
+        targets = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        if target_id not in targets:
+            raise ValueError(
+                f"Unknown intervention target: {target_id}"
+            )
+
+        if not theme.strip():
+            raise ValueError("Intervention theme cannot be empty")
+
+        if suggested_action not in decision_scores(
+            targets[target_id]
+        ):
+            raise ValueError(
+                "Unknown suggested action: "
+                f"{suggested_action}"
+            )
+
+        if not 0.0 <= strength <= 1.0:
+            raise ValueError(
+                "Intervention strength must be within [0, 1]"
+            )
+
+        if duration < 1:
+            raise ValueError(
+                "Intervention duration must be at least one day"
+            )
+
+        if kind == "dream":
+            if location is not None:
+                raise ValueError(
+                    "Dream interventions cannot have a location"
+                )
+        elif location not in self.world_map.locations:
+            raise ValueError(
+                "Sign and opportunity interventions require "
+                "a valid location"
+            )
+
+        intervention = Intervention(
+            id=(
+                "intervention_"
+                f"{len(self.interventions) + 1:06d}"
+            ),
+            kind=kind,
+            target_id=target_id,
+            theme=theme.strip(),
+            suggested_action=suggested_action,
+            strength=strength,
+            created_day=self.day,
+            expires_day=self.day + duration,
+            location=location,
+        )
+        self.interventions.append(intervention)
+        return intervention
+
+    def intervention_action_adjustments(
+        self,
+        agent: Agent,
+    ) -> dict[str, float]:
+        interventions = {
+            intervention.id: intervention
+            for intervention in self.interventions
+        }
+        adjustments: dict[str, float] = {}
+
+        for response in self.intervention_responses:
+            if response.agent_id != agent.id:
+                continue
+
+            if response.interpreted_action is None:
+                continue
+
+            intervention = interventions.get(
+                response.intervention_id
+            )
+            if intervention is None:
+                continue
+
+            if not response.day <= self.day <= intervention.expires_day:
+                continue
+
+            adjustments[response.interpreted_action] = (
+                adjustments.get(response.interpreted_action, 0.0)
+                + 0.90
+                * intervention.strength
+                * response.confidence
+            )
+
+        return adjustments
+
+    def _alternative_interpretation(
+        self,
+        agent: Agent,
+        suggested_action: str,
+    ) -> str | None:
+        alternatives = [
+            (score, action)
+            for action, score in decision_scores(agent).items()
+            if action != suggested_action and score > -50
+        ]
+        if not alternatives:
+            return None
+
+        return max(alternatives)[1]
+
+    def resolve_interventions(
+        self,
+    ) -> list[InterventionResponse]:
+        """Resolve newly reachable stimuli without using world RNG."""
+        responded = {
+            response.intervention_id
+            for response in self.intervention_responses
+        }
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        new_responses = []
+
+        for intervention in self.interventions:
+            if intervention.id in responded:
+                continue
+
+            if not (
+                intervention.created_day
+                < self.day
+                <= intervention.expires_day
+            ):
+                continue
+
+            agent = agents_by_id[intervention.target_id]
+            if (
+                intervention.kind != "dream"
+                and agent.current_location != intervention.location
+            ):
+                continue
+
+            confidence = intervention_confidence(
+                agent,
+                intervention,
+            )
+            interpretation = classify_interpretation(confidence)
+            interpreted_action = None
+
+            if interpretation == "aligned":
+                interpreted_action = intervention.suggested_action
+            elif interpretation == "misinterpreted":
+                interpreted_action = self._alternative_interpretation(
+                    agent,
+                    intervention.suggested_action,
+                )
+
+            noticed = interpretation != "missed"
+            response = InterventionResponse(
+                intervention_id=intervention.id,
+                agent_id=agent.id,
+                day=self.day,
+                noticed=noticed,
+                interpretation=interpretation,
+                interpreted_action=interpreted_action,
+                confidence=confidence,
+            )
+            self.intervention_responses.append(response)
+            new_responses.append(response)
+
+            if not noticed:
+                continue
+
+            receive_observation(
+                agent,
+                Observation(
+                    day=self.day,
+                    kind=intervention.kind,
+                    subject_id=intervention.id,
+                    value=intervention.theme,
+                    source_id=None,
+                    reliability=intervention.strength,
+                    location=intervention.location,
+                ),
+                attention=intervention_attention(agent),
+            )
+
+            if interpreted_action is None:
+                description = (
+                    f"Noticed a {intervention.kind} about "
+                    f"{intervention.theme} but formed no intention"
+                )
+            else:
+                description = (
+                    f"Interpreted a {intervention.kind} about "
+                    f"{intervention.theme} as a reason to "
+                    f"{interpreted_action}"
+                )
+
+            self.record(
+                agent,
+                intervention.kind,
+                description,
+                confidence,
+                location=intervention.location,
+            )
+
+        return new_responses
+
+    def _recent_intervention_response(
+        self,
+        agent: Agent,
+        action: str | None,
+        *,
+        window: int = 30,
+    ) -> InterventionResponse | None:
+        if action is None:
+            return None
+
+        candidates = []
+
+        for response in self.intervention_responses:
+            if response.agent_id != agent.id:
+                continue
+            if response.interpreted_action != action:
+                continue
+            if not 0 <= self.day - response.day <= window:
+                continue
+
+            candidates.append(response)
+
+        return max(
+            candidates,
+            key=lambda response: response.day,
+            default=None,
+        )
+
+    def resolve_daily_attributions(
+        self,
+    ) -> list[Attribution]:
+        """Attribute today's significant outcomes without causal proof."""
+        new_attributions = []
+
+        for agent in self.agents:
+            processed = set()
+            for attribution in reversed(agent.attributions):
+                if attribution.day < self.day:
+                    break
+                if attribution.day == self.day:
+                    processed.add(attribution.outcome_event_index)
+
+            current_events = []
+            for event_index in range(len(agent.events) - 1, -1, -1):
+                event = agent.events[event_index]
+                if event.day < self.day:
+                    break
+                if event.day == self.day:
+                    current_events.append((event_index, event))
+
+            for event_index, event in reversed(current_events):
+                if event_index in processed:
+                    continue
+
+                outcome = classify_outcome(event)
+                if outcome is None:
+                    continue
+
+                prayer = recent_matching_prayer(
+                    agent,
+                    outcome.desire_type,
+                    self.day,
+                )
+                response = self._recent_intervention_response(
+                    agent,
+                    outcome.action,
+                )
+                attribution = create_attribution(
+                    agent,
+                    event,
+                    event_index,
+                    outcome,
+                    prayer=prayer,
+                    response=response,
+                )
+                agent.attributions.append(attribution)
+                agent.faith = attribution.faith_after
+                new_attributions.append(attribution)
+
+                self.record(
+                    agent,
+                    "attribution",
+                    (
+                        f"Attributed {event.kind} outcome to "
+                        f"{attribution.cause}; faith "
+                        f"{attribution.faith_before:.2f} -> "
+                        f"{attribution.faith_after:.2f}"
+                    ),
+                    attribution.confidence,
+                    target_id=event.target_id,
+                    location=event.location,
+                )
+
+        return new_attributions
 
     def _create_agents(
         self,
@@ -675,6 +1016,15 @@ class World:
             a.reputation += 0.012
             a.social_energy -= 0.045
 
+            self.record(
+                b,
+                "support",
+                f"Received material help from {a.name}",
+                0.55,
+                target_id=a.id,
+                location=a.current_location,
+            )
+
             if before < 0.42 <= a.relationships[b.id]:
                 self.record(
                     a,
@@ -799,6 +1149,24 @@ class World:
                         0.78,
                     )
 
+        elif action == "pray":
+            if a.current_location == "shrine":
+                prayer = create_prayer(a, self.day)
+                a.prayers.append(prayer)
+                a.energy -= 0.02
+                a.stress -= 0.04
+
+                self.record(
+                    a,
+                    "prayer",
+                    (
+                        f"Prayed for {prayer.desire_type} "
+                        f"with intensity {prayer.intensity:.2f}"
+                    ),
+                    prayer.intensity,
+                    location="shrine",
+                )
+
         elif action == "rest":
             a.money -= 3
             a.energy += 0.22
@@ -892,6 +1260,7 @@ class World:
             target_day + 1,
         ):
             self.day = day
+            self.resolve_interventions()
 
             order = self.agents[:]
             self.rng.shuffle(order)
@@ -902,6 +1271,9 @@ class World:
                 action = choose(
                     a,
                     self.rng,
+                    score_adjustments=(
+                        self.intervention_action_adjustments(a)
+                    ),
                 )
 
                 self.move_for_action(
@@ -918,6 +1290,7 @@ class World:
 
             self.sync_social_affinities()
             self.resolve_daily_interactions()
+            self.resolve_daily_attributions()
 
         # Preserve Phase-1 aging for uninterrupted runs,
         # while also making split runs equivalent.

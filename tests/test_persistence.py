@@ -7,8 +7,11 @@ import unittest
 from dataclasses import asdict
 from pathlib import Path
 
+from playing_god.core.events import Event
 from playing_god.core.world import World
+from playing_god.core.prayer import Prayer
 from playing_god.persistence.sqlite_store import (
+    PersistenceError,
     WorldLoadError,
     load_world,
     save_world,
@@ -40,6 +43,14 @@ def world_snapshot(world: World) -> dict:
             for source_id, target_id, data
             in world.social.graph.edges(data=True)
         },
+        "interventions": [
+            asdict(intervention)
+            for intervention in world.interventions
+        ],
+        "intervention_responses": [
+            asdict(response)
+            for response in world.intervention_responses
+        ],
     }
 
 
@@ -111,7 +122,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 6)
+        self.assertEqual(schema_version, 9)
 
     def test_schema4_defaults_social_energy_to_physical_energy(self):
         world = World(seed=1947)
@@ -162,7 +173,271 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 6)
+        self.assertEqual(schema_version, 9)
+
+    def test_prayers_survive_restart(self):
+        world = World(seed=1947)
+        agent = world.agents[0]
+        agent.prayers.append(
+            Prayer(
+                agent_id=agent.id,
+                desire_type="security",
+                intensity=0.72,
+                related_goal="build_savings",
+                timestamp=4,
+            )
+        )
+
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(
+            loaded.agents[0].prayers,
+            agent.prayers,
+        )
+
+    def test_prayer_cannot_be_saved_under_wrong_agent(self):
+        world = World(seed=1947)
+        agent = world.agents[0]
+        agent.prayers.append(
+            Prayer(
+                agent_id=world.agents[1].id,
+                desire_type="security",
+                intensity=0.72,
+                related_goal="build_savings",
+                timestamp=4,
+            )
+        )
+
+        with self.assertRaises(PersistenceError):
+            save_world(world, self.db_path)
+
+    def test_schema6_defaults_to_empty_prayer_state(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DROP TABLE prayers")
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 6 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            self.assertEqual(agent.prayers, [])
+
+        save_world(loaded, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            prayer_table = conn.execute(
+                "SELECT name FROM sqlite_master "
+                "WHERE type = 'table' AND name = 'prayers'"
+            ).fetchone()
+
+        self.assertEqual(schema_version, 9)
+        self.assertIsNotNone(prayer_table)
+
+    def test_schema7_defaults_to_empty_intervention_state(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DROP TABLE intervention_responses")
+            conn.execute("DROP TABLE interventions")
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 7 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(loaded.interventions, [])
+        self.assertEqual(loaded.intervention_responses, [])
+
+        save_world(loaded, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master "
+                    "WHERE type = 'table'"
+                )
+            }
+
+        self.assertEqual(schema_version, 9)
+        self.assertIn("interventions", tables)
+        self.assertIn("intervention_responses", tables)
+
+    def test_schema8_defaults_to_neutral_empty_faith_state(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DROP TABLE attributions")
+            conn.execute("ALTER TABLE agents DROP COLUMN faith")
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 8 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            self.assertEqual(agent.faith, 0.5)
+            self.assertEqual(agent.attributions, [])
+
+        save_world(loaded, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            agent_columns = {
+                row[1]
+                for row in conn.execute("PRAGMA table_info(agents)")
+            }
+            attribution_table = conn.execute(
+                "SELECT name FROM sqlite_master "
+                "WHERE type = 'table' AND name = 'attributions'"
+            ).fetchone()
+
+        self.assertEqual(schema_version, 9)
+        self.assertIn("faith", agent_columns)
+        self.assertIsNotNone(attribution_table)
+
+    def test_interventions_and_responses_survive_restart(self):
+        world = World(seed=1947, population=2)
+        target = world.agents[0]
+        target.traits["discipline"] = 1.0
+        target.traits["risk_tolerance"] = 1.0
+        target.stress = 0.0
+        world.create_intervention(
+            kind="dream",
+            target_id=target.id,
+            theme="mastering a difficult craft",
+            suggested_action="train",
+            strength=1.0,
+        )
+        world.day = 1
+        world.resolve_interventions()
+
+        save_world(world, self.db_path)
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(
+            world_snapshot(loaded),
+            world_snapshot(world),
+        )
+        self.assertEqual(
+            loaded.rng.getstate(),
+            world.rng.getstate(),
+        )
+
+        with sqlite3.connect(self.db_path) as conn:
+            intervention_rows = conn.execute(
+                "SELECT COUNT(*) FROM interventions"
+            ).fetchone()[0]
+            response_rows = conn.execute(
+                "SELECT COUNT(*) FROM intervention_responses"
+            ).fetchone()[0]
+
+        self.assertEqual(intervention_rows, 1)
+        self.assertEqual(response_rows, 1)
+
+    def test_faith_attribution_history_survives_restart(self):
+        world = World(seed=1947, population=2)
+        target = world.agents[0]
+        target.traits["discipline"] = 1.0
+        target.traits["risk_tolerance"] = 1.0
+        target.stress = 0.0
+        target.prayers.append(
+            Prayer(
+                agent_id=target.id,
+                desire_type="employment",
+                intensity=1.0,
+                related_goal="find_job",
+                timestamp=0,
+            )
+        )
+        world.create_intervention(
+            kind="dream",
+            target_id=target.id,
+            theme="an open office door",
+            suggested_action="job_hunt",
+            strength=1.0,
+        )
+        world.day = 1
+        world.resolve_interventions()
+        target.events.append(
+            Event(
+                day=1,
+                kind="career",
+                description="Found a job paying 30/day",
+                significance=0.94,
+            )
+        )
+        world.resolve_daily_attributions()
+
+        save_world(world, self.db_path)
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(world_snapshot(loaded), world_snapshot(world))
+
+        with sqlite3.connect(self.db_path) as conn:
+            attribution_rows = conn.execute(
+                "SELECT COUNT(*) FROM attributions"
+            ).fetchone()[0]
+
+        self.assertEqual(attribution_rows, 1)
+
+    def test_active_intervention_continuation_matches_restart(self):
+        def make_world():
+            world = World(seed=1947, population=2)
+            target = world.agents[0]
+            target.traits["discipline"] = 1.0
+            target.traits["risk_tolerance"] = 1.0
+            target.stress = 0.0
+            world.create_intervention(
+                kind="dream",
+                target_id=target.id,
+                theme="mastering a difficult craft",
+                suggested_action="train",
+                strength=1.0,
+                duration=7,
+            )
+            return world
+
+        uninterrupted = make_world()
+        uninterrupted.run(4)
+
+        interrupted = make_world()
+        interrupted.run(1)
+        save_world(interrupted, self.db_path)
+        resumed = load_world(self.db_path)
+        resumed.run(3)
+
+        self.assertEqual(
+            world_snapshot(resumed),
+            world_snapshot(uninterrupted),
+        )
+        self.assertEqual(
+            resumed.rng.getstate(),
+            uninterrupted.rng.getstate(),
+        )
 
     def test_schema5_defaults_to_empty_perception_state(self):
         world = World(seed=1947)
@@ -471,6 +746,14 @@ class PersistenceTests(unittest.TestCase):
             len(agent.observations)
             for agent in world.agents
         )
+        expected_prayer_count = sum(
+            len(agent.prayers)
+            for agent in world.agents
+        )
+        expected_attribution_count = sum(
+            len(agent.attributions)
+            for agent in world.agents
+        )
 
         save_world(
             world,
@@ -526,6 +809,20 @@ class PersistenceTests(unittest.TestCase):
                 """
             ).fetchone()[0]
 
+            prayer_rows = conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM prayers
+                """
+            ).fetchone()[0]
+
+            attribution_rows = conn.execute(
+                """
+                SELECT COUNT(*)
+                FROM attributions
+                """
+            ).fetchone()[0]
+
         self.assertEqual(
             agent_rows,
             expected_agent_count,
@@ -539,6 +836,16 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(
             observation_rows,
             expected_observation_count,
+        )
+
+        self.assertEqual(
+            prayer_rows,
+            expected_prayer_count,
+        )
+
+        self.assertEqual(
+            attribution_rows,
+            expected_attribution_count,
         )
 
     # ---------------------------------------------------------

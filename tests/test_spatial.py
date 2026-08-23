@@ -73,11 +73,23 @@ class SpatialModelTests(unittest.TestCase):
 
         self.assertEqual(
             set(world_map.locations),
-            {"home", "work", "market", "school", "park", "cafe"},
+            {
+                "home",
+                "work",
+                "market",
+                "school",
+                "park",
+                "cafe",
+                "shrine",
+            },
         )
         self.assertEqual(
             world_map.find_route("home", "work"),
             ["home", "market", "work"],
+        )
+        self.assertEqual(
+            world_map.find_route("home", "shrine"),
+            ["home", "cafe", "park", "shrine"],
         )
 
 if __name__ == "__main__":

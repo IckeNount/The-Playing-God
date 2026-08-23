@@ -1,6 +1,6 @@
 # Phase 5 — Belief, Intervention & Counterfactual Fate
 
-**Status:** In progress — 5A complete; 5B is next
+**Status:** Complete — 5A–5E implemented at foundation scope
 
 **Roadmap:** [`Phase 5`](../ROADMAP.md#phase-5--belief-intervention--counterfactual-fate)
 
@@ -42,10 +42,10 @@ Misunderstanding, uncertainty, misinformation, attribution, faith, and skepticis
 | Step | Status | Outcome |
 |---|---|---|
 | 5A — Perception and belief | Complete | World truth, received observations, perceptions, and beliefs are distinct; beliefs persist and affect visit movement. |
-| 5B — Shrine and prayer | Next | Add an ordinary shrine location and structured, deterministic prayer behavior. |
-| 5C — Indirect intervention | Planned | Add dreams, signs, and opportunities that change conditions without forcing decisions. |
-| 5D — Faith and causal attribution | Planned | Let NPCs interpret outcomes and update faith or skepticism. |
-| 5E — Counterfactual comparison | Planned | Compare reproducible baseline and intervention timelines. |
+| 5B — Shrine and prayer | Complete | An ordinary shrine and structured, deterministic prayer behavior are implemented and persistent. |
+| 5C — Indirect intervention | Complete | Persistent dreams, signs, and opportunities create fallible stimuli and temporary action utility rather than commands. |
+| 5D — Faith and causal attribution | Complete | NPCs interpret outcomes through prior faith and available evidence, then update faith or skepticism. |
+| 5E — Counterfactual comparison | Complete | Compare reproducible baseline and intervention timelines. |
 
 Phase 4 remains responsible for:
 
@@ -71,7 +71,43 @@ The 5A foundation is complete at its intended initial scope:
 - SQLite schema version 6 persists observations and beliefs;
 - strong-tie visits use believed locations, so stale knowledge can cause failed rendezvous.
 
-The next implementation target is 5B. Prayer and intervention are not implemented yet.
+The 5B foundation is complete at its intended initial scope:
+
+- the fixed world map includes an ordinary, connected shrine;
+- prayer is a seeded action whose utility uses existing stress, goal blockage, physical energy, and prior prayer habit;
+- an NPC records a structured prayer only after reaching the shrine;
+- prayer records contain agent, desire type, intensity, related goal, and simulated-day timestamp;
+- prayer also appears in causal event history, but it guarantees no response;
+- SQLite schema version 7 persists append-only prayer history, while version 1–6 worlds load with empty prayer state.
+
+The 5C foundation is complete at its intended initial scope:
+
+- `dream`, `sign`, and `opportunity` are structured, target-specific, time-bounded world conditions;
+- dreams can reach a target anywhere, while signs and opportunities require ordinary spatial co-location and may expire unseen;
+- existing traits, stress, and intervention strength deterministically produce missed, ignored, aligned, or misinterpreted responses without consuming world RNG;
+- noticed stimuli pass through observation and perception without identifying a divine source;
+- aligned or misinterpreted stimuli temporarily adjust one ordinary action score, but never force selection or success;
+- intervention creation, responses, causal NPC events, and schema-version-8 persistence remain inspectable and restart-equivalent.
+
+The 5D foundation is complete at its intended initial scope:
+
+- each NPC has one bounded faith continuum, with skepticism defined as its complement;
+- significant outcomes receive an append-only attribution to miracle, coincidence, personal effort, social help, institutional cause, manipulation, or unknown cause;
+- prior faith, recent matching prayer, remembered intervention response, explicit social/institutional evidence, traits, and outcome significance deterministically shape attribution;
+- attribution changes faith modestly and feeds it back only into future prayer utility, without changing causal truth or guaranteeing action;
+- perceived intervention responses remain attribution evidence for a bounded 30-day window even after the original stimulus expires;
+- schema version 9 persists faith and exact event-linked attribution history, while version 1–8 worlds load with neutral faith and empty attribution state.
+
+The 5E foundation is complete at its intended initial scope:
+
+- a scheduled intervention record defines deterministic intervention timing and parameters;
+- paired fresh worlds hold seed, population, and duration constant while only one branch receives the schedule;
+- immutable agent snapshots compare resources, career, state, location, relationships, social graph, beliefs, prayers, attribution, actions, and causal events;
+- each affected agent reports changed fields and its first differing event, while the result records the first day any agent trajectory diverged;
+- an empty schedule produces identical worlds and RNG states, a baseline branch matches an ordinary same-seed run, and repeated comparisons are exact;
+- `scripts/compare_counterfactual.py` exposes one intervention comparison without persistence, network access, or an LLM.
+
+The Phase 5 exit condition is satisfied. Phase 6 scope must be refined before further implementation.
 
 ---
 

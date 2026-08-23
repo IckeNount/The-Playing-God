@@ -8,11 +8,13 @@ Use this map to find the owning subsystem before opening source. It describes th
 scripts
   -> persistence
        -> core world + agent + events + perception + RNG + social graph
+  -> counterfactual comparison
+       -> two isolated core worlds
   -> visualization
        -> social graph
 
 core world
-  -> agent + decision + events + RNG + social graph + mobility + spatial map
+  -> agent + decision + events + RNG + social graph + mobility + spatial map + intervention + faith
   -> perception / belief
 
 exposure
@@ -32,9 +34,10 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 - `src/playing_god/core/agent.py` — `Agent`, stable trait/sin keys, normalization.
 - `src/playing_god/core/decision.py` — action scores and seeded weighted selection.
 - `src/playing_god/core/events.py` — structured per-agent `Event`.
+- `src/playing_god/core/prayer.py` — structured prayer records and deterministic prayer need/intensity derivation.
 - `src/playing_god/core/rng.py` — RNG construction and persistence-safe state serialization.
 
-**Focused tests:** `tests/test_reproducibility.py`.
+**Focused tests:** `tests/test_reproducibility.py`, `tests/test_prayer.py`.
 
 **Important boundary:** All causal randomness must use the world's seeded RNG. Avoid global randomness and changes to RNG call order unless the resulting determinism migration is intentional and tested.
 
@@ -67,7 +70,50 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_spatial.py`, `tests/test_mobility.py`, `tests/test_exposure.py`, `tests/test_spatial_visualization.py`.
 
-**Current state:** The full movement → exposure → interaction → relationship → visit movement loop participates in `World.run()`. Visits route to the actor's believed target location, so stale information can cause a failed rendezvous. Successful encounters retain who/where context, physical/social energy are separate, and the optional renderer inspects locations, roads, NPC positions, and supplied routes without mutating the world.
+**Current state:** The full movement → exposure → interaction → relationship → visit movement loop participates in `World.run()`. Visits route to the actor's believed target location, so stale information can cause a failed rendezvous. The fixed map now also includes a shrine reached through ordinary routing. Successful encounters retain who/where context, physical/social energy are separate, and the optional renderer inspects locations, roads, NPC positions, and supplied routes without mutating the world.
+
+## `shrine-prayer` — structured requests without guaranteed response
+
+**Owns:** deterministic prayer utility, goal-derived desire classification, prayer intensity, shrine-only prayer completion, and append-only prayer history.
+
+**Entry points:**
+
+- `src/playing_god/core/prayer.py` — `Prayer`, goal blockage, habit, need, and record construction.
+- `src/playing_god/core/decision.py` — prayer participates in the normal seeded action choice.
+- `src/playing_god/core/world.py` — successful shrine prayer records a prayer and causal event.
+
+**Focused tests:** `tests/test_prayer.py`, plus persistence and reproducibility checks.
+
+**Important boundary:** Prayer expresses an NPC's structured desire. It does not prove a god exists, update faith, or guarantee intervention or outcomes.
+
+## `indirect-intervention` — fallible external stimuli
+
+**Owns:** structured time-bounded interventions, reachability, deterministic attention/interpretation, response history, and temporary action-score adjustments.
+
+**Entry points:**
+
+- `src/playing_god/core/intervention.py` — `Intervention`, `InterventionResponse`, attention, confidence, and response classification.
+- `src/playing_god/core/world.py` — intervention creation, spatial/dream resolution, causal observation/event recording, and active score adjustments.
+- `src/playing_god/core/decision.py` — applies supplied score adjustments inside the normal seeded weighted choice.
+
+**Focused tests:** `tests/test_intervention.py`, plus persistence and reproducibility checks.
+
+**Important boundary:** An intervention creates a stimulus, not a command. It may expire unseen, fail to produce perception or intention, or reinforce a different action through misinterpretation. It never directly changes success, relationships, faith, or causal truth.
+
+## `faith-attribution` — uncertain interpretation of outcomes
+
+**Owns:** the bounded faith/skepticism continuum, significant-outcome classification, recent prayer/response association, deterministic causal attribution, modest faith updates, and append-only attribution history.
+
+**Entry points:**
+
+- `src/playing_god/core/faith.py` — `Outcome`, `Attribution`, outcome classification, evidence matching, cause selection, and faith updates.
+- `src/playing_god/core/world.py` — daily attribution resolution and causal attribution events.
+- Per-agent faith and attribution history live in `src/playing_god/core/agent.py`.
+- `src/playing_god/core/prayer.py` — current faith modestly affects future prayer utility.
+
+**Focused tests:** `tests/test_faith.py`, plus persistence and reproducibility checks.
+
+**Important boundary:** Attribution records what an NPC inferred; it does not establish world causation or prove a player exists. Explicit social and institutional causes remain available, and attribution consumes no random draws or LLM output.
 
 ## `perception-belief` — received evidence and agent knowledge
 
@@ -85,17 +131,30 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, relationship dimensions, immutable event/observation history, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 6, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 9, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
 **Important boundary:** A persisted restart must match an uninterrupted seeded run. Schema changes require an explicit migration and round-trip/continuation coverage.
+
+## `counterfactual-comparison` — paired same-seed experiments
+
+**Owns:** scheduled intervention inputs, isolated baseline/intervention execution, immutable agent snapshots, changed-field summaries, and first-divergence evidence.
+
+**Entry points:**
+
+- `src/playing_god/core/counterfactual.py` — `ScheduledIntervention`, `CounterfactualComparison`, snapshotting, and paired execution.
+- `scripts/compare_counterfactual.py` — one-intervention command-line comparison.
+
+**Focused tests:** `tests/test_counterfactual.py`, plus the ordinary reproducibility suite.
+
+**Important boundary:** Both branches share initial seed and configuration, but remain separate worlds. Results describe deterministic divergence inside this model, not supernatural proof or an estimate of real-world causation. After behavior diverges, the existing shared world-RNG call sequence may also diverge; the comparison does not claim per-event common random numbers.
 
 ## `tests-fixtures` — behavioral contracts
 
@@ -133,4 +192,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phase 4 satisfies the roadmap exit condition. Phase 5A is complete at its initial perception/belief foundation scope, and Phase 5B shrine/prayer is next. Indirect intervention, faith attribution, and counterfactual comparison remain planned as 5C–5E. Later phases cover society and institutions, generations, culture, discovery, and recursive simulation. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4 and 5 satisfy their roadmap exit conditions. Phase 6 society, information, and institutions is next, but its first implementation scope still requires explicit refinement. Social testimony/propagation and later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
