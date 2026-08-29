@@ -6,7 +6,9 @@ import unittest
 
 from dataclasses import asdict
 from pathlib import Path
+from unittest.mock import patch
 
+from playing_god.core.economy import EconomyState
 from playing_god.core.events import Event
 from playing_god.core.world import World
 from playing_god.core.prayer import Prayer
@@ -34,6 +36,7 @@ def world_snapshot(world: World) -> dict:
     return {
         "seed": world.seed,
         "day": world.day,
+        "economy": asdict(world.economy),
         "agents": {
             agent.id: agent_snapshot(agent)
             for agent in world.agents
@@ -122,7 +125,194 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 9)
+        self.assertEqual(schema_version, 11)
+
+    def test_economy_capacity_survives_restart(self):
+        world = World(seed=1947)
+        world.economy = EconomyState(job_capacity=9)
+
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertEqual(loaded.economy.job_capacity, 9)
+        self.assertEqual(
+            loaded.economy.occupied_jobs(loaded.agents),
+            world.economy.occupied_jobs(world.agents),
+        )
+
+    def test_schema9_derives_valid_economy_without_rng_draws(self):
+        world = World(seed=2)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("DROP TABLE economy_state")
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 9 WHERE id = 1"
+            )
+
+        expected_rng_state = world.rng.getstate()
+        loaded = load_world(self.db_path)
+
+        self.assertGreaterEqual(
+            loaded.economy.job_capacity,
+            loaded.economy.occupied_jobs(loaded.agents),
+        )
+        self.assertEqual(loaded.rng.getstate(), expected_rng_state)
+
+        save_world(loaded, self.db_path)
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            capacity = conn.execute(
+                "SELECT job_capacity "
+                "FROM economy_state WHERE id = 1"
+            ).fetchone()[0]
+
+        self.assertEqual(schema_version, 11)
+        self.assertEqual(capacity, loaded.economy.job_capacity)
+
+    def test_schema10_defaults_missing_information_identity(self):
+        world = World(seed=1947, population=2)
+        first, second = world.agents
+        first.current_location = "market"
+        second.current_location = "market"
+        first.traits["sociability"] = 1.0
+        second.traits["sociability"] = 1.0
+        world.day = 1
+        world.resolve_daily_interactions()
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            for column in (
+                "information_id",
+                "origin_agent_id",
+                "origin_day",
+                "hop_count",
+            ):
+                conn.execute(
+                    f"ALTER TABLE observations DROP COLUMN {column}"
+                )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 10 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        for agent in loaded.agents:
+            for observation in agent.observations:
+                self.assertIsNone(observation.information_id)
+                self.assertIsNone(observation.origin_agent_id)
+                self.assertIsNone(observation.origin_day)
+                self.assertIsNone(observation.hop_count)
+
+        save_world(loaded, self.db_path)
+        with sqlite3.connect(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            observation_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(observations)"
+                )
+            }
+
+        self.assertEqual(schema_version, 11)
+        self.assertTrue(
+            {
+                "information_id",
+                "origin_agent_id",
+                "origin_day",
+                "hop_count",
+            }.issubset(observation_columns)
+        )
+
+    def test_economy_capacity_cannot_be_less_than_occupancy(self):
+        world = World(seed=1947)
+        save_world(world, self.db_path)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE economy_state SET job_capacity = 0 "
+                "WHERE id = 1"
+            )
+
+        with self.assertRaises(WorldLoadError) as context:
+            load_world(self.db_path)
+
+        self.assertIn("occupied jobs", str(context.exception))
+
+    def test_custom_capacity_continuation_matches_restart(self):
+        def make_world():
+            world = World(seed=1947, population=2)
+            for agent in world.agents:
+                agent.employed = False
+                agent.job_level = 0
+                agent.salary = 0
+                agent.skill = 1.0
+                agent.reputation = 20.0
+                agent.traits["sociability"] = 1.0
+            world.economy = EconomyState(job_capacity=2)
+            return world
+
+        uninterrupted = make_world()
+        uninterrupted.act(uninterrupted.agents[0], "job_hunt")
+        uninterrupted.act(uninterrupted.agents[1], "job_hunt")
+
+        interrupted = make_world()
+        interrupted.act(interrupted.agents[0], "job_hunt")
+        save_world(interrupted, self.db_path)
+        resumed = load_world(self.db_path)
+        resumed.act(resumed.agents[1], "job_hunt")
+
+        self.assertEqual(
+            world_snapshot(resumed),
+            world_snapshot(uninterrupted),
+        )
+        self.assertEqual(
+            resumed.rng.getstate(),
+            uninterrupted.rng.getstate(),
+        )
+
+    def test_school_constraint_continuation_matches_restart(self):
+        uninterrupted = World(seed=1947, population=2)
+        with patch(
+            "playing_god.core.world.choose",
+            return_value="train",
+        ):
+            uninterrupted.run(4)
+
+        interrupted = World(seed=1947, population=2)
+        with patch(
+            "playing_god.core.world.choose",
+            return_value="train",
+        ):
+            interrupted.run(1)
+        save_world(interrupted, self.db_path)
+        resumed = load_world(self.db_path)
+        with patch(
+            "playing_god.core.world.choose",
+            return_value="train",
+        ):
+            resumed.run(3)
+
+        self.assertEqual(
+            world_snapshot(resumed),
+            world_snapshot(uninterrupted),
+        )
+        self.assertEqual(
+            resumed.school_snapshot(),
+            uninterrupted.school_snapshot(),
+        )
+        self.assertEqual(
+            resumed.rng.getstate(),
+            uninterrupted.rng.getstate(),
+        )
 
     def test_schema4_defaults_social_energy_to_physical_energy(self):
         world = World(seed=1947)
@@ -173,7 +363,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 9)
+        self.assertEqual(schema_version, 11)
 
     def test_prayers_survive_restart(self):
         world = World(seed=1947)
@@ -240,7 +430,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'prayers'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 9)
+        self.assertEqual(schema_version, 11)
         self.assertIsNotNone(prayer_table)
 
     def test_schema7_defaults_to_empty_intervention_state(self):
@@ -275,7 +465,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 9)
+        self.assertEqual(schema_version, 11)
         self.assertIn("interventions", tables)
         self.assertIn("intervention_responses", tables)
 
@@ -313,7 +503,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'attributions'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 9)
+        self.assertEqual(schema_version, 11)
         self.assertIn("faith", agent_columns)
         self.assertIsNotNone(attribution_table)
 

@@ -166,6 +166,20 @@ class SocialGraph:
                 relationship[field] + amount
             )
 
+    def set_affinity(
+        self,
+        source_id: str,
+        target_id: str,
+        affinity: float,
+    ) -> None:
+        """Set authoritative affinity without additive float drift."""
+        if not self.graph.has_edge(source_id, target_id):
+            self.add_relationship(source_id, target_id)
+
+        self.graph[source_id][target_id]["affinity"] = clamp_signed(
+            affinity
+        )
+
     def social_neighbors(self, agent_id: str) -> list[str]:
         return list(self.graph.successors(agent_id))
 

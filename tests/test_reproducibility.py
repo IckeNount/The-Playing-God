@@ -27,6 +27,8 @@ def world_snapshot(world: World) -> dict:
     return {
         "seed": world.seed,
         "day": world.day,
+        "economy": asdict(world.economy),
+        "school": asdict(world.school),
         "agents": [
             agent_snapshot(agent)
             for agent in world.agents
@@ -43,6 +45,10 @@ def world_snapshot(world: World) -> dict:
         "intervention_responses": [
             asdict(response)
             for response in world.intervention_responses
+        ],
+        "information_items": [
+            asdict(item)
+            for item in world.information_items
         ],
     }
 

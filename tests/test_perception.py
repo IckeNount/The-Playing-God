@@ -23,10 +23,14 @@ class PerceptionTests(unittest.TestCase):
         interactions = world.resolve_daily_interactions()
 
         self.assertEqual(len(interactions), 1)
-        self.assertEqual(len(first.observations), 1)
-        self.assertEqual(len(second.observations), 1)
+        self.assertEqual(len(first.observations), 2)
+        self.assertEqual(len(second.observations), 2)
 
-        observation = first.observations[0]
+        observation = next(
+            observation
+            for observation in first.observations
+            if observation.kind == "agent_location"
+        )
         self.assertEqual(observation.kind, "agent_location")
         self.assertEqual(observation.subject_id, second.id)
         self.assertEqual(observation.value, "market")

@@ -29,7 +29,11 @@ def status_need(a: Agent) -> float:
     return clamp(0.65 - current_status)
 
 
-def scores(a: Agent) -> dict[str, float]:
+def scores(
+    a: Agent,
+    *,
+    participation_utility: float | None = None,
+) -> dict[str, float]:
     t = a.traits
     s = a.sins
 
@@ -101,6 +105,12 @@ def scores(a: Agent) -> dict[str, float]:
 
         "pray": prayer_need(a),
 
+        "participate": (
+            participation_utility
+            if participation_utility is not None
+            else -99
+        ),
+
         "rest": (
             1.5 * tired
             + 1.1 * a.stress
@@ -115,8 +125,12 @@ def choose(
     rng: random.Random,
     *,
     score_adjustments: dict[str, float] | None = None,
+    participation_utility: float | None = None,
 ) -> str:
-    action_scores = scores(a)
+    action_scores = scores(
+        a,
+        participation_utility=participation_utility,
+    )
 
     if score_adjustments:
         for action, adjustment in score_adjustments.items():

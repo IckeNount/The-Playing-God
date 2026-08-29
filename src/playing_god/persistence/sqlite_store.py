@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 
 from playing_god.core.agent import Agent
+from playing_god.core.economy import EconomyState
 from playing_god.core.events import Event
 from playing_god.core.faith import ATTRIBUTION_CAUSES, Attribution
 from playing_god.core.intervention import (
@@ -15,6 +16,7 @@ from playing_god.core.intervention import (
     Intervention,
     InterventionResponse,
 )
+from playing_god.core.institution import SchoolState
 from playing_god.core.perception import (
     Belief,
     Observation,
@@ -29,7 +31,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 11
 
 
 class PersistenceError(RuntimeError):
@@ -47,6 +49,11 @@ CREATE TABLE IF NOT EXISTS world_state (
     seed INTEGER NOT NULL,
     day INTEGER NOT NULL,
     rng_state TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS economy_state (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    job_capacity INTEGER NOT NULL CHECK (job_capacity >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS agents (
@@ -127,6 +134,12 @@ CREATE TABLE IF NOT EXISTS observations (
     source_id TEXT,
     reliability REAL NOT NULL,
     location TEXT,
+    information_id TEXT,
+    origin_agent_id TEXT,
+    origin_day INTEGER,
+    hop_count INTEGER CHECK (
+        hop_count IS NULL OR hop_count >= 0
+    ),
 
     PRIMARY KEY (agent_id, observation_index),
 
@@ -264,6 +277,10 @@ ATTRIBUTION_TABLES = {
     "attributions",
 }
 
+ECONOMY_TABLES = {
+    "economy_state",
+}
+
 
 def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
@@ -378,6 +395,30 @@ def _migrate_agents_to_v9(
             "ALTER TABLE agents ADD COLUMN "
             "faith REAL NOT NULL DEFAULT 0.5"
         )
+
+
+def _migrate_observations_to_v11(
+    conn: sqlite3.Connection,
+) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(observations)"
+        ).fetchall()
+    }
+    additions = {
+        "information_id": "TEXT",
+        "origin_agent_id": "TEXT",
+        "origin_day": "INTEGER",
+        "hop_count": "INTEGER",
+    }
+
+    for name, definition in additions.items():
+        if name not in columns:
+            conn.execute(
+                f"ALTER TABLE observations "
+                f"ADD COLUMN {name} {definition}"
+            )
 
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
@@ -500,6 +541,30 @@ def _validate_attribution_tables(
         )
 
 
+def _validate_economy_tables(
+    conn: sqlite3.Connection,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
+    ).fetchall()
+    found = {
+        row["name"]
+        for row in rows
+    }
+    missing = ECONOMY_TABLES - found
+
+    if missing:
+        names = ", ".join(sorted(missing))
+        raise WorldLoadError(
+            "Invalid economy state. "
+            f"Missing tables: {names}"
+        )
+
+
 def _save_world_state(
     conn: sqlite3.Connection,
     world: World,
@@ -548,6 +613,34 @@ def _save_world_state(
         ),
     )
     _migrate_relationships_to_v2(conn)
+
+
+def _save_economy_state(
+    conn: sqlite3.Connection,
+    world: World,
+) -> None:
+    occupied_jobs = world.economy.occupied_jobs(world.agents)
+
+    if occupied_jobs > world.economy.job_capacity:
+        raise PersistenceError(
+            "Cannot save economy with more occupied jobs "
+            "than job capacity."
+        )
+
+    conn.execute(
+        """
+        INSERT INTO economy_state (
+            id,
+            job_capacity
+        )
+        VALUES (1, ?)
+
+        ON CONFLICT(id)
+        DO UPDATE SET
+            job_capacity = excluded.job_capacity
+        """,
+        (world.economy.job_capacity,),
+    )
 
 
 def _save_agents(
@@ -778,7 +871,11 @@ def _save_observations(
                     value,
                     source_id,
                     reliability,
-                    location
+                    location,
+                    information_id,
+                    origin_agent_id,
+                    origin_day,
+                    hop_count
                 FROM observations
                 WHERE agent_id = ?
                   AND observation_index = ?
@@ -797,6 +894,10 @@ def _save_observations(
                 observation.source_id,
                 observation.reliability,
                 observation.location,
+                observation.information_id,
+                observation.origin_agent_id,
+                observation.origin_day,
+                observation.hop_count,
             )
 
             if existing is not None:
@@ -820,9 +921,13 @@ def _save_observations(
                     value,
                     source_id,
                     reliability,
-                    location
+                    location,
+                    information_id,
+                    origin_agent_id,
+                    origin_day,
+                    hop_count
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     agent.id,
@@ -1325,8 +1430,14 @@ def save_world(
             _migrate_events_to_v4(conn)
             _migrate_agents_to_v5(conn)
             _migrate_agents_to_v9(conn)
+            _migrate_observations_to_v11(conn)
 
             _save_world_state(
+                conn,
+                world,
+            )
+
+            _save_economy_state(
                 conn,
                 world,
             )
@@ -1480,6 +1591,39 @@ def _load_agents(
     return agents
 
 
+def _load_economy_state(
+    conn: sqlite3.Connection,
+    agents: list[Agent],
+) -> EconomyState:
+    row = conn.execute(
+        """
+        SELECT job_capacity
+        FROM economy_state
+        WHERE id = 1
+        """
+    ).fetchone()
+
+    if row is None:
+        raise WorldLoadError(
+            "World database has no economy state."
+        )
+
+    job_capacity = row["job_capacity"]
+    if not isinstance(job_capacity, int) or job_capacity < 0:
+        raise WorldLoadError(
+            "Economy job capacity must be a non-negative integer."
+        )
+
+    economy = EconomyState(job_capacity=job_capacity)
+    occupied_jobs = economy.occupied_jobs(agents)
+    if occupied_jobs > job_capacity:
+        raise WorldLoadError(
+            "Economy has more occupied jobs than job capacity."
+        )
+
+    return economy
+
+
 def _load_relationships(
     conn: sqlite3.Connection,
     agents_by_id: dict[str, Agent],
@@ -1630,7 +1774,28 @@ def _load_events(
 def _load_observations(
     conn: sqlite3.Connection,
     agents_by_id: dict[str, Agent],
+    *,
+    require_information_state: bool,
 ) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(observations)"
+        ).fetchall()
+    }
+    information_columns = {
+        "information_id",
+        "origin_agent_id",
+        "origin_day",
+        "hop_count",
+    }
+    has_information_state = information_columns.issubset(columns)
+    if require_information_state and not has_information_state:
+        raise WorldLoadError(
+            "Invalid information state. Missing observation "
+            "identity columns."
+        )
+
     rows = conn.execute(
         """
         SELECT *
@@ -1678,6 +1843,49 @@ def _load_observations(
                 f"[0, 1] for {agent_id}."
             )
 
+        information_id = (
+            row["information_id"]
+            if has_information_state
+            else None
+        )
+        origin_agent_id = (
+            row["origin_agent_id"]
+            if has_information_state
+            else None
+        )
+        origin_day = (
+            row["origin_day"]
+            if has_information_state
+            else None
+        )
+        hop_count = (
+            row["hop_count"]
+            if has_information_state
+            else None
+        )
+        identity_values = (
+            information_id,
+            origin_agent_id,
+            origin_day,
+            hop_count,
+        )
+        if any(value is not None for value in identity_values):
+            if any(value is None for value in identity_values):
+                raise WorldLoadError(
+                    "Observation has incomplete information "
+                    f"identity for {agent_id}."
+                )
+            if origin_agent_id not in agents_by_id:
+                raise WorldLoadError(
+                    "Observation information origin references "
+                    f"missing agent: {origin_agent_id}"
+                )
+            if origin_day > row["day"] or hop_count < 0:
+                raise WorldLoadError(
+                    "Observation has invalid information origin "
+                    f"or hop count for {agent_id}."
+                )
+
         agents_by_id[agent_id].observations.append(
             Observation(
                 day=row["day"],
@@ -1687,6 +1895,10 @@ def _load_observations(
                 source_id=row["source_id"],
                 reliability=row["reliability"],
                 location=row["location"],
+                information_id=information_id,
+                origin_agent_id=origin_agent_id,
+                origin_day=origin_day,
+                hop_count=hop_count,
             )
         )
         expected_index[agent_id] += 1
@@ -2177,6 +2389,8 @@ def load_world(
                 6,
                 7,
                 8,
+                9,
+                10,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2197,6 +2411,12 @@ def load_world(
             has_attribution_state = (
                 state["schema_version"] >= 9
             )
+            has_economy_state = (
+                state["schema_version"] >= 10
+            )
+            has_information_state = (
+                state["schema_version"] >= 11
+            )
 
             if has_perception_state:
                 _validate_perception_tables(conn)
@@ -2210,7 +2430,15 @@ def load_world(
             if has_attribution_state:
                 _validate_attribution_tables(conn)
 
+            if has_economy_state:
+                _validate_economy_tables(conn)
+
             agents = _load_agents(conn)
+            economy = (
+                _load_economy_state(conn, agents)
+                if has_economy_state
+                else EconomyState.from_agents(agents)
+            )
 
             agents_by_id = {
                 agent.id: agent
@@ -2231,6 +2459,9 @@ def load_world(
                 _load_observations(
                     conn,
                     agents_by_id,
+                    require_information_state=(
+                        has_information_state
+                    ),
                 )
                 _load_beliefs(
                     conn,
@@ -2280,8 +2511,11 @@ def load_world(
             world.seed = state["seed"]
             world.day = state["day"]
             world.agents = agents
+            world.economy = economy
+            world.school = SchoolState()
             world.interventions = interventions
             world.intervention_responses = intervention_responses
+            world.information_items = []
 
             world.rng = create_rng(
                 world.seed
@@ -2303,6 +2537,7 @@ def load_world(
                 ) from exc
             world.rebuild_social_graph()
             world.rebuild_spatial_map()
+            world.rebuild_information_index()
 
             for intervention in world.interventions:
                 if (

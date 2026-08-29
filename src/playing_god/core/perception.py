@@ -18,6 +18,10 @@ class Observation:
     source_id: str | None
     reliability: float
     location: str | None = None
+    information_id: str | None = None
+    origin_agent_id: str | None = None
+    origin_day: int | None = None
+    hop_count: int | None = None
 
 
 @dataclass(frozen=True)

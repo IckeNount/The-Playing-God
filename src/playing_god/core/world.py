@@ -9,6 +9,19 @@ from playing_god.core.decision import (
     money_pressure,
     scores as decision_scores,
 )
+from playing_god.core.collective import (
+    CollectiveSnapshot,
+    PARTICIPATED,
+    PARTICIPATION_STATUS,
+    ParticipationTrace,
+    ParticipationPressure,
+    build_collective_snapshot,
+    build_participation_trace,
+    participation_information_id,
+    participation_pressure,
+    recent_participation_day,
+)
+from playing_god.core.economy import EconomySnapshot, EconomyState
 from playing_god.core.events import Event
 from playing_god.core.exposure import (
     Interaction,
@@ -29,6 +42,17 @@ from playing_god.core.intervention import (
     classify_interpretation,
     intervention_attention,
     intervention_confidence,
+)
+from playing_god.core.institution import SchoolSnapshot, SchoolState
+from playing_god.core.information import (
+    DiffusionSnapshot,
+    EMPLOYMENT_STATUS,
+    InformationItem,
+    diffusion_snapshot,
+    employment_information_id,
+    employment_status,
+    observation_information_id,
+    select_testimony,
 )
 from playing_god.core.perception import (
     Observation,
@@ -59,11 +83,15 @@ class World:
         self.intervention_responses: list[
             InterventionResponse
         ] = []
+        self.information_items: list[InformationItem] = []
 
         self.agents = self._create_agents(population)
+        self.economy = EconomyState.from_agents(self.agents)
+        self.school = SchoolState()
         self._create_relationships()
         self.rebuild_social_graph()
         self.rebuild_spatial_map()
+        self.rebuild_information_index()
 
     def rebuild_social_graph(self) -> None:
         self.social = SocialGraph.from_agents(self.agents)
@@ -72,6 +100,109 @@ class World:
         self.world_map = create_default_world_map()
         self.last_exposures = []
         self.last_interactions = []
+
+    def rebuild_information_index(self) -> None:
+        self._information_seen = {
+            agent.id: {
+                evidence_id
+                for observation in agent.observations
+                if (
+                    evidence_id := observation_information_id(
+                        observation
+                    )
+                ) is not None
+            }
+            for agent in self.agents
+        }
+        self._information_item_ids = {
+            item.id
+            for item in self.information_items
+        }
+        self._latest_information = {
+            agent.id: {
+                observation.subject_id: observation
+                for observation in agent.observations
+                if observation.kind == EMPLOYMENT_STATUS
+            }
+            for agent in self.agents
+        }
+        self._information_observation_counts = {
+            agent.id: len(agent.observations)
+            for agent in self.agents
+        }
+
+    def _ensure_information_index(self, agent: Agent) -> None:
+        if (
+            self._information_observation_counts[agent.id]
+            == len(agent.observations)
+        ):
+            return
+
+        self._information_seen[agent.id] = {
+            evidence_id
+            for observation in agent.observations
+            if (
+                evidence_id := observation_information_id(observation)
+            ) is not None
+        }
+        self._latest_information[agent.id] = {
+            observation.subject_id: observation
+            for observation in agent.observations
+            if observation.kind == EMPLOYMENT_STATUS
+        }
+        self._information_observation_counts[agent.id] = len(
+            agent.observations
+        )
+
+    def economic_snapshot(self) -> EconomySnapshot:
+        return self.economy.snapshot(self.agents)
+
+    def school_snapshot(self) -> SchoolSnapshot:
+        return self.school.snapshot(self.day)
+
+    def diffusion_snapshot(
+        self,
+        information_id: str,
+    ) -> DiffusionSnapshot:
+        return diffusion_snapshot(
+            self.agents,
+            information_id,
+        )
+
+    def participation_pressure(
+        self,
+        agent: Agent,
+        *,
+        observed_participation: float = 0.0,
+    ) -> ParticipationPressure:
+        return participation_pressure(
+            agent,
+            self.social,
+            observed_participation=observed_participation,
+            day=self.day,
+        )
+
+    def collective_snapshot(self) -> CollectiveSnapshot:
+        return build_collective_snapshot(
+            self.agents,
+            self.social,
+        )
+
+    def participation_trace(
+        self,
+        agent_id: str,
+    ) -> ParticipationTrace:
+        agent = next(
+            (
+                item
+                for item in self.agents
+                if item.id == agent_id
+            ),
+            None,
+        )
+        if agent is None:
+            raise ValueError(f"Unknown agent: {agent_id}")
+        return build_participation_trace(agent, self.social)
 
     def apply_social_event(
         self,
@@ -590,6 +721,8 @@ class World:
 
             first = agents_by_id[interaction.agent_a]
             second = agents_by_id[interaction.agent_b]
+            self._ensure_information_index(first)
+            self._ensure_information_index(second)
 
             for participant in (first, second):
                 participant.social_energy -= (
@@ -642,8 +775,207 @@ class World:
                     location=interaction.location,
                 ),
             )
+            self._information_observation_counts[first.id] = len(
+                first.observations
+            )
+            self._information_observation_counts[second.id] = len(
+                second.observations
+            )
+
+            self._observe_participation(
+                first,
+                second,
+                interaction.location,
+            )
+            self._observe_participation(
+                second,
+                first,
+                interaction.location,
+            )
+
+            self._transmit_testimony(
+                first,
+                second,
+                interaction.location,
+            )
+            self._transmit_testimony(
+                second,
+                first,
+                interaction.location,
+            )
+
+            self._observe_employment(
+                first,
+                second,
+                interaction.location,
+            )
+            self._observe_employment(
+                second,
+                first,
+                interaction.location,
+            )
 
         return self.last_interactions
+
+    def _observe_participation(
+        self,
+        observer: Agent,
+        subject: Agent,
+        location: str,
+    ) -> Observation | None:
+        participation_day = recent_participation_day(
+            subject,
+            self.day,
+        )
+        if participation_day is None:
+            return None
+
+        information_id = participation_information_id(
+            subject.id,
+            participation_day,
+        )
+        if information_id in self._information_seen[observer.id]:
+            return None
+
+        observation = Observation(
+            day=self.day,
+            kind=PARTICIPATION_STATUS,
+            subject_id=subject.id,
+            value=PARTICIPATED,
+            source_id=subject.id,
+            reliability=1.0,
+            location=location,
+            information_id=information_id,
+            origin_agent_id=subject.id,
+            origin_day=participation_day,
+            hop_count=0,
+        )
+        receive_observation(observer, observation)
+        self._information_seen[observer.id].add(information_id)
+        self._information_observation_counts[observer.id] = len(
+            observer.observations
+        )
+        return observation
+
+    def _observe_employment(
+        self,
+        observer: Agent,
+        subject: Agent,
+        location: str,
+    ) -> Observation | None:
+        value = employment_status(subject.employed)
+        current = observer.beliefs.get(
+            belief_key(EMPLOYMENT_STATUS, subject.id)
+        )
+        if (
+            current is not None
+            and current.value == value
+            and current.confidence >= 1.0
+        ):
+            return None
+
+        information_id = employment_information_id(
+            subject.id,
+            self.day,
+            value,
+        )
+        observation = Observation(
+            day=self.day,
+            kind=EMPLOYMENT_STATUS,
+            subject_id=subject.id,
+            value=value,
+            source_id=subject.id,
+            reliability=1.0,
+            location=location,
+            information_id=information_id,
+            origin_agent_id=subject.id,
+            origin_day=self.day,
+            hop_count=0,
+        )
+        receive_observation(observer, observation)
+        self._information_seen[observer.id].add(information_id)
+        self._latest_information[observer.id][subject.id] = observation
+        self._information_observation_counts[observer.id] = len(
+            observer.observations
+        )
+        return observation
+
+    def _transmit_testimony(
+        self,
+        source: Agent,
+        recipient: Agent,
+        location: str,
+    ) -> InformationItem | None:
+        self._ensure_information_index(source)
+        self._ensure_information_index(recipient)
+        item = select_testimony(
+            source,
+            recipient,
+            day=self.day,
+            relationship=self.social.get_relationship(
+                recipient.id,
+                source.id,
+            ),
+            recipient_evidence=self._information_seen[recipient.id],
+            source_information=(
+                self._latest_information[source.id].values()
+            ),
+        )
+        if item is None:
+            return None
+
+        if item.id not in self._information_item_ids:
+            self.information_items.append(item)
+            self._information_item_ids.add(item.id)
+
+        receive_observation(
+            recipient,
+            Observation(
+                day=self.day,
+                kind=item.kind,
+                subject_id=item.subject_id,
+                value=item.value,
+                source_id=source.id,
+                reliability=item.reliability,
+                location=location,
+                information_id=item.id,
+                origin_agent_id=item.origin_agent_id,
+                origin_day=item.origin_day,
+                hop_count=item.hop_count,
+            ),
+        )
+        self._information_seen[recipient.id].add(item.id)
+        self._latest_information[recipient.id][item.subject_id] = (
+            recipient.observations[-1]
+        )
+        self._information_observation_counts[recipient.id] = len(
+            recipient.observations
+        )
+
+        description = (
+            f"Shared {item.id} with {recipient.name}: "
+            f"{item.subject_id} is {item.value}"
+        )
+        self.record(
+            source,
+            "testimony",
+            description,
+            item.reliability,
+            target_id=recipient.id,
+            location=location,
+        )
+        self.record(
+            recipient,
+            "testimony",
+            (
+                f"Received {item.id} from {source.name}: "
+                f"{item.subject_id} is {item.value}"
+            ),
+            item.reliability,
+            target_id=source.id,
+            location=location,
+        )
+        return item
 
     def sync_social_affinities(self) -> None:
         """Mirror authoritative Agent affinity into the social graph."""
@@ -656,10 +988,10 @@ class World:
                 current = relationship["affinity"]
 
                 if current != affinity:
-                    self.social.update_relationship(
+                    self.social.set_affinity(
                         agent.id,
                         target_id,
-                        affinity=affinity - current,
+                        affinity,
                     )
 
     def exposed_people(self, a: Agent) -> list[Agent]:
@@ -800,6 +1132,16 @@ class World:
         a: Agent,
         action: str,
     ) -> None:
+        participation = None
+        if action == "participate":
+            participation = self.participation_pressure(a)
+            if (
+                not participation.eligible
+                or a.current_location != "park"
+            ):
+                a.normalize()
+                return
+
         a.actions[action] += 1
 
         if action == "work":
@@ -882,7 +1224,12 @@ class World:
                 + 0.04 * a.traits["sociability"]
             )
 
-            if self.rng.random() < chance:
+            vacancies_before = self.economy.vacancies(
+                self.agents
+            )
+            roll = self.rng.random()
+
+            if vacancies_before > 0 and roll < chance:
                 a.employed = True
                 a.job_level = 1
 
@@ -897,11 +1244,72 @@ class World:
                 self.record(
                     a,
                     "career",
-                    f"Found a job paying {a.salary:.0f}/day",
+                    (
+                        f"Found a job paying {a.salary:.0f}/day; "
+                        f"vacancies before: {vacancies_before}; "
+                        f"chance: {chance:.4f}; roll: {roll:.4f}"
+                    ),
                     0.94,
+                )
+            else:
+                reason = (
+                    "no vacancy"
+                    if vacancies_before <= 0
+                    else "selection roll"
+                )
+                self.record(
+                    a,
+                    "career",
+                    (
+                        f"Job hunt failed: {reason}; "
+                        f"vacancies before: {vacancies_before}; "
+                        f"chance: {chance:.4f}; roll: {roll:.4f}"
+                    ),
+                    0.35,
                 )
 
         elif action == "train":
+            if a.current_location != self.school.location:
+                self.record(
+                    a,
+                    "institution",
+                    (
+                        "School denied training: agent is "
+                        f"not at school; current location: "
+                        f"{a.current_location}"
+                    ),
+                    0.25,
+                    location=a.current_location,
+                )
+                a.normalize()
+                return
+
+            admission_slot = self.school.admit_training(self.day)
+            if admission_slot is None:
+                self.record(
+                    a,
+                    "institution",
+                    (
+                        "School denied training: daily capacity "
+                        f"{self.school.daily_training_capacity} "
+                        "exhausted"
+                    ),
+                    0.35,
+                    location=self.school.location,
+                )
+                a.normalize()
+                return
+
+            self.record(
+                a,
+                "institution",
+                (
+                    f"School admitted training slot {admission_slot} "
+                    f"of {self.school.daily_training_capacity}"
+                ),
+                0.30,
+                location=self.school.location,
+            )
             before = a.skill
 
             a.money -= 7
@@ -1167,6 +1575,33 @@ class World:
                     location="shrine",
                 )
 
+        elif action == "participate":
+            a.energy -= 0.05
+            a.social_energy -= 0.04
+            a.stress -= 0.02
+
+            self.record(
+                a,
+                "participation",
+                (
+                    "Joined the public gathering; "
+                    f"score: {participation.score:.3f}; "
+                    f"threshold: {participation.threshold:.3f}; "
+                    "personal: "
+                    f"{participation.personal_pressure:.3f}; "
+                    "confirmation: "
+                    f"{participation.social_confirmation:.3f}; "
+                    "trusted information: "
+                    f"{participation.trusted_information:.3f}; "
+                    "social motivation: "
+                    f"{participation.social_motivation:.3f}; "
+                    f"cost: {participation.perceived_cost:.3f}; "
+                    f"risk aversion: {participation.risk_aversion:.3f}"
+                ),
+                0.68,
+                location="park",
+            )
+
         elif action == "rest":
             a.money -= 3
             a.energy += 0.22
@@ -1268,11 +1703,18 @@ class World:
             for a in order:
                 self.update_goal(a)
 
+                participation = self.participation_pressure(a)
+
                 action = choose(
                     a,
                     self.rng,
                     score_adjustments=(
                         self.intervention_action_adjustments(a)
+                    ),
+                    participation_utility=(
+                        participation.score
+                        if participation.eligible
+                        else None
                     ),
                 )
 

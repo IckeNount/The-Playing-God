@@ -1,10 +1,10 @@
 # Current Engineering State
 
-**Updated:** 2026-08-23
+**Updated:** 2026-08-30
 
 ## Current milestone
 
-Phases 4 and 5 are complete. Phase 5A–5E now cover perception/belief, shrine/prayer, indirect intervention, faith attribution, and paired counterfactual comparison at foundation scope. Phase 6 — Society, Information & Institutions requires scope refinement next.
+Phases 4 and 5 are complete. Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. Phase 6 awaits final human review.
 
 ## Recent completed work
 
@@ -40,6 +40,21 @@ Phases 4 and 5 are complete. Phase 5A–5E now cover perception/belief, shrine/p
 - A scheduled counterfactual comparison runs isolated same-seed baseline and intervention worlds day by day. The baseline exactly matches an ordinary run, empty schedules remain identical, and repeated comparisons are exact.
 - Immutable agent snapshots cover dynamic resources, career, state, location, relationships/social graph, beliefs, histories, actions, prayers, and attribution. Results identify changed fields, affected agents, first differing events, and the first divergence day.
 - `scripts/compare_counterfactual.py` runs a one-intervention comparison and labels its output as deterministic model divergence rather than supernatural proof.
+- Employment now consumes a finite shared job capacity initialized with deterministic 70% half-up rounding while preserving all initially employed agents. Occupancy and vacancies are derived from `Agent.employed`; each job-hunt draw is preserved and its vacancy/chance/roll outcome is traceable.
+- SQLite schema version 10 persists only `job_capacity`. Schema 1–9 worlds derive valid capacity from loaded agents without RNG draws, and invalid capacity below occupancy is rejected.
+- `World.economic_snapshot()` reports population, employment, capacity, vacancies, total/median money, and negative balances without mutation or RNG consumption.
+- Exact social-affinity synchronization now avoids additive floating-point drift that could otherwise break persistence equality on Phase 6 trajectories.
+- The existing school is now a concrete institution with one fixed training slot per day. Seeded world order determines admission; denied or off-site attempts receive no training effects, and structured events explain the outcome.
+- School capacity resets by simulated day and has no changing long-term field, so schema 10 remains unchanged. `World.school_snapshot()` inspects the current rule and usage without mutation, and day-boundary restart matches uninterrupted execution.
+- Successful contact creates structured employment evidence and may transmit one relevant third-party claim through the existing observation/perception/belief path. Stale claims are not refreshed from world truth, and testimony adds no world-RNG draws.
+- Stable evidence IDs preserve origin agent/day and hop count across relays. Each hop is capped at 85% of source confidence plus existing trust/familiarity limits; agents ignore evidence identities already seen, preventing circular amplification.
+- Direct employment observations are recorded only when new or more authoritative than the current belief. Transient seen/latest indexes keep weak-hardware cost bounded and rebuild exactly from persisted observations.
+- SQLite schema version 11 persists information identity, origin, and hop count on observations. Schema 10 worlds load with neutral missing identity and migrate on save; restart continuation remains exact.
+- `World.diffusion_snapshot()` derives historical reach, current matching-belief count, maximum hop depth, and average/median belief confidence without mutation or RNG consumption.
+- Participation willingness is dynamically derived from economic pressure, employment, stress, risk tolerance, social state, and received evidence. Crossing the fixed model threshold only makes `participate` available to the ordinary seeded action selector; normal mobility routes successful participation to the park.
+- Successful encounters with a recent participant create structured direct participation evidence with stable participant/day identity. Trust-weighted confirmation remains relevant for seven days, introduces no world-RNG draw, and cannot spread without local interaction.
+- `World.collective_snapshot()` derives unique participants, participation rate, first day, daily peak, and evidence-generation depth. `World.participation_trace()` reconstructs the recorded score components, pre-decision evidence IDs, selected action, movement event, and participation event.
+- The deliberate Phase 6 integration scenario links occupied finite job capacity, contact-acquired unemployment evidence, trusted participation evidence, a selective A-to-B cascade, a lower-pressure nonparticipant, macro metrics, SQLite reload, and exact one-day continuation without schema 12 or new dependencies.
 
 ## Active architectural concern
 
@@ -47,9 +62,9 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- Full suite after Phase 5 counterfactual comparison: 103 tests pass.
+- Full suite after Phase 6D.3: 141 tests pass with warnings suppressed; focused Phase 6, persistence, and reproducibility suites also pass.
 - Persistence tests emit unclosed-SQLite `ResourceWarning` messages. They do not currently fail the suite but should be diagnosed separately.
 
 ## Next logical task
 
-Refine and approve the first Phase 6 scope, likely beginning with a minimal 6A economy mechanism grounded in existing employment, money, help, and resource flows.
+Review the complete Phase 6 exit condition. Do not begin Phase 7 until its implementation brief is human-approved.

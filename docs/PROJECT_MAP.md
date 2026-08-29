@@ -14,7 +14,7 @@ scripts
        -> social graph
 
 core world
-  -> agent + decision + events + RNG + social graph + mobility + spatial map + intervention + faith
+  -> agent + decision + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
   -> perception / belief
 
 exposure
@@ -55,6 +55,60 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 **Focused tests:** `tests/test_social.py`, `tests/test_exposure.py`.
 
 **Important boundary:** `Agent.relationships` remains the legacy signed affinity used by current decisions. `SocialGraph` adds dimensions and is rebuilt from agents; changing one representation does not automatically make the other the source of truth.
+
+## `shared-economy` — finite employment opportunity and macro inspection
+
+**Owns:** deterministic initial job capacity, derived occupancy/vacancies, vacancy-constrained hiring, causal job-hunt traces, and read-only aggregate economic snapshots.
+
+**Entry points:**
+
+- `src/playing_god/core/economy.py` — `EconomyState`, `EconomySnapshot`, capacity derivation, and aggregate metrics.
+- `src/playing_god/core/world.py` — job-hunt integration and `economic_snapshot()`.
+
+**Focused tests:** `tests/test_economy.py`, plus persistence and split-run checks.
+
+**Important boundary:** `job_capacity` is shared causal state; occupied jobs are derived from authoritative `Agent.employed` values and are never persisted separately. Metrics are read-only and consume no RNG.
+
+## `school-institution` — capacity-limited training access
+
+**Owns:** the fixed school location/rule, one daily training slot, seeded first-attempt admission, daily reset, admission/denial traces, and read-only rule inspection.
+
+**Entry points:**
+
+- `src/playing_god/core/institution.py` — `SchoolState` and `SchoolSnapshot`.
+- `src/playing_god/core/world.py` — school-location eligibility, capacity checks, and `school_snapshot()`.
+
+**Focused tests:** `tests/test_institution.py`, plus split/restart coverage in `tests/test_persistence.py`.
+
+**Important boundary:** School capacity is a fixed model rule; same-day usage is transient and resets at the next simulated day. Durable outcomes live in ordinary events, so the school itself required no schema change and no generic institution framework exists.
+
+## `information-diffusion` — contact-bound structured testimony
+
+**Owns:** structured employment claims, deterministic relevance and trust limits, stable evidence/origin identity, bounded hop decay, loop protection, and read-only diffusion metrics.
+
+**Entry points:**
+
+- `src/playing_god/core/information.py` — `InformationItem`, `DiffusionSnapshot`, testimony selection, identity, decay, deduplication inputs, and aggregate metrics.
+- `src/playing_god/core/world.py` — firsthand employment observations, testimony integration, transient evidence indexes, and `diffusion_snapshot()`.
+- Information identity, origin day/agent, and hop count live on `Observation` in `src/playing_god/core/perception.py`.
+
+**Focused tests:** `tests/test_information.py`, plus persistence and split-run coverage.
+
+**Important boundary:** Information moves only through successful co-located interactions. World truth, source belief, transmitted claim, and recipient belief remain distinct. Relays consume no world RNG, confidence cannot increase through pure repetition, and transient indexes are rebuilt from persisted observations.
+
+## `collective-action` — derived participation and local cascades
+
+**Owns:** deterministic participation pressure, ordinary threshold-gated action selection, park movement, contact-bound participation evidence, trust-weighted social confirmation, collective metrics, and per-participant causal traces.
+
+**Entry points:**
+
+- `src/playing_god/core/collective.py` — pressure components, participation evidence identity/relevance, `CollectiveSnapshot`, `ParticipationTrace`, cascade-depth derivation, and causal inspection.
+- `src/playing_god/core/decision.py` — eligible participation enters the ordinary seeded weighted action choice.
+- `src/playing_god/core/world.py` — park participation effects, encounter-bound evidence creation, `collective_snapshot()`, and `participation_trace()`.
+
+**Focused tests:** `tests/test_collective.py`, plus persistence and split-run coverage.
+
+**Important boundary:** Participation is derived from current pressure, risk, social state, and received evidence; it is never a permanent activist trait or centrally scheduled outcome. Participation becomes known only through successful local interaction, each NPC still crosses its own threshold and selects its own action, evidence relevance is bounded to seven days, and all metrics are read-only derivations from persisted events and observations.
 
 ## `spatial-mobility` — places, routes, and travel
 
@@ -131,11 +185,11 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 9, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 11, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
@@ -178,6 +232,7 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 - `docs/STATUS.md` — current phase, completed step, and next implementation target.
 - `docs/phases/phase-04-spatial-mobility.md` — Phase 4 spatial/mobility requirements.
 - `docs/phases/phase-05-belief-intervention.md` — Phase 5 perception, prayer, intervention, faith, and counterfactual direction.
+- `docs/phases/phase-06-society-information-institutions.md` — active Phase 6 economy, institution, information, and collective-action brief.
 - `docs/research/phase-10-functional-consciousness.md` — human-review-gated functional cognition research; it is not an active implementation brief.
 - `docs/archive/` — superseded versioned vision snapshots retained as research history, not active phase instructions.
 - `docs/memory-implementation.md` — coding-agent memory principles and staged infrastructure.
@@ -192,4 +247,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4 and 5 satisfy their roadmap exit conditions. Phase 6 society, information, and institutions is next, but its first implementation scope still requires explicit refinement. Social testimony/propagation and later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4 and 5 satisfy their roadmap exit conditions, and Phase 6A shared economy, Phase 6B school institution, and Phase 6C bounded information diffusion are complete. Phase 6D.1 participation pressure is next after human review. Collective cascades and later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

@@ -13,6 +13,7 @@ ACTIVITY_DESTINATIONS = {
     "compete": "park",
     "risky_move": "market",
     "pray": "shrine",
+    "participate": "park",
     "rest": "home",
 }
 
