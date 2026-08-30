@@ -1,5 +1,8 @@
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
+from scripts.show_social_graph import main as show_social_graph_main
 from playing_god.core.social import SocialGraph
 from playing_god.core.world import World
 
@@ -27,6 +30,23 @@ class TestSocialGraph(unittest.TestCase):
             self.social.node_count(),
             2,
         )
+
+    def test_social_graph_command_loads_supplied_database(self):
+        world = SimpleNamespace(social=object())
+
+        with (
+            patch(
+                "scripts.show_social_graph.load_world",
+                return_value=world,
+            ) as load,
+            patch(
+                "scripts.show_social_graph.show_social_graph",
+            ) as show,
+        ):
+            show_social_graph_main("example.db")
+
+        load.assert_called_once_with("example.db")
+        show.assert_called_once_with(world.social)
 
     def test_directed_relationships_exist(self):
         self.assertEqual(

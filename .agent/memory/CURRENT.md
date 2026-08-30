@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4 and 5 are complete. Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. Phase 6 awaits final human review.
+Phases 4 and 5 are complete. Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. The Phase 6 exit gaps are closed; human acceptance still gates Phase 7.
 
 ## Recent completed work
 
@@ -55,6 +55,9 @@ Phases 4 and 5 are complete. Phase 6A shared economy, Phase 6B school institutio
 - Successful encounters with a recent participant create structured direct participation evidence with stable participant/day identity. Trust-weighted confirmation remains relevant for seven days, introduces no world-RNG draw, and cannot spread without local interaction.
 - `World.collective_snapshot()` derives unique participants, participation rate, first day, daily peak, and evidence-generation depth. `World.participation_trace()` reconstructs the recorded score components, pre-decision evidence IDs, selected action, movement event, and participation event.
 - The deliberate Phase 6 integration scenario links occupied finite job capacity, contact-acquired unemployment evidence, trusted participation evidence, a selective A-to-B cascade, a lower-pressure nonparticipant, macro metrics, SQLite reload, and exact one-day continuation without schema 12 or new dependencies.
+- Participation events now freeze the decision-time influencer and evidence IDs used by traces and cascade depth. Later trust mutation cannot rewrite that history, and existing schema-v11 event persistence carries the data without a migration.
+- The Phase 6 integration scenario now includes an actual job-hunt attempt against zero vacancies and verifies the resulting unemployment evidence before diffusion and selective participation.
+- `save_world()` and `load_world()` explicitly close SQLite connections; repeated round trips produce no connection `ResourceWarning`. `scripts/show_social_graph.py` again loads a supplied persisted-world path through the existing `load_world()` API.
 
 ## Active architectural concern
 
@@ -62,9 +65,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- Full suite after Phase 6D.3: 141 tests pass with warnings suppressed; focused Phase 6, persistence, and reproducibility suites also pass.
-- Persistence tests emit unclosed-SQLite `ResourceWarning` messages. They do not currently fail the suite but should be diagnosed separately.
+- No known Phase 6 closure failure. The unsuppressed full suite passes 143 tests, the source/scripts/tests compilation check passes, and the diff check is clean.
 
 ## Next logical task
 
-Review the complete Phase 6 exit condition. Do not begin Phase 7 until its implementation brief is human-approved.
+Conduct the human Phase 6 exit review. Do not begin Phase 7 until the closure is accepted and its implementation brief is human-approved.

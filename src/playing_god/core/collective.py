@@ -7,6 +7,7 @@ from typing import Sequence
 from playing_god.core.agent import Agent, clamp
 from playing_god.core.decision import money_pressure
 from playing_god.core.information import EMPLOYMENT_STATUS
+from playing_god.core.perception import belief_key
 from playing_god.core.social import SocialGraph
 
 
@@ -278,9 +279,98 @@ def _causal_social_evidence(
     ]
 
 
+def participation_provenance(
+    agent: Agent,
+    social: SocialGraph,
+    day: int,
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    social_candidates = []
+    employment_candidates = []
+    latest = {}
+
+    for observation in agent.observations:
+        if observation.day <= day:
+            latest[(observation.kind, observation.subject_id)] = observation
+
+    for observation in latest.values():
+        if (
+            observation.source_id is None
+            or observation.information_id is None
+        ):
+            continue
+        relationship = social.get_relationship(
+            agent.id,
+            observation.source_id,
+        )
+        belief = agent.beliefs.get(
+            belief_key(observation.kind, observation.subject_id)
+        )
+        if (
+            relationship is None
+            or belief is None
+            or belief.value != observation.value
+            or belief.updated_day != observation.day
+        ):
+            continue
+
+        candidate = (
+            belief.confidence * relationship["trust"],
+            observation.information_id,
+            observation.subject_id,
+        )
+        if (
+            observation.kind == PARTICIPATION_STATUS
+            and observation.value == PARTICIPATED
+            and observation.origin_day is not None
+            and 0
+            <= day - observation.origin_day
+            <= MAX_PARTICIPATION_AGE_DAYS
+        ):
+            social_candidates.append(candidate)
+        elif (
+            observation.kind == EMPLOYMENT_STATUS
+            and observation.value == "unemployed"
+            and observation.subject_id != agent.id
+        ):
+            employment_candidates.append(candidate)
+
+    def strongest(candidates):
+        strength = max((item[0] for item in candidates), default=0.0)
+        return [
+            item
+            for item in candidates
+            if strength > 0.0 and item[0] == strength
+        ]
+
+    social_evidence = strongest(social_candidates)
+    employment_evidence = strongest(employment_candidates)
+    return (
+        tuple(sorted(item[1] for item in social_evidence)),
+        tuple(sorted(item[1] for item in employment_evidence)),
+        tuple(sorted({item[2] for item in social_evidence})),
+    )
+
+
+def _recorded_ids(
+    description: str,
+    label: str,
+) -> tuple[str, ...] | None:
+    prefix = f"{label}: "
+    value = next(
+        (
+            segment[len(prefix):]
+            for segment in description.split("; ")
+            if segment.startswith(prefix)
+        ),
+        None,
+    )
+    if value is None:
+        return None
+    return () if value == "-" else tuple(value.split(","))
+
+
 def build_collective_snapshot(
     agents: Sequence[Agent],
-    social: SocialGraph,
 ) -> CollectiveSnapshot:
     """Derive collective outcomes without mutating world state."""
     first_participations = {
@@ -318,24 +408,25 @@ def build_collective_snapshot(
         parents = []
         if components["confirmation"] > 0.0:
             agent = agents_by_id[agent_id]
-            for observation in _causal_social_evidence(
-                agent,
-                event.day,
-            ):
-                parent = first_participations.get(
+            influencers = _recorded_ids(
+                event.description,
+                "influencers",
+            )
+            if influencers is None:
+                influencers = tuple(
                     observation.subject_id
+                    for observation in _causal_social_evidence(
+                        agent,
+                        event.day,
+                    )
                 )
-                relationship = social.get_relationship(
-                    agent_id,
-                    observation.source_id,
-                ) if observation.source_id is not None else None
+            for influencer_id in influencers:
+                parent = first_participations.get(influencer_id)
                 if (
                     parent is not None
                     and parent[1].day < event.day
-                    and relationship is not None
-                    and relationship["trust"] > 0.0
                 ):
-                    parents.append(observation.subject_id)
+                    parents.append(influencer_id)
 
         depths[agent_id] = max(
             (depths[parent] + 1 for parent in parents),
@@ -371,7 +462,6 @@ def build_collective_snapshot(
 
 def build_participation_trace(
     agent: Agent,
-    social: SocialGraph,
 ) -> ParticipationTrace:
     first = _first_participation(agent)
     if first is None:
@@ -381,42 +471,59 @@ def build_participation_trace(
     components = _participation_components(
         participation_event.description
     )
-    social_evidence = _causal_social_evidence(
-        agent,
-        participation_event.day,
+    influencer_ids = _recorded_ids(
+        participation_event.description,
+        "influencers",
     )
-    social_evidence = [
-        observation
-        for observation in social_evidence
-        if (
-            observation.source_id is not None
-            and (
-                relationship := social.get_relationship(
-                    agent.id,
-                    observation.source_id,
-                )
-            ) is not None
-            and relationship["trust"] > 0.0
-        )
-    ]
-    employment_evidence = []
-
-    for observation in _latest_observations_before(
-        agent,
-        participation_event.day,
+    social_evidence_ids = _recorded_ids(
+        participation_event.description,
+        "social evidence ids",
+    )
+    trusted_evidence_ids = _recorded_ids(
+        participation_event.description,
+        "trusted information evidence ids",
+    )
+    if (
+        influencer_ids is None
+        or social_evidence_ids is None
+        or trusted_evidence_ids is None
     ):
-        if (
-            observation.kind != EMPLOYMENT_STATUS
-            or observation.value != "unemployed"
-            or observation.information_id is None
-        ):
-            continue
-        relationship = social.get_relationship(
-            agent.id,
-            observation.source_id,
-        ) if observation.source_id is not None else None
-        if relationship is not None and relationship["trust"] > 0.0:
-            employment_evidence.append(observation)
+        social_evidence = _causal_social_evidence(
+            agent,
+            participation_event.day,
+        )
+        employment_evidence = [
+            observation
+            for observation in _latest_observations_before(
+                agent,
+                participation_event.day,
+            )
+            if (
+                observation.kind == EMPLOYMENT_STATUS
+                and observation.value == "unemployed"
+                and observation.information_id is not None
+            )
+        ]
+        influencer_ids = tuple(
+            sorted(
+                {
+                    observation.subject_id
+                    for observation in social_evidence
+                }
+            )
+        )
+        social_evidence_ids = tuple(
+            sorted(
+                observation.information_id
+                for observation in social_evidence
+            )
+        )
+        trusted_evidence_ids = tuple(
+            sorted(
+                observation.information_id
+                for observation in employment_evidence
+            )
+        )
 
     movement_index = None
     movement = "Already at park; no travel required"
@@ -451,26 +558,9 @@ def build_participation_trace(
         movement=movement,
         participation_event_index=participation_index,
         participation_event=participation_event.description,
-        influencer_ids=tuple(
-            sorted(
-                {
-                    observation.subject_id
-                    for observation in social_evidence
-                }
-            )
-        ),
-        social_evidence_ids=tuple(
-            sorted(
-                observation.information_id
-                for observation in social_evidence
-            )
-        ),
-        trusted_information_evidence_ids=tuple(
-            sorted(
-                observation.information_id
-                for observation in employment_evidence
-            )
-        ),
+        influencer_ids=influencer_ids,
+        social_evidence_ids=social_evidence_ids,
+        trusted_information_evidence_ids=trusted_evidence_ids,
     )
 
 

@@ -255,6 +255,12 @@ class CollectiveActionTests(unittest.TestCase):
             trust=0.75,
         )
 
+        world.act(near_threshold, "job_hunt")
+        failed_hunt = near_threshold.events[-1]
+        self.assertFalse(near_threshold.employed)
+        self.assertEqual(failed_hunt.kind, "career")
+        self.assertIn("no vacancy", failed_hunt.description)
+
         before_near = world.participation_pressure(near_threshold)
         before_low = world.participation_pressure(low_pressure)
         world.act(actor, "participate")
@@ -268,6 +274,14 @@ class CollectiveActionTests(unittest.TestCase):
         self.assertEqual(after_near.social_confirmation, 1.0)
         self.assertEqual(after_low.social_confirmation, 1.0)
         self.assertEqual(after_near.trusted_information, 0.25)
+        self.assertTrue(
+            any(
+                observation.kind == EMPLOYMENT_STATUS
+                and observation.subject_id == near_threshold.id
+                and observation.value == "unemployed"
+                for observation in actor.observations
+            )
+        )
         self.assertTrue(after_near.eligible)
         self.assertFalse(after_low.eligible)
 
@@ -319,6 +333,20 @@ class CollectiveActionTests(unittest.TestCase):
         self.assertEqual(
             len(trace.trusted_information_evidence_ids),
             1,
+        )
+
+        world.social.update_relationship(
+            near_threshold.id,
+            actor.id,
+            trust=-1.0,
+        )
+        self.assertEqual(
+            world.collective_snapshot(),
+            collective,
+        )
+        self.assertEqual(
+            world.participation_trace(near_threshold.id),
+            trace,
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:

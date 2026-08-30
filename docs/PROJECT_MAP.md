@@ -50,7 +50,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 - `src/playing_god/core/social.py` — `SocialGraph` and social event effects.
 - `src/playing_god/core/exposure.py` — `Exposure`, `Interaction`, detection, and resolution.
 - `src/playing_god/visualization/social_graph.py` — optional NetworkX graph inspection.
-- `scripts/show_social_graph.py` — manual visualization entry point.
+- `scripts/show_social_graph.py` — manual visualization entry point; accepts a persisted-world database path and loads it through `load_world()`.
 
 **Focused tests:** `tests/test_social.py`, `tests/test_exposure.py`.
 
@@ -108,7 +108,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_collective.py`, plus persistence and split-run coverage.
 
-**Important boundary:** Participation is derived from current pressure, risk, social state, and received evidence; it is never a permanent activist trait or centrally scheduled outcome. Participation becomes known only through successful local interaction, each NPC still crosses its own threshold and selects its own action, evidence relevance is bounded to seven days, and all metrics are read-only derivations from persisted events and observations.
+**Important boundary:** Participation is derived from current pressure, risk, social state, and received evidence; it is never a permanent activist trait or centrally scheduled outcome. Participation becomes known only through successful local interaction, each NPC still crosses its own threshold and selects its own action, and evidence relevance is bounded to seven days. Decision-time evidence and influencer IDs are frozen in the existing persisted participation event, so later trust changes cannot rewrite historical traces or cascade depth; all metrics remain read-only derivations.
 
 ## `spatial-mobility` — places, routes, and travel
 
@@ -195,7 +195,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Schema changes require an explicit migration and round-trip/continuation coverage.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 
@@ -247,4 +247,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4 and 5 satisfy their roadmap exit conditions, and Phase 6A shared economy, Phase 6B school institution, and Phase 6C bounded information diffusion are complete. Phase 6D.1 participation pressure is next after human review. Collective cascades and later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4 and 5 satisfy their roadmap exit conditions. Phase 6 shared economy, school institution, bounded information diffusion, and collective action are implemented, and its exit-closure release gate passes; human acceptance still gates Phase 7. Later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

@@ -17,6 +17,7 @@ from playing_god.core.collective import (
     ParticipationPressure,
     build_collective_snapshot,
     build_participation_trace,
+    participation_provenance,
     participation_information_id,
     participation_pressure,
     recent_participation_day,
@@ -183,10 +184,7 @@ class World:
         )
 
     def collective_snapshot(self) -> CollectiveSnapshot:
-        return build_collective_snapshot(
-            self.agents,
-            self.social,
-        )
+        return build_collective_snapshot(self.agents)
 
     def participation_trace(
         self,
@@ -202,7 +200,7 @@ class World:
         )
         if agent is None:
             raise ValueError(f"Unknown agent: {agent_id}")
-        return build_participation_trace(agent, self.social)
+        return build_participation_trace(agent)
 
     def apply_social_event(
         self,
@@ -1579,6 +1577,20 @@ class World:
             a.energy -= 0.05
             a.social_energy -= 0.04
             a.stress -= 0.02
+            (
+                social_evidence_ids,
+                trusted_evidence_ids,
+                influencer_ids,
+            ) = participation_provenance(
+                a,
+                self.social,
+                self.day,
+            )
+
+            # ponytail: the event is already durable; add a table only if
+            # provenance later needs independent queries.
+            def recorded(values: tuple[str, ...]) -> str:
+                return ",".join(values) or "-"
 
             self.record(
                 a,
@@ -1596,7 +1608,12 @@ class World:
                     "social motivation: "
                     f"{participation.social_motivation:.3f}; "
                     f"cost: {participation.perceived_cost:.3f}; "
-                    f"risk aversion: {participation.risk_aversion:.3f}"
+                    f"risk aversion: {participation.risk_aversion:.3f}; "
+                    f"influencers: {recorded(influencer_ids)}; "
+                    "social evidence ids: "
+                    f"{recorded(social_evidence_ids)}; "
+                    "trusted information evidence ids: "
+                    f"{recorded(trusted_evidence_ids)}"
                 ),
                 0.68,
                 location="park",

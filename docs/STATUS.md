@@ -2,9 +2,9 @@
 
 **Updated:** 2026-08-30
 
-**Current phase:** Phase 6 — Society, Information & Institutions — implementation complete; awaiting exit review
+**Current phase:** Phase 6 — Society, Information & Institutions — exit closure complete; awaiting human acceptance
 
-**Current position:** Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. Phase 6 awaits final human review.
+**Current position:** Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. The exit gaps are closed: participation history is frozen at decision time, the scarcity chain exercises a real no-vacancy job hunt, SQLite handles close cleanly, and the persisted-world social graph command works again.
 
 ## Phase Progress
 
@@ -39,10 +39,10 @@
 
 ## What We Are Doing Next
 
-Review the completed Phase 6 system before advancing:
+Complete the human exit review before advancing:
 
-1. Confirm the deliberate integration chain from shared job scarcity through contact-bound evidence and selective collective participation.
-2. Confirm `economic_snapshot()`, `diffusion_snapshot()`, `collective_snapshot()`, and `participation_trace()` provide sufficient macro-to-micro inspection.
+1. Review the verified Phase 6 closure and its 143-test release gate.
+2. Accept or reject the Phase 6 exit condition.
 3. Do not begin Phase 7 implementation until its human-reviewed brief explicitly authorizes the first step.
 
 ## Documentation Guide

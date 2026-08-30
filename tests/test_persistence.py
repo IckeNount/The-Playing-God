@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import gc
 import sqlite3
 import tempfile
 import unittest
+import warnings
 
+from contextlib import closing, contextmanager
 from dataclasses import asdict
 from pathlib import Path
 from unittest.mock import patch
@@ -57,6 +60,12 @@ def world_snapshot(world: World) -> dict:
     }
 
 
+@contextmanager
+def sqlite_connection(path):
+    with closing(sqlite3.connect(path)) as conn, conn:
+        yield conn
+
+
 class PersistenceTests(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -69,6 +78,28 @@ class PersistenceTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
+
+    def test_save_and_load_close_sqlite_connections(self):
+        world = World(seed=1947, population=2)
+        gc.collect()
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", ResourceWarning)
+            for _ in range(3):
+                save_world(world, self.db_path)
+                loaded = load_world(self.db_path)
+            del loaded
+            gc.collect()
+
+        sqlite_warnings = [
+            warning
+            for warning in caught
+            if (
+                issubclass(warning.category, ResourceWarning)
+                and "sqlite3.Connection" in str(warning.message)
+            )
+        ]
+        self.assertEqual(sqlite_warnings, [])
 
     # ---------------------------------------------------------
     # TEST 2
@@ -119,7 +150,7 @@ class PersistenceTests(unittest.TestCase):
             "work",
         )
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -144,7 +175,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=2)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute("DROP TABLE economy_state")
             conn.execute(
                 "UPDATE world_state "
@@ -161,7 +192,7 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(loaded.rng.getstate(), expected_rng_state)
 
         save_world(loaded, self.db_path)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -185,7 +216,7 @@ class PersistenceTests(unittest.TestCase):
         world.resolve_daily_interactions()
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             for column in (
                 "information_id",
                 "origin_agent_id",
@@ -210,7 +241,7 @@ class PersistenceTests(unittest.TestCase):
                 self.assertIsNone(observation.hop_count)
 
         save_world(loaded, self.db_path)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -236,7 +267,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute(
                 "UPDATE economy_state SET job_capacity = 0 "
                 "WHERE id = 1"
@@ -318,7 +349,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute(
                 "ALTER TABLE agents "
                 "DROP COLUMN social_energy"
@@ -357,7 +388,7 @@ class PersistenceTests(unittest.TestCase):
             world_snapshot(loaded),
         )
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -406,7 +437,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute("DROP TABLE prayers")
             conn.execute(
                 "UPDATE world_state "
@@ -420,7 +451,7 @@ class PersistenceTests(unittest.TestCase):
 
         save_world(loaded, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -437,7 +468,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute("DROP TABLE intervention_responses")
             conn.execute("DROP TABLE interventions")
             conn.execute(
@@ -452,7 +483,7 @@ class PersistenceTests(unittest.TestCase):
 
         save_world(loaded, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -473,7 +504,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute("DROP TABLE attributions")
             conn.execute("ALTER TABLE agents DROP COLUMN faith")
             conn.execute(
@@ -489,7 +520,7 @@ class PersistenceTests(unittest.TestCase):
 
         save_world(loaded, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             schema_version = conn.execute(
                 "SELECT schema_version "
                 "FROM world_state WHERE id = 1"
@@ -536,7 +567,7 @@ class PersistenceTests(unittest.TestCase):
             world.rng.getstate(),
         )
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             intervention_rows = conn.execute(
                 "SELECT COUNT(*) FROM interventions"
             ).fetchone()[0]
@@ -587,7 +618,7 @@ class PersistenceTests(unittest.TestCase):
 
         self.assertEqual(world_snapshot(loaded), world_snapshot(world))
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             attribution_rows = conn.execute(
                 "SELECT COUNT(*) FROM attributions"
             ).fetchone()[0]
@@ -633,7 +664,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute("DROP TABLE observations")
             conn.execute("DROP TABLE beliefs")
             conn.execute(
@@ -649,7 +680,7 @@ class PersistenceTests(unittest.TestCase):
 
         save_world(loaded, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             tables = {
                 row[0]
                 for row in conn.execute(
@@ -665,7 +696,7 @@ class PersistenceTests(unittest.TestCase):
         world = World(seed=1947)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute(
                 "ALTER TABLE agents "
                 "DROP COLUMN current_location"
@@ -758,7 +789,7 @@ class PersistenceTests(unittest.TestCase):
         world.run(1)
         save_world(world, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             conn.execute(
                 "ALTER TABLE events DROP COLUMN target_id"
             )
@@ -779,7 +810,7 @@ class PersistenceTests(unittest.TestCase):
 
         save_world(loaded, self.db_path)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite_connection(self.db_path) as conn:
             columns = {
                 row[1]
                 for row in conn.execute(
@@ -975,7 +1006,7 @@ class PersistenceTests(unittest.TestCase):
             expected_event_count,
         )
 
-        with sqlite3.connect(
+        with sqlite_connection(
             self.db_path
         ) as conn:
             agent_rows = conn.execute(
@@ -1157,7 +1188,7 @@ class PersistenceTests(unittest.TestCase):
     # ---------------------------------------------------------
 
     def test_unrelated_sqlite_database_fails_clearly(self):
-        with sqlite3.connect(
+        with sqlite_connection(
             self.db_path
         ) as conn:
             conn.execute(

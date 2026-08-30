@@ -4,6 +4,7 @@ import json
 import sqlite3
 
 from collections import Counter
+from contextlib import closing
 from pathlib import Path
 
 from playing_god.core.agent import Agent
@@ -1423,7 +1424,7 @@ def save_world(
     )
 
     try:
-        with _connect(path) as conn:
+        with closing(_connect(path)) as conn, conn:
             conn.executescript(SCHEMA)
 
             _migrate_agents_to_v3(conn)
@@ -2360,7 +2361,7 @@ def load_world(
         )
 
     try:
-        with _connect(path) as conn:
+        with closing(_connect(path)) as conn, conn:
             _validate_tables(conn)
 
             state = conn.execute(
