@@ -243,3 +243,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Rejected:** Database cloning as experiment state, a generic recursive dictionary diff, event-count-only comparison, and an RNG-kernel migration inside Phase 5.
 
 **Affected:** `src/playing_god/core/counterfactual.py`, `scripts/compare_counterfactual.py`, `tests/test_counterfactual.py`, `docs/phases/phase-05-belief-intervention.md`
+
+## 2026-08-31 — Keep adaptive learning subordinate to valid action selection
+
+**Area:** core-simulation, adaptive-cognition, reproducibility
+
+**Decision:** `decision.choose()` accepts action-keyed learned preferences only after deriving the candidate set from existing deterministic scores and eligibility sentinels. Transient intervention adjustments use the same valid-only boundary. Both may change relative weighted preference, but neither may make an unavailable action selectable.
+
+**Reason:** Phase 7 learning should adapt choice among possibilities the world already permits, not become a second source of physical, economic, social, or institutional truth. A narrow additive seam preserves the existing seeded chooser and lets 7.0.1 add one learner without redesigning the decision engine.
+
+**Deferred:** Context representation, consequence feedback, online updates, learned state on `Agent`, and persistence all remain in milestones 7.0.1–7.0.2.
+
+**Affected:** `src/playing_god/core/decision.py`, `tests/test_decision.py`, `docs/phases/phase-07-development-generations.md`

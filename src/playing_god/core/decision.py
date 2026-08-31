@@ -125,23 +125,36 @@ def choose(
     rng: random.Random,
     *,
     score_adjustments: dict[str, float] | None = None,
+    learned_preferences: dict[str, float] | None = None,
     participation_utility: float | None = None,
 ) -> str:
+    """Choose among actions made available by current world-owned state.
+
+    Transient stimuli and learned preferences may alter the relative scores of
+    available actions. They cannot make an unavailable action eligible; world
+    rules still validate and resolve the selected action's consequences.
+    """
     action_scores = scores(
         a,
         participation_utility=participation_utility,
     )
 
-    if score_adjustments:
-        for action, adjustment in score_adjustments.items():
-            if action in action_scores:
-                action_scores[action] += adjustment
-
-    available = [
-        (name, score)
+    available_scores = {
+        name: score
         for name, score in action_scores.items()
         if score > -50
-    ]
+    }
+
+    for adjustments in (
+        score_adjustments,
+        learned_preferences,
+    ):
+        if adjustments:
+            for action, adjustment in adjustments.items():
+                if action in available_scores:
+                    available_scores[action] += adjustment
+
+    available = list(available_scores.items())
 
     peak = max(score for _, score in available)
 

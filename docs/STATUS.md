@@ -1,10 +1,10 @@
 # Playing God — Current Status
 
-**Updated:** 2026-08-30
+**Updated:** 2026-08-31
 
-**Current phase:** Phase 6 — Society, Information & Institutions — exit closure complete; awaiting human acceptance
+**Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 6A shared economy, Phase 6B school institution, Phase 6C information diffusion, and Phase 6D collective action are implemented and verified. The exit gaps are closed: participation history is frozen at decision time, the scarcity chain exercises a real no-vacancy job hunt, SQLite handles close cleanly, and the persisted-world social graph command works again.
+**Current position:** Phase 6 is accepted and closed. Phase 7.0.0 is complete: the existing decision chooser exposes a minimal learned-preference input that can change ranking only among actions already made valid by deterministic world state and constraints.
 
 ## Phase Progress
 
@@ -16,7 +16,8 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7–11 — Generations through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | 7.0.0 establishes the valid-action learning boundary; the first online learner is next. |
+| 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
 
@@ -39,11 +40,20 @@
 
 ## What We Are Doing Next
 
-Complete the human exit review before advancing:
+Implement Phase 7.0.1 only:
 
-1. Review the verified Phase 6 closure and its 143-test release gate.
-2. Accept or reject the Phase 6 exit condition.
-3. Do not begin Phase 7 implementation until its human-reviewed brief explicitly authorizes the first step.
+1. Define one compact, inspectable learning context over existing NPC/world information.
+2. Derive bounded consequence feedback from existing state/event changes.
+3. Prove in a controlled scenario that different experience changes later valid-action preference.
+4. Do not add persistence yet; learned-state persistence belongs to 7.0.2.
+
+## Phase 7 Progress
+
+| Step | Status | What it means |
+|---|---|---|
+| 7.0.0 — Learning boundary | Complete | Learned preferences can influence only the ranking of already-valid actions; world rules still own eligibility and consequences. |
+| 7.0.1 — Contextual adaptation | Next | Add the first deterministic, CPU-friendly online learner and prove experience-driven preference divergence. |
+| 7.0.2–7F | Planned | Persistence, delayed-credit gate, founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 

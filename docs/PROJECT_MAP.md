@@ -32,14 +32,14 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 - `src/playing_god/core/world.py` — `World`, including `run()`, `act()`, and `report()`.
 - `src/playing_god/core/agent.py` — `Agent`, stable trait/sin keys, normalization.
-- `src/playing_god/core/decision.py` — action scores and seeded weighted selection.
+- `src/playing_god/core/decision.py` — action scores, valid-candidate filtering, transient adjustments, the learned-preference boundary, and seeded weighted selection.
 - `src/playing_god/core/events.py` — structured per-agent `Event`.
 - `src/playing_god/core/prayer.py` — structured prayer records and deterministic prayer need/intensity derivation.
 - `src/playing_god/core/rng.py` — RNG construction and persistence-safe state serialization.
 
-**Focused tests:** `tests/test_reproducibility.py`, `tests/test_prayer.py`.
+**Focused tests:** `tests/test_decision.py`, `tests/test_reproducibility.py`, `tests/test_prayer.py`.
 
-**Important boundary:** All causal randomness must use the world's seeded RNG. Avoid global randomness and changes to RNG call order unless the resulting determinism migration is intentional and tested.
+**Important boundary:** All causal randomness must use the world's seeded RNG. Avoid global randomness and changes to RNG call order unless the resulting determinism migration is intentional and tested. Decision modifiers, including learned preferences, are applied only after the base-valid candidate set is fixed; they may rank actions but cannot create eligibility or resolve consequences.
 
 ## `social` — relationships and contact
 
@@ -247,4 +247,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4 and 5 satisfy their roadmap exit conditions. Phase 6 shared economy, school institution, bounded information diffusion, and collective action are implemented, and its exit-closure release gate passes; human acceptance still gates Phase 7. Later phases covering generations, culture, discovery, and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestone 7.0.0 establishes the learned-preference boundary, while the online learner, persistence, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
