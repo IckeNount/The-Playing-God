@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; the Phase 7.0 Adaptive Cognition Foundation is complete and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition and Phase 7A Founder Prehistory are complete and verified.
 
 ## Recent completed work
 
@@ -63,6 +63,9 @@ Phases 4–6 are complete and accepted. Phase 7 is active; the Phase 7.0 Adaptiv
 - A controlled equal-prior training scenario proves that institutional admission versus denial creates different learned preference and later choice. Same-seed adaptive runs remain exact, and adaptation stays explicitly opt-in so legacy default behavior is unchanged.
 - SQLite schema version 12 persists the world adaptive-cognition flag and each agent's exact contextual action-value table. Schema-v11 and older worlds load disabled/empty without RNG draws or fabricated history, malformed adaptive JSON is rejected, and adaptive split-run continuation matches uninterrupted execution.
 - The 7.0.3 delayed-consequence gate defers Q-learning: successful training has immediate money/energy/stress costs but also immediate skill progress, which supplies positive `improve_skill` feedback; denied training supplies none. No current Phase 7 behavior requires backward assignment of later income.
+- Each new G0 founder now has exactly three structured prior-life records covering capability exposure, livelihood entry, and recent conditions. Their effects authoritatively define starting skill, employment/job level/salary, resources, energy, stress, and reputation without changing the existing RNG draw order or initialized values.
+- Traits and sins remain priors, age remains a founder demographic, and adaptive values remain empty until real action/outcome experience occurs. Founder prehistory adds no full-childhood simulation, prose biography, new dependency, or extra random draw.
+- SQLite schema version 13 persists compact founder history as checked agent-owned JSON. Schema-v12 and older worlds load empty without fabricated events or RNG consumption and migrate honestly on save.
 
 ## Active architectural concern
 
@@ -70,8 +73,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7.0 failure. The full suite passes 153 tests.
+- No known Phase 7A failure. The full suite passes 159 tests.
 
 ## Next logical task
 
-Implement Phase 7A: compact seeded structured prehistory that causally explains important G0 starting differences without rerunning full childhoods.
+Implement Phase 7B: explicit family relationships and constrained reproduction foundation, without beginning child development early.

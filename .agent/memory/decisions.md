@@ -291,3 +291,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Revisit gate:** Add delayed-credit learning only when a controlled approved behavior has a necessary benefit that appears only in a future context and the contextual action-value learner demonstrably cannot represent it.
 
 **Affected:** `src/playing_god/core/adaptive.py`, `src/playing_god/core/world.py`, `tests/test_adaptive.py`, `docs/phases/phase-07-development-generations.md`
+
+## 2026-09-01 — Derive G0 starting state from three founder records
+
+**Area:** founder-prehistory, core-simulation, persistence, reproducibility
+
+**Decision:** Generate exactly three structured records per new G0 adult: capability exposure, livelihood entry, and recent material conditions. Reduce their effects into starting skill, employment/job level/salary, money, energy/social energy, stress, and reputation. Keep traits and sins as priors and age as a demographic. Do not warm-start adaptive values without prior action/outcome evidence.
+
+**Reason:** This is the smallest causal history that explains important state already used by the current model without simulating childhoods, inventing prose biography, or adding RNG draws. Retaining the prior draw order preserves verified trajectories while making their initialization inspectable.
+
+**Compatibility:** SQLite schema v13 persists founder history as agent-owned checked JSON. Schema-v12 and older worlds load empty and migrate on save without reconstructing a history or consuming RNG.
+
+**Affected:** `src/playing_god/core/prehistory.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_prehistory.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`

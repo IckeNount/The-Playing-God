@@ -7,6 +7,7 @@ from playing_god.core.adaptive import ActionValue
 from playing_god.core.events import Event
 from playing_god.core.faith import Attribution
 from playing_god.core.perception import Belief, Observation
+from playing_god.core.prehistory import FounderEvent
 from playing_god.core.prayer import Prayer
 
 
@@ -92,6 +93,9 @@ class Agent:
         str,
         dict[str, ActionValue],
     ] = field(default_factory=dict)
+    founder_prehistory: list[FounderEvent] = field(
+        default_factory=list,
+    )
 
     current_location: str = "home"
     destination: str | None = None

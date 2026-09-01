@@ -157,7 +157,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
 
     def test_adaptive_state_survives_restart(self):
         world = World(
@@ -254,9 +254,81 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertIn("adaptive_cognition", world_columns)
         self.assertIn("adaptive_values_json", agent_columns)
+
+    def test_schema12_defaults_to_empty_founder_prehistory(self):
+        world = World(seed=1947, population=2)
+        save_world(world, self.db_path)
+        expected_rng_state = world.rng.getstate()
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute(
+                "ALTER TABLE agents "
+                "DROP COLUMN founder_prehistory_json"
+            )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 12 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        self.assertTrue(all(
+            not agent.founder_prehistory
+            for agent in loaded.agents
+        ))
+        self.assertEqual(loaded.rng.getstate(), expected_rng_state)
+
+        save_world(loaded, self.db_path)
+        migrated = load_world(self.db_path)
+        with sqlite_connection(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            agent_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(agents)"
+                )
+            }
+
+        self.assertEqual(schema_version, 13)
+        self.assertIn("founder_prehistory_json", agent_columns)
+        self.assertTrue(all(
+            not agent.founder_prehistory
+            for agent in migrated.agents
+        ))
+
+    def test_corrupted_founder_prehistory_fails_clearly(self):
+        world = World(seed=1947, population=1)
+        save_world(world, self.db_path)
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute(
+                "UPDATE agents "
+                "SET founder_prehistory_json = '{}' "
+                "WHERE id = ?",
+                (world.agents[0].id,),
+            )
+
+        with self.assertRaisesRegex(
+            WorldLoadError,
+            "Invalid founder prehistory",
+        ):
+            load_world(self.db_path)
+
+    def test_invalid_founder_prehistory_cannot_be_saved(self):
+        world = World(seed=1947, population=1)
+        world.agents[0].founder_prehistory.pop()
+
+        with self.assertRaisesRegex(
+            PersistenceError,
+            "Invalid founder prehistory",
+        ):
+            save_world(world, self.db_path)
 
     def test_corrupted_adaptive_state_fails_clearly(self):
         world = World(
@@ -325,7 +397,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM economy_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertEqual(capacity, loaded.economy.job_capacity)
 
     def test_schema10_defaults_missing_information_identity(self):
@@ -376,7 +448,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertTrue(
             {
                 "information_id",
@@ -517,7 +589,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
 
     def test_prayers_survive_restart(self):
         world = World(seed=1947)
@@ -584,7 +656,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'prayers'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertIsNotNone(prayer_table)
 
     def test_schema7_defaults_to_empty_intervention_state(self):
@@ -619,7 +691,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertIn("interventions", tables)
         self.assertIn("intervention_responses", tables)
 
@@ -657,7 +729,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'attributions'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 12)
+        self.assertEqual(schema_version, 13)
         self.assertIn("faith", agent_columns)
         self.assertIsNotNone(attribution_table)
 

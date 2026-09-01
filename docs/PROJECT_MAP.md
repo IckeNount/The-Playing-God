@@ -14,7 +14,7 @@ scripts
        -> social graph
 
 core world
-  -> agent + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
+  -> agent + founder prehistory + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
   -> perception / belief
 
 exposure
@@ -54,6 +54,20 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 **Focused tests:** `tests/test_adaptive.py`, `tests/test_decision.py`.
 
 **Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Schema v12 persists the opt-in setting and exact running statistics; earlier worlds begin empty and disabled. Phase 7.0.3 defers Q-learning because current costly training already provides immediate skill-progress feedback.
+
+## `founder-prehistory` — compact G0 causal initialization
+
+**Owns:** three seeded structured prior-life records for each newly generated founder and reduction of their effects into important starting capability, livelihood, resources, and recent wellbeing.
+
+**Entry points:**
+
+- `src/playing_god/core/prehistory.py` — founder event generation, strict structure validation, and starting-state reduction.
+- `src/playing_god/core/agent.py` — per-agent `founder_prehistory` history.
+- `src/playing_god/core/world.py` — G0 generation from the compact records.
+
+**Focused tests:** `tests/test_prehistory.py`, plus persistence and deterministic regression coverage.
+
+**Important boundary:** Traits and sins remain initialized priors, not invented life events. New founders receive exactly three records without extra RNG draws or a full childhood simulation. No adaptive values are warm-started because the compact history does not yet contain action/outcome observations sufficient to derive them. Schema v13 persists the records; schema-v12 and older agents remain empty rather than receiving reconstructed histories.
 
 ## `social` — relationships and contact
 
@@ -199,17 +213,17 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 12, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 13, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores the adaptive setting plus one nested JSON value table per agent; schema-v11 and older worlds load with no fabricated learning history.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state; schema v13 adds compact founder history. Older worlds load without fabricated learning or prehistory.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 

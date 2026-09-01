@@ -32,6 +32,10 @@ from playing_god.core.perception import (
     belief_key,
 )
 from playing_god.core.prayer import Prayer
+from playing_god.core.prehistory import (
+    founder_prehistory_from_data,
+    founder_starting_state,
+)
 from playing_god.core.rng import (
     create_rng,
     restore_state,
@@ -40,7 +44,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = 13
 
 
 class PersistenceError(RuntimeError):
@@ -92,7 +96,8 @@ CREATE TABLE IF NOT EXISTS agents (
 
     current_location TEXT NOT NULL DEFAULT 'home',
     destination TEXT,
-    adaptive_values_json TEXT NOT NULL DEFAULT '{}'
+    adaptive_values_json TEXT NOT NULL DEFAULT '{}',
+    founder_prehistory_json TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -462,6 +467,22 @@ def _migrate_adaptive_state_to_v12(
         )
 
 
+def _migrate_founder_prehistory_to_v13(
+    conn: sqlite3.Connection,
+) -> None:
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "founder_prehistory_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "founder_prehistory_json TEXT NOT NULL DEFAULT '[]'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -693,6 +714,15 @@ def _save_agents(
     world: World,
 ) -> None:
     for agent in world.agents:
+        if agent.founder_prehistory:
+            try:
+                founder_starting_state(agent.founder_prehistory)
+            except ValueError as exc:
+                raise PersistenceError(
+                    "Invalid founder prehistory for agent "
+                    f"{agent.id}."
+                ) from exc
+
         conn.execute(
             """
             INSERT INTO agents (
@@ -715,10 +745,11 @@ def _save_agents(
                 actions_json,
                 current_location,
                 destination,
-                adaptive_values_json
+                adaptive_values_json,
+                founder_prehistory_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -741,7 +772,8 @@ def _save_agents(
                 actions_json = excluded.actions_json,
                 current_location = excluded.current_location,
                 destination = excluded.destination,
-                adaptive_values_json = excluded.adaptive_values_json
+                adaptive_values_json = excluded.adaptive_values_json,
+                founder_prehistory_json = excluded.founder_prehistory_json
             """,
             (
                 agent.id,
@@ -772,6 +804,13 @@ def _save_agents(
                         for context, actions
                         in agent.adaptive_values.items()
                     },
+                    sort_keys=True,
+                ),
+                json.dumps(
+                    [
+                        asdict(event)
+                        for event in agent.founder_prehistory
+                    ],
                     sort_keys=True,
                 ),
             ),
@@ -1490,6 +1529,7 @@ def save_world(
             _migrate_agents_to_v9(conn)
             _migrate_observations_to_v11(conn)
             _migrate_adaptive_state_to_v12(conn)
+            _migrate_founder_prehistory_to_v13(conn)
 
             _save_world_state(
                 conn,
@@ -1638,6 +1678,7 @@ def _load_agents(
     conn: sqlite3.Connection,
     *,
     require_adaptive_state: bool = False,
+    require_founder_prehistory: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1659,6 +1700,15 @@ def _load_agents(
     has_adaptive_state = (
         require_adaptive_state
         and has_adaptive_column
+    )
+    has_founder_column = "founder_prehistory_json" in columns
+    if require_founder_prehistory and not has_founder_column:
+        raise WorldLoadError(
+            "Founder-prehistory schema is missing agent history."
+        )
+    has_founder_prehistory = (
+        require_founder_prehistory
+        and has_founder_column
     )
 
     rows = conn.execute(
@@ -1695,6 +1745,10 @@ def _load_agents(
             adaptive_values = json.loads(
                 row["adaptive_values_json"]
             ) if has_adaptive_state else {}
+
+            founder_prehistory_data = json.loads(
+                row["founder_prehistory_json"]
+            ) if has_founder_prehistory else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -1745,6 +1799,18 @@ def _load_agents(
             agent,
             adaptive_values,
         )
+        if founder_prehistory_data is not None:
+            try:
+                agent.founder_prehistory = (
+                    founder_prehistory_from_data(
+                        founder_prehistory_data
+                    )
+                )
+            except ValueError as exc:
+                raise WorldLoadError(
+                    "Invalid founder prehistory for agent "
+                    f"{agent.id}."
+                ) from exc
 
         agents.append(agent)
 
@@ -2548,6 +2614,7 @@ def load_world(
                 9,
                 10,
                 11,
+                12,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2576,6 +2643,9 @@ def load_world(
             )
             has_adaptive_state = (
                 state["schema_version"] >= 12
+            )
+            has_founder_prehistory = (
+                state["schema_version"] >= 13
             )
 
             if (
@@ -2607,6 +2677,9 @@ def load_world(
             agents = _load_agents(
                 conn,
                 require_adaptive_state=has_adaptive_state,
+                require_founder_prehistory=(
+                    has_founder_prehistory
+                ),
             )
             economy = (
                 _load_economy_state(conn, agents)

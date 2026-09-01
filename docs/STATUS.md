@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7.0 Adaptive Cognition Foundation is complete. The delayed-consequence gate found that costly training already supplies immediate capability feedback, so Q-learning is deferred rather than added speculatively.
+**Current position:** Phase 7A Founder Prehistory is complete. New G0 adults now derive important starting state from compact seeded structured history; legacy worlds retain honest empty prehistory.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The adaptive cognition foundation is complete; compact founder prehistory is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition and compact founder prehistory are complete; family/reproduction foundations are next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,12 +40,11 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7A only:
+Implement Phase 7B only:
 
-1. Generate compact, seeded, structured prehistory for G0 founders.
-2. Derive only important starting differences that the current model already uses.
-3. Keep prehistory inspectable and cheap; do not simulate full childhoods or generate prose biographies.
-4. Warm-start learned policy only where a generated prior event causally supports it.
+1. Add explicit family relationships and bounded reproduction eligibility.
+2. Keep reproduction subordinate to current resources, relationships, age, and world constraints.
+3. Create no child-development system before the family/reproduction foundation itself is proven.
 
 ## Phase 7 Progress
 
@@ -55,8 +54,9 @@ Implement Phase 7A only:
 | 7.0.1 — Contextual adaptation | Complete | Goal-context action values learn online from multidimensional consequences; controlled outcomes produce inspectable preference and later-choice divergence. |
 | 7.0.2 — Learned-state persistence | Complete | Schema v12 preserves adaptive configuration and minimal learned values; legacy worlds remain empty/disabled and adaptive split runs remain exact. |
 | 7.0.3 — Delayed-consequence gate | Complete | Costly training has immediate goal-relevant capability feedback, so contextual adaptation is sufficient and Q-learning is deferred. |
-| 7A — Founder prehistory | Next | Explain important G0 starting differences through compact seeded structured history. |
-| 7B–7F | Planned | Reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
+| 7A — Founder prehistory | Complete | Three seeded structured records causally define each new founder's capability, livelihood, resources, and recent wellbeing; schema v13 persists them without fabricating legacy history. |
+| 7B — Family / reproduction foundation | Next | Add explicit family structure and constrained reproduction before child development. |
+| 7C–7F | Planned | Development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 

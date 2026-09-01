@@ -727,6 +727,31 @@ Do not simulate:
 
 The important starting state of G0 adults can be traced to compact generated history rather than appearing as unexplained arbitrary values.
 
+### Implementation record — 2026-09-01
+
+**Phase 7A complete.** Each newly generated G0 adult receives exactly three
+structured prior-life records:
+
+- capability exposure defines starting skill;
+- livelihood entry defines employment, job level, and salary;
+- recent conditions define money, energy, social energy, stress, and reputation.
+
+`World._create_agents()` now assigns those important starting fields only from
+the reduced event effects. Traits and sins remain explicit priors, and age
+remains a founder demographic rather than a simulated childhood outcome. The
+generator reuses the previous seeded draws in the same order, so existing
+initial state, RNG continuation, and deterministic trajectories do not change.
+
+The records live on each agent for direct inspection. SQLite schema v13 stores
+them as compact checked JSON. Schema-v12 and older worlds load with empty
+prehistory and preserve their RNG state; saving migrates them without inventing
+events they never had. No adaptive policy is warm-started because these three
+records do not contain the action/outcome evidence required to derive one.
+
+Focused causal, repeat-seed, persistence, legacy-migration, corrupt-state, and
+existing reproducibility tests cover the milestone. Full childhood simulation,
+prose biography, parental generations, and new dependencies remain absent.
+
 ---
 
 # 6. Phase 7B — Family / Reproduction Foundation

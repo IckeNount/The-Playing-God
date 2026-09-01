@@ -68,6 +68,10 @@ from playing_god.core.perception import (
     receive_observation,
 )
 from playing_god.core.prayer import create_prayer
+from playing_god.core.prehistory import (
+    founder_starting_state,
+    generate_founder_prehistory,
+)
 from playing_god.core.rng import create_rng
 from playing_god.core.spatial import create_default_world_map
 from .social import SocialGraph
@@ -558,25 +562,12 @@ class World:
                 for k in SINS
             }
 
-            employed = self.rng.random() < 0.70
-            skill = self.rng.uniform(0.20, 0.60)
-
-            level = (
-                self.rng.choice([1, 1, 1, 2])
-                if employed
-                else 0
+            age, founder_prehistory = (
+                generate_founder_prehistory(self.rng)
             )
-
-            salary = (
-                22 + 7 * level + 8 * skill
-                if employed
-                else 0
+            starting_state = founder_starting_state(
+                founder_prehistory
             )
-            age = self.rng.randint(20, 38)
-            money = self.rng.uniform(120, 520)
-            energy = self.rng.uniform(0.55, 0.95)
-            stress = self.rng.uniform(0.10, 0.45)
-            reputation = self.rng.uniform(-0.10, 0.20)
 
             people.append(
                 Agent(
@@ -585,15 +576,20 @@ class World:
                     age=age,
                     traits=traits,
                     sins=sins,
-                    money=money,
-                    employed=employed,
-                    salary=salary,
-                    job_level=level,
-                    skill=skill,
-                    energy=energy,
-                    social_energy=energy,
-                    stress=stress,
-                    reputation=reputation,
+                    money=float(starting_state["money"]),
+                    employed=bool(starting_state["employed"]),
+                    salary=float(starting_state["salary"]),
+                    job_level=int(starting_state["job_level"]),
+                    skill=float(starting_state["skill"]),
+                    energy=float(starting_state["energy"]),
+                    social_energy=float(
+                        starting_state["social_energy"]
+                    ),
+                    stress=float(starting_state["stress"]),
+                    reputation=float(
+                        starting_state["reputation"]
+                    ),
+                    founder_prehistory=founder_prehistory,
                 )
             )
 
