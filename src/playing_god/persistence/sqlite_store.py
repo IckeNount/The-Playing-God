@@ -18,6 +18,10 @@ from playing_god.core.agent import Agent
 from playing_god.core.decision import scores as decision_scores
 from playing_god.core.economy import EconomyState
 from playing_god.core.events import Event
+from playing_god.core.family import (
+    family_state_from_data,
+    validate_family_links,
+)
 from playing_god.core.faith import ATTRIBUTION_CAUSES, Attribution
 from playing_god.core.intervention import (
     INTERPRETATIONS,
@@ -44,7 +48,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 
 
 class PersistenceError(RuntimeError):
@@ -63,7 +67,9 @@ CREATE TABLE IF NOT EXISTS world_state (
     day INTEGER NOT NULL,
     rng_state TEXT NOT NULL,
     adaptive_cognition INTEGER NOT NULL DEFAULT 0
-        CHECK (adaptive_cognition IN (0, 1))
+        CHECK (adaptive_cognition IN (0, 1)),
+    reproduction_enabled INTEGER NOT NULL DEFAULT 0
+        CHECK (reproduction_enabled IN (0, 1))
 );
 
 CREATE TABLE IF NOT EXISTS economy_state (
@@ -97,7 +103,8 @@ CREATE TABLE IF NOT EXISTS agents (
     current_location TEXT NOT NULL DEFAULT 'home',
     destination TEXT,
     adaptive_values_json TEXT NOT NULL DEFAULT '{}',
-    founder_prehistory_json TEXT NOT NULL DEFAULT '[]'
+    founder_prehistory_json TEXT NOT NULL DEFAULT '[]',
+    family_json TEXT NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -483,6 +490,35 @@ def _migrate_founder_prehistory_to_v13(
         )
 
 
+def _migrate_family_state_to_v14(
+    conn: sqlite3.Connection,
+) -> None:
+    world_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(world_state)"
+        ).fetchall()
+    }
+    if "reproduction_enabled" not in world_columns:
+        conn.execute(
+            "ALTER TABLE world_state ADD COLUMN "
+            "reproduction_enabled INTEGER NOT NULL DEFAULT 0 "
+            "CHECK (reproduction_enabled IN (0, 1))"
+        )
+
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "family_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "family_json TEXT NOT NULL DEFAULT '{}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -658,9 +694,10 @@ def _save_world_state(
             seed,
             day,
             rng_state,
-            adaptive_cognition
+            adaptive_cognition,
+            reproduction_enabled
         )
-        VALUES (1, ?, ?, ?, ?, ?)
+        VALUES (1, ?, ?, ?, ?, ?, ?)
 
         ON CONFLICT(id)
         DO UPDATE SET
@@ -668,7 +705,8 @@ def _save_world_state(
             seed = excluded.seed,
             day = excluded.day,
             rng_state = excluded.rng_state,
-            adaptive_cognition = excluded.adaptive_cognition
+            adaptive_cognition = excluded.adaptive_cognition,
+            reproduction_enabled = excluded.reproduction_enabled
         """,
         (
             SCHEMA_VERSION,
@@ -676,6 +714,7 @@ def _save_world_state(
             world.day,
             serialize_state(world.rng),
             int(world.adaptive_cognition),
+            int(world.reproduction_enabled),
         ),
     )
     _migrate_relationships_to_v2(conn)
@@ -713,6 +752,15 @@ def _save_agents(
     conn: sqlite3.Connection,
     world: World,
 ) -> None:
+    try:
+        validate_family_links(
+            world.agents,
+            current_day=world.day,
+            valid_locations=set(world.world_map.locations),
+        )
+    except ValueError as exc:
+        raise PersistenceError("Invalid family state.") from exc
+
     for agent in world.agents:
         if agent.founder_prehistory:
             try:
@@ -746,10 +794,11 @@ def _save_agents(
                 current_location,
                 destination,
                 adaptive_values_json,
-                founder_prehistory_json
+                founder_prehistory_json,
+                family_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -773,7 +822,8 @@ def _save_agents(
                 current_location = excluded.current_location,
                 destination = excluded.destination,
                 adaptive_values_json = excluded.adaptive_values_json,
-                founder_prehistory_json = excluded.founder_prehistory_json
+                founder_prehistory_json = excluded.founder_prehistory_json,
+                family_json = excluded.family_json
             """,
             (
                 agent.id,
@@ -813,6 +863,7 @@ def _save_agents(
                     ],
                     sort_keys=True,
                 ),
+                json.dumps(asdict(agent.family), sort_keys=True),
             ),
         )
 
@@ -1530,6 +1581,7 @@ def save_world(
             _migrate_observations_to_v11(conn)
             _migrate_adaptive_state_to_v12(conn)
             _migrate_founder_prehistory_to_v13(conn)
+            _migrate_family_state_to_v14(conn)
 
             _save_world_state(
                 conn,
@@ -1679,6 +1731,7 @@ def _load_agents(
     *,
     require_adaptive_state: bool = False,
     require_founder_prehistory: bool = False,
+    require_family_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1710,6 +1763,12 @@ def _load_agents(
         require_founder_prehistory
         and has_founder_column
     )
+    has_family_column = "family_json" in columns
+    if require_family_state and not has_family_column:
+        raise WorldLoadError(
+            "Family schema is missing agent family state."
+        )
+    has_family_state = require_family_state and has_family_column
 
     rows = conn.execute(
         """
@@ -1749,6 +1808,10 @@ def _load_agents(
             founder_prehistory_data = json.loads(
                 row["founder_prehistory_json"]
             ) if has_founder_prehistory else None
+
+            family_data = json.loads(
+                row["family_json"]
+            ) if has_family_state else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -1810,6 +1873,13 @@ def _load_agents(
                 raise WorldLoadError(
                     "Invalid founder prehistory for agent "
                     f"{agent.id}."
+                ) from exc
+        if family_data is not None:
+            try:
+                agent.family = family_state_from_data(family_data)
+            except (TypeError, ValueError) as exc:
+                raise WorldLoadError(
+                    f"Invalid family state for agent {agent.id}."
                 ) from exc
 
         agents.append(agent)
@@ -2615,6 +2685,7 @@ def load_world(
                 10,
                 11,
                 12,
+                13,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2647,6 +2718,9 @@ def load_world(
             has_founder_prehistory = (
                 state["schema_version"] >= 13
             )
+            has_family_state = (
+                state["schema_version"] >= 14
+            )
 
             if (
                 has_adaptive_state
@@ -2657,6 +2731,17 @@ def load_world(
             ):
                 raise WorldLoadError(
                     "Invalid adaptive cognition setting."
+                )
+
+            if (
+                has_family_state
+                and (
+                    "reproduction_enabled" not in state.keys()
+                    or state["reproduction_enabled"] not in (0, 1)
+                )
+            ):
+                raise WorldLoadError(
+                    "Invalid reproduction setting."
                 )
 
             if has_perception_state:
@@ -2680,7 +2765,15 @@ def load_world(
                 require_founder_prehistory=(
                     has_founder_prehistory
                 ),
+                require_family_state=has_family_state,
             )
+            if has_family_state:
+                try:
+                    validate_family_links(agents)
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid family links."
+                    ) from exc
             economy = (
                 _load_economy_state(conn, agents)
                 if has_economy_state
@@ -2762,6 +2855,11 @@ def load_world(
                 if has_adaptive_state
                 else False
             )
+            world.reproduction_enabled = (
+                bool(state["reproduction_enabled"])
+                if has_family_state
+                else False
+            )
             world.agents = agents
             world.economy = economy
             world.school = SchoolState()
@@ -2790,6 +2888,17 @@ def load_world(
             world.rebuild_social_graph()
             world.rebuild_spatial_map()
             world.rebuild_information_index()
+            if has_family_state:
+                try:
+                    validate_family_links(
+                        world.agents,
+                        current_day=world.day,
+                        valid_locations=set(world.world_map.locations),
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid family timeline or location."
+                    ) from exc
 
             for intervention in world.interventions:
                 if (

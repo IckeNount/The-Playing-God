@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from itertools import islice
+from dataclasses import replace
+from itertools import combinations, islice
 
 from playing_god.core.adaptive import (
     capture_state,
@@ -35,6 +36,16 @@ from playing_god.core.exposure import (
     Interaction,
     detect_exposures,
     resolve_interactions,
+)
+from playing_god.core.family import (
+    BirthContext,
+    FamilyState,
+    MAX_POPULATION,
+    REPRODUCTION_COST,
+    REPRODUCTION_DAILY_CHANCE,
+    ReproductionEligibility,
+    inherited_priors,
+    reproduction_eligibility,
 )
 from playing_god.core.faith import (
     Attribution,
@@ -89,11 +100,13 @@ class World:
         population: int = 10,
         *,
         adaptive_cognition: bool = False,
+        reproduction_enabled: bool = False,
     ):
         self.seed = seed
         self.rng = create_rng(seed)
         self.day = 0
         self.adaptive_cognition = adaptive_cognition
+        self.reproduction_enabled = reproduction_enabled
         self.interventions: list[Intervention] = []
         self.intervention_responses: list[
             InterventionResponse
@@ -200,6 +213,230 @@ class World:
     def collective_snapshot(self) -> CollectiveSnapshot:
         return build_collective_snapshot(self.agents)
 
+    def reproduction_eligibility(
+        self,
+        first_id: str,
+        second_id: str,
+    ) -> ReproductionEligibility:
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        if first_id not in agents_by_id or second_id not in agents_by_id:
+            raise ValueError("Unknown reproduction parent")
+        eligibility = reproduction_eligibility(
+            agents_by_id[first_id],
+            agents_by_id[second_id],
+            self.social,
+            agents_by_id,
+            self.day,
+        )
+        if len(self.agents) >= MAX_POPULATION:
+            return replace(
+                eligibility,
+                eligible=False,
+                reasons=(
+                    eligibility.reasons
+                    + ("population_capacity",)
+                ),
+            )
+        return eligibility
+
+    def _next_child_identity(self, generation: int) -> tuple[str, str]:
+        used_ids = {agent.id for agent in self.agents}
+        number = len(self.agents) + 1
+        while f"npc_{number:03d}" in used_ids:
+            number += 1
+        generation_index = 1 + sum(
+            agent.family.generation == generation
+            for agent in self.agents
+        )
+        return (
+            f"npc_{number:03d}",
+            f"G{generation}-{generation_index:03d}",
+        )
+
+    def _create_child(
+        self,
+        first: Agent,
+        second: Agent,
+        eligibility: ReproductionEligibility,
+        roll: float,
+    ) -> Agent:
+        parent_ids = (first.id, second.id)
+        generation = max(
+            first.family.generation,
+            second.family.generation,
+        ) + 1
+        child_id, child_name = self._next_child_identity(generation)
+        traits, sins = inherited_priors(first, second, self.rng)
+        household_money = first.money + second.money
+        guardian_stress = (first.stress + second.stress) / 2
+        birth_context = BirthContext(
+            day=self.day,
+            parent_ids=parent_ids,
+            guardian_ids=parent_ids,
+            location=first.current_location,
+            household_money=household_money,
+            employed_guardians=sum((first.employed, second.employed)),
+            guardian_stress=guardian_stress,
+            mutual_affinity=eligibility.mutual_affinity,
+            mutual_trust=eligibility.mutual_trust,
+            mutual_familiarity=eligibility.mutual_familiarity,
+            reproduction_roll=roll,
+        )
+        starting_stress = max(
+            0.0,
+            min(
+                1.0,
+                0.10
+                + 0.10 * guardian_stress
+                + 0.10 * (1 - min(household_money / 600.0, 1.0)),
+            ),
+        )
+        child = Agent(
+            id=child_id,
+            name=child_name,
+            age=0,
+            traits=traits,
+            sins=sins,
+            money=0.0,
+            employed=False,
+            salary=0.0,
+            job_level=0,
+            skill=0.0,
+            energy=1.0,
+            social_energy=1.0,
+            stress=starting_stress,
+            reputation=0.0,
+            current_location=first.current_location,
+            family=FamilyState(
+                generation=generation,
+                birth_day=self.day,
+                dependent=True,
+                parent_ids=parent_ids,
+                guardian_ids=parent_ids,
+                birth_context=birth_context,
+            ),
+        )
+
+        existing_agents = self.agents[:]
+        for agent in existing_agents:
+            family_affinity = 0.45 if agent.id in parent_ids else 0.0
+            agent.relationships[child.id] = family_affinity
+            child.relationships[agent.id] = family_affinity
+
+        self.agents.append(child)
+        self.social.add_agent(child.id)
+        for agent in existing_agents:
+            if agent.id in parent_ids:
+                dimensions = {
+                    "trust": 0.70,
+                    "familiarity": 1.0,
+                    "respect": 0.30,
+                }
+            else:
+                dimensions = {}
+            self.social.add_relationship(
+                agent.id,
+                child.id,
+                affinity=agent.relationships[child.id],
+                **dimensions,
+            )
+            self.social.add_relationship(
+                child.id,
+                agent.id,
+                affinity=child.relationships[agent.id],
+                **dimensions,
+            )
+
+        for parent in (first, second):
+            parent.family = replace(
+                parent.family,
+                child_ids=parent.family.child_ids + (child.id,),
+            )
+            parent.money -= REPRODUCTION_COST / 2
+            parent.stress += 0.05
+            parent.social_energy -= 0.05
+            parent.normalize()
+            self.record(
+                parent,
+                "birth",
+                f"Became a parent of {child.name}",
+                0.95,
+                target_id=child.id,
+                location=child.current_location,
+            )
+
+        self.record(
+            child,
+            "birth",
+            f"Born to {first.name} and {second.name}",
+            1.0,
+            target_id=first.id,
+            location=child.current_location,
+        )
+        self._information_seen[child.id] = set()
+        self._latest_information[child.id] = {}
+        self._information_observation_counts[child.id] = 0
+        return child
+
+    def attempt_reproduction(
+        self,
+        first_id: str,
+        second_id: str,
+    ) -> Agent | None:
+        if not self.reproduction_enabled:
+            return None
+
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        eligibility = self.reproduction_eligibility(
+            first_id,
+            second_id,
+        )
+        if not eligibility.eligible:
+            return None
+
+        roll = self.rng.random()
+        if roll >= REPRODUCTION_DAILY_CHANCE:
+            return None
+        return self._create_child(
+            agents_by_id[first_id],
+            agents_by_id[second_id],
+            eligibility,
+            roll,
+        )
+
+    def resolve_reproduction(self) -> list[Agent]:
+        if not self.reproduction_enabled:
+            return []
+
+        births = []
+        adults = sorted(
+            (
+                agent
+                for agent in self.agents
+                if not agent.family.dependent
+            ),
+            key=lambda agent: agent.id,
+        )
+        used_parents = set()
+        for first, second in combinations(adults, 2):
+            if first.id in used_parents or second.id in used_parents:
+                continue
+            child = self.attempt_reproduction(first.id, second.id)
+            if child is None:
+                continue
+            births.append(child)
+            used_parents.update((first.id, second.id))
+            if len(self.agents) >= MAX_POPULATION:
+                break
+
+        return births
+
     def participation_trace(
         self,
         agent_id: str,
@@ -250,6 +487,10 @@ class World:
         if target_id not in targets:
             raise ValueError(
                 f"Unknown intervention target: {target_id}"
+            )
+        if targets[target_id].family.dependent:
+            raise ValueError(
+                "Dependent interventions require child development"
             )
 
         if not theme.strip():
@@ -657,6 +898,9 @@ class World:
         a: Agent,
         action: str,
     ) -> None:
+        if a.family.dependent:
+            return
+
         destination = choose_destination(a, action)
         visit_target = None
 
@@ -693,11 +937,16 @@ class World:
 
     def resolve_daily_interactions(self) -> list[Interaction]:
         """Resolve only interaction opportunities created by co-location."""
-        self.last_exposures = detect_exposures(self.agents)
+        active_agents = [
+            agent
+            for agent in self.agents
+            if not agent.family.dependent
+        ]
+        self.last_exposures = detect_exposures(active_agents)
 
         agents_by_id = {
             agent.id: agent
-            for agent in self.agents
+            for agent in active_agents
         }
         encounter_seed = (
             self.seed * 1_000_003
@@ -1000,8 +1249,13 @@ class World:
 
     def exposed_people(self, a: Agent) -> list[Agent]:
         target_ids = set()
+        active_agents = [
+            agent
+            for agent in self.agents
+            if not agent.family.dependent
+        ]
 
-        for exposure in detect_exposures(self.agents):
+        for exposure in detect_exposures(active_agents):
             if exposure.agent_a == a.id:
                 target_ids.add(exposure.agent_b)
             elif exposure.agent_b == a.id:
@@ -1024,7 +1278,13 @@ class World:
             others = [
                 b
                 for b in self.agents
-                if b.id != a.id
+                if b.id != a.id and not b.family.dependent
+            ]
+        else:
+            others = [
+                other
+                for other in others
+                if not other.family.dependent
             ]
 
         if not others:
@@ -1070,7 +1330,7 @@ class World:
         candidates = []
 
         for other in self.agents:
-            if other.id == a.id:
+            if other.id == a.id or other.family.dependent:
                 continue
 
             if self.believed_location(a, other) is None:
@@ -1136,6 +1396,9 @@ class World:
         a: Agent,
         action: str,
     ) -> None:
+        if a.family.dependent:
+            return
+
         participation = None
         if action == "participate":
             participation = self.participation_pressure(a)
@@ -1634,6 +1897,9 @@ class World:
         a.normalize()
 
     def end_day(self, a: Agent) -> None:
+        if a.family.dependent:
+            return
+
         # Employment is a background condition.
         # The selected action is the person's main
         # discretionary focus for this simulated day.
@@ -1720,7 +1986,11 @@ class World:
             self.day = day
             self.resolve_interventions()
 
-            order = self.agents[:]
+            order = [
+                agent
+                for agent in self.agents
+                if not agent.family.dependent
+            ]
             self.rng.shuffle(order)
 
             for a in order:
@@ -1784,6 +2054,7 @@ class World:
 
             self.sync_social_affinities()
             self.resolve_daily_interactions()
+            self.resolve_reproduction()
             self.resolve_daily_attributions()
 
         # Preserve Phase-1 aging for uninterrupted runs,

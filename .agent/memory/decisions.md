@@ -303,3 +303,17 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Compatibility:** SQLite schema v13 persists founder history as agent-owned checked JSON. Schema-v12 and older worlds load empty and migrate on save without reconstructing a history or consuming RNG.
 
 **Affected:** `src/playing_god/core/prehistory.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_prehistory.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`
+
+## 2026-09-02 — Keep first reproduction abstract, constrained, and opt-in
+
+**Area:** family-reproduction, core-simulation, persistence, reproducibility
+
+**Decision:** Add opt-in daily reproduction for unordered pairs of nondependent co-located adults. Eligibility is a structured result derived from age, mutual affinity/trust/familiarity, combined resources, employment, stress, close-family exclusion, a one-year parent cooldown, and a fixed population ceiling. Only eligible pairs consume the 1% seeded attempt roll. A success creates a dependent child with explicit parents/guardians, birth context, reciprocal genealogy, and parent-mean traits/sins with ±0.08 variation.
+
+**Reason:** This is the smallest mechanism that creates G1 from current world history rather than arbitrary adult initialization. Opt-in execution preserves Phase 1–7A default RNG allocation, while dependency prevents Phase 7B from inventing child cognition or adult behavior before Phase 7C.
+
+**Inheritance boundary:** Do not copy parent memories, observations, beliefs, learned values, occupation, reputation, grudges, adult skill, or founder prehistory. The birth context records the environment; it does not precompute the child's life outcome.
+
+**Compatibility:** SQLite schema v14 stores the reproduction flag and checked agent-owned family JSON. Schema-v13 and older worlds load disabled with empty founder family state, preserve RNG state, and migrate without fabricated genealogy. Reciprocal parent/child links are validated on save and load.
+
+**Affected:** `src/playing_god/core/family.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_family.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`

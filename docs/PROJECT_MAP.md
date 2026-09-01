@@ -14,7 +14,7 @@ scripts
        -> social graph
 
 core world
-  -> agent + founder prehistory + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
+  -> agent + founder prehistory + family/reproduction + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
   -> perception / belief
 
 exposure
@@ -68,6 +68,20 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 **Focused tests:** `tests/test_prehistory.py`, plus persistence and deterministic regression coverage.
 
 **Important boundary:** Traits and sins remain initialized priors, not invented life events. New founders receive exactly three records without extra RNG draws or a full childhood simulation. No adaptive values are warm-started because the compact history does not yet contain action/outcome observations sufficient to derive them. Schema v13 persists the records; schema-v12 and older agents remain empty rather than receiving reconstructed histories.
+
+## `family-reproduction` — constrained later-generation creation
+
+**Owns:** opt-in adult-pair eligibility, seeded reproduction attempts, explicit genealogy and guardianship, birth environment context, bounded prior inheritance, and dependent-child inactivity before development exists.
+
+**Entry points:**
+
+- `src/playing_god/core/family.py` — eligibility thresholds/reasons, family and birth records, bounded prior inheritance, and family-link validation.
+- `src/playing_god/core/agent.py` — per-agent `family` state.
+- `src/playing_god/core/world.py` — opt-in daily attempts, child creation, family/social links, and dependency enforcement.
+
+**Focused tests:** `tests/test_family.py`, plus persistence and split-run coverage.
+
+**Important boundary:** Reproduction is abstract and enabled only with `World(reproduction_enabled=True)`. Eligibility requires two nondependent co-located adults with sufficient mutual affinity/trust/familiarity, resources, employment stability, acceptable stress, no close genealogical relationship, no recent child, and remaining population capacity. A successful 1% seeded daily attempt creates one dependent child with parent/guardian links and ±0.08 bounded variation around parent priors. It never copies memories, learned values, occupation, reputation, beliefs, or adult capability. Dependents cannot move, act, receive interventions, or enter encounters until Phase 7C supplies development.
 
 ## `social` — relationships and contact
 
@@ -213,17 +227,17 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, reproduction configuration/family state, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 13, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 14, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state; schema v13 adds compact founder history. Older worlds load without fabricated learning or prehistory.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 adds compact founder history, and v14 adds the reproduction flag plus checked family JSON. Older worlds load reproduction-disabled with founder-only family state; no genealogy is reconstructed.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 

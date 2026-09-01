@@ -1,10 +1,10 @@
 # Playing God — Current Status
 
-**Updated:** 2026-09-01
+**Updated:** 2026-09-02
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7A Founder Prehistory is complete. New G0 adults now derive important starting state from compact seeded structured history; legacy worlds retain honest empty prehistory.
+**Current position:** Phase 7B Family / Reproduction Foundation is complete. Opt-in seeded worlds can now produce dependent G1 children with explicit genealogy, birth context, and bounded parent-derived priors.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition and compact founder prehistory are complete; family/reproduction foundations are next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, and the family/reproduction foundation are complete; child development is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,11 +40,11 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7B only:
+Implement Phase 7C only:
 
-1. Add explicit family relationships and bounded reproduction eligibility.
-2. Keep reproduction subordinate to current resources, relationships, age, and world constraints.
-3. Create no child-development system before the family/reproduction foundation itself is proven.
+1. Add lightweight developmental progression for dependent later-generation agents.
+2. Make capability expression depend on age-appropriate exposure, family resources, and existing institutions.
+3. Do not encode a giant developmental-psychology model or let children use adult actions prematurely.
 
 ## Phase 7 Progress
 
@@ -55,8 +55,9 @@ Implement Phase 7B only:
 | 7.0.2 — Learned-state persistence | Complete | Schema v12 preserves adaptive configuration and minimal learned values; legacy worlds remain empty/disabled and adaptive split runs remain exact. |
 | 7.0.3 — Delayed-consequence gate | Complete | Costly training has immediate goal-relevant capability feedback, so contextual adaptation is sufficient and Q-learning is deferred. |
 | 7A — Founder prehistory | Complete | Three seeded structured records causally define each new founder's capability, livelihood, resources, and recent wellbeing; schema v13 persists them without fabricating legacy history. |
-| 7B — Family / reproduction foundation | Next | Add explicit family structure and constrained reproduction before child development. |
-| 7C–7F | Planned | Development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
+| 7B — Family / reproduction foundation | Complete | Opt-in seeded reproduction checks explicit relationship, age, co-location, resource, stress, kinship, cooldown, and population constraints; G1 children retain parents, guardians, birth context, and bounded inherited priors through schema v14. |
+| 7C — Child development | Next | Turn dependent children into lightweight developmental trajectories shaped by age, household conditions, exposure, and institutions. |
+| 7D–7F | Planned | Lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 

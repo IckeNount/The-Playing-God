@@ -7,7 +7,7 @@ import unittest
 import warnings
 
 from contextlib import closing, contextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -40,6 +40,7 @@ def world_snapshot(world: World) -> dict:
         "seed": world.seed,
         "day": world.day,
         "adaptive_cognition": world.adaptive_cognition,
+        "reproduction_enabled": world.reproduction_enabled,
         "economy": asdict(world.economy),
         "agents": {
             agent.id: agent_snapshot(agent)
@@ -65,6 +66,34 @@ def world_snapshot(world: World) -> dict:
 def sqlite_connection(path):
     with closing(sqlite3.connect(path)) as conn, conn:
         yield conn
+
+
+def prepare_family_pair(world: World):
+    first, second = world.agents[:2]
+    for parent in (first, second):
+        parent.age = 30
+        parent.money = 400.0
+        parent.stress = 0.20
+        parent.current_location = "home"
+    first.employed = True
+    second.employed = False
+    first.relationships[second.id] = 0.50
+    second.relationships[first.id] = 0.50
+    world.social.add_relationship(
+        first.id,
+        second.id,
+        affinity=0.50,
+        trust=0.70,
+        familiarity=0.80,
+    )
+    world.social.add_relationship(
+        second.id,
+        first.id,
+        affinity=0.50,
+        trust=0.70,
+        familiarity=0.80,
+    )
+    return first, second
 
 
 class PersistenceTests(unittest.TestCase):
@@ -157,7 +186,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
 
     def test_adaptive_state_survives_restart(self):
         world = World(
@@ -254,7 +283,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertIn("adaptive_cognition", world_columns)
         self.assertIn("adaptive_values_json", agent_columns)
 
@@ -295,7 +324,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertIn("founder_prehistory_json", agent_columns)
         self.assertTrue(all(
             not agent.founder_prehistory
@@ -327,6 +356,153 @@ class PersistenceTests(unittest.TestCase):
         with self.assertRaisesRegex(
             PersistenceError,
             "Invalid founder prehistory",
+        ):
+            save_world(world, self.db_path)
+
+    def test_family_state_survives_restart(self):
+        world = World(
+            seed=71,
+            population=2,
+            reproduction_enabled=True,
+        )
+        prepare_family_pair(world)
+        world.day = 12
+        with patch(
+            "playing_god.core.world.REPRODUCTION_DAILY_CHANCE",
+            1.0,
+        ):
+            world.resolve_reproduction()
+        before = world_snapshot(world)
+
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertTrue(loaded.reproduction_enabled)
+        self.assertEqual(world_snapshot(loaded), before)
+        self.assertEqual(loaded.rng.getstate(), world.rng.getstate())
+
+    def test_family_continuation_matches_uninterrupted_run(self):
+        def make_world():
+            world = World(
+                seed=71,
+                population=2,
+                reproduction_enabled=True,
+            )
+            prepare_family_pair(world)
+            with patch(
+                "playing_god.core.world.REPRODUCTION_DAILY_CHANCE",
+                1.0,
+            ):
+                world.resolve_reproduction()
+            return world
+
+        uninterrupted = make_world()
+        uninterrupted.run(10)
+
+        interrupted = make_world()
+        interrupted.run(4)
+        save_world(interrupted, self.db_path)
+        resumed = load_world(self.db_path)
+        resumed.run(6)
+
+        self.assertEqual(
+            world_snapshot(resumed),
+            world_snapshot(uninterrupted),
+        )
+        self.assertEqual(
+            resumed.rng.getstate(),
+            uninterrupted.rng.getstate(),
+        )
+
+    def test_schema13_defaults_to_disabled_empty_family_state(self):
+        world = World(
+            seed=1947,
+            population=2,
+            reproduction_enabled=True,
+        )
+        save_world(world, self.db_path)
+        expected_rng_state = world.rng.getstate()
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute("ALTER TABLE agents DROP COLUMN family_json")
+            conn.execute(
+                "ALTER TABLE world_state "
+                "DROP COLUMN reproduction_enabled"
+            )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 13 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        self.assertFalse(loaded.reproduction_enabled)
+        self.assertTrue(all(
+            agent.family.generation == 0
+            and not agent.family.parent_ids
+            and not agent.family.child_ids
+            for agent in loaded.agents
+        ))
+        self.assertEqual(loaded.rng.getstate(), expected_rng_state)
+
+        save_world(loaded, self.db_path)
+        migrated = load_world(self.db_path)
+        with sqlite_connection(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            world_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(world_state)"
+                )
+            }
+            agent_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(agents)"
+                )
+            }
+
+        self.assertEqual(schema_version, 14)
+        self.assertIn("reproduction_enabled", world_columns)
+        self.assertIn("family_json", agent_columns)
+        self.assertFalse(migrated.reproduction_enabled)
+
+    def test_corrupted_family_state_fails_clearly(self):
+        world = World(seed=1947, population=1)
+        save_world(world, self.db_path)
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute(
+                "UPDATE agents SET family_json = '[]' WHERE id = ?",
+                (world.agents[0].id,),
+            )
+
+        with self.assertRaisesRegex(
+            WorldLoadError,
+            "Invalid family state",
+        ):
+            load_world(self.db_path)
+
+    def test_broken_family_links_cannot_be_saved(self):
+        world = World(
+            seed=71,
+            population=2,
+            reproduction_enabled=True,
+        )
+        first, _ = prepare_family_pair(world)
+        with patch(
+            "playing_god.core.world.REPRODUCTION_DAILY_CHANCE",
+            1.0,
+        ):
+            world.resolve_reproduction()
+        first.family = replace(first.family, child_ids=())
+
+        with self.assertRaisesRegex(
+            PersistenceError,
+            "Invalid family state",
         ):
             save_world(world, self.db_path)
 
@@ -397,7 +573,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM economy_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertEqual(capacity, loaded.economy.job_capacity)
 
     def test_schema10_defaults_missing_information_identity(self):
@@ -448,7 +624,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertTrue(
             {
                 "information_id",
@@ -589,7 +765,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
 
     def test_prayers_survive_restart(self):
         world = World(seed=1947)
@@ -656,7 +832,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'prayers'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertIsNotNone(prayer_table)
 
     def test_schema7_defaults_to_empty_intervention_state(self):
@@ -691,7 +867,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertIn("interventions", tables)
         self.assertIn("intervention_responses", tables)
 
@@ -729,7 +905,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'attributions'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 13)
+        self.assertEqual(schema_version, 14)
         self.assertIn("faith", agent_columns)
         self.assertIsNotNone(attribution_table)
 

@@ -830,6 +830,45 @@ These do not solve the current thesis problem.
 
 A seeded world can produce a later-generation child whose identity, parent links, and bounded starting priors are causally derived from world state.
 
+### Implementation record — 2026-09-02
+
+**Phase 7B complete.** Family/reproduction is an opt-in demographic mechanism
+enabled by `World(reproduction_enabled=True)`. Each unordered adult pair has an
+inspectable eligibility result with stable rejection reasons. Eligibility
+requires:
+
+- both agents are nondependent and age 20–45;
+- co-location and sufficient mutual affinity, trust, and familiarity;
+- at least 300 combined money, at least one employed parent, and neither parent
+  above 0.75 stress;
+- no parent/child or sibling relationship, no birth to either parent in the
+  previous 365 days, and population below the fixed 100-agent ceiling.
+
+Eligible pairs receive a 1% daily attempt through the world's seeded RNG.
+Ineligible pairs consume no reproduction draw. A success creates a deterministic
+G1 identity, two-way parent/child links, the parents as initial guardians, birth
+day/location, and a structured environment snapshot containing household money,
+employment count, guardian stress, relationship conditions, and the exact
+reproduction roll.
+
+Child traits and sin-priors are parent means plus independent bounded variation
+of at most ±0.08. Personal memory, observations, beliefs, learned policy,
+occupation, reputation, adult skill, and founder prehistory are not inherited.
+Birth has a modest resource/stress cost for parents and structured birth events
+for all three agents.
+
+Children remain explicitly dependent. They cannot move, act, receive
+interventions, become social-action targets, or enter ordinary encounters until
+Phase 7C implements development. This prevents 7B from silently spawning a
+fully formed adult.
+
+SQLite schema v14 persists the opt-in flag and checked family/birth state,
+validates reciprocal genealogy, and preserves exact restart continuation.
+Schema-v13 and older worlds load reproduction-disabled with empty founder family
+state and migrate without fabricated relationships or RNG draws. A real
+seed-controlled scenario produces a later-generation child, and the full suite
+protects legacy-default trajectories.
+
 ---
 
 # 7. Phase 7C — Child Development

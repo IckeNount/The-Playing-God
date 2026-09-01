@@ -1,10 +1,10 @@
 # Current Engineering State
 
-**Updated:** 2026-09-01
+**Updated:** 2026-09-02
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition and Phase 7A Founder Prehistory are complete and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, and Phase 7B Family / Reproduction Foundation are complete and verified.
 
 ## Recent completed work
 
@@ -66,6 +66,10 @@ Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Co
 - Each new G0 founder now has exactly three structured prior-life records covering capability exposure, livelihood entry, and recent conditions. Their effects authoritatively define starting skill, employment/job level/salary, resources, energy, stress, and reputation without changing the existing RNG draw order or initialized values.
 - Traits and sins remain priors, age remains a founder demographic, and adaptive values remain empty until real action/outcome experience occurs. Founder prehistory adds no full-childhood simulation, prose biography, new dependency, or extra random draw.
 - SQLite schema version 13 persists compact founder history as checked agent-owned JSON. Schema-v12 and older worlds load empty without fabricated events or RNG consumption and migrate honestly on save.
+- Opt-in `World(reproduction_enabled=True)` evaluates unordered adult pairs through explicit age, co-location, mutual relationship, resource, employment, stress, close-family, cooldown, and population constraints. Only eligible pairs consume a 1% seeded reproduction draw.
+- A successful birth creates a deterministic G1 identity, reciprocal parent/child links, parent guardianship, birth day/location, a structured household/relationship/roll context, and bounded ±0.08 parent-derived trait/sin priors. It never copies memories, beliefs, learned values, occupation, reputation, adult skill, or founder history.
+- Later-generation children remain dependent and cannot move, act, receive interventions, become social-action targets, or enter encounters before Phase 7C. Parents receive a modest resource/stress cost and all three agents receive structured birth events.
+- SQLite schema version 14 persists the reproduction flag and checked agent family JSON. Schema-v13 and older worlds load disabled with empty founder family state, preserve RNG, and migrate without fabricated genealogy; reciprocal family links and restart continuation are validated.
 
 ## Active architectural concern
 
@@ -73,8 +77,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7A failure. The full suite passes 159 tests.
+- No known Phase 7B failure. The full suite passes 170 tests.
 
 ## Next logical task
 
-Implement Phase 7B: explicit family relationships and constrained reproduction foundation, without beginning child development early.
+Implement Phase 7C: lightweight child development driven by age, family environment, resources, exposure, and institutions without granting adult behavior prematurely.
