@@ -53,7 +53,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_adaptive.py`, `tests/test_decision.py`.
 
-**Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Schema v12 persists the opt-in setting and exact running statistics; earlier worlds begin empty and disabled.
+**Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Schema v12 persists the opt-in setting and exact running statistics; earlier worlds begin empty and disabled. Phase 7.0.3 defers Q-learning because current costly training already provides immediate skill-progress feedback.
 
 ## `social` — relationships and contact
 
@@ -261,4 +261,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestones 7.0.0–7.0.2 establish the valid-action preference boundary, first contextual online learner, and learned-state persistence, while the delayed-credit gate, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: the complete 7.0 adaptive foundation includes the valid-action preference boundary, contextual learner, learned-state persistence, and an evidence-based deferral of delayed-credit learning. Founder prehistory, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

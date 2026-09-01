@@ -615,6 +615,33 @@ B) it is explicitly deferred with evidence that contextual adaptation is suffici
 
 Both are valid outcomes.
 
+### Gate result — 2026-09-01
+
+**Outcome B: Q-learning deferred.** No current Phase 7 behavior requires
+delayed-credit learning.
+
+The controlled training case includes the intended trade-off:
+
+```text
+immediate money loss
++ immediate energy loss
++ immediate stress increase
++ immediate skill increase
+→ positive improve-skill feedback
+→ stronger later training preference
+```
+
+The later employment and income benefit is real, but it is not the only signal
+available to the learner. Capability progress occurs during the training action
+and supplies immediate goal-relevant feedback, while the separate consequence
+dimensions preserve its costs for inspection. Institutional denial produces no
+skill progress and therefore no positive training feedback.
+
+The current contextual mechanism can represent this important developmental
+behavior without assigning later income backward across multiple steps. Add a
+delayed-credit learner only if a later approved behavior has no meaningful
+immediate progress signal and controlled evidence shows this learner failing.
+
 ---
 
 ## Phase 7.0 Exit Condition
@@ -630,6 +657,9 @@ Adaptive cognition foundation is complete when:
 7. Q-learning or more complex RL exists only if a demonstrated problem justified it.
 
 Only then proceed to founder/generational work.
+
+**Phase 7.0 complete — 2026-09-01.** All seven exit statements are verified;
+founder prehistory is now the next authorized milestone.
 
 ---
 

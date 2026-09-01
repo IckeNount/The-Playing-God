@@ -124,7 +124,7 @@ class ContextualAdaptationTests(unittest.TestCase):
         agent.job_level = 1
         agent.goal = "improve_skill"
 
-    def test_learning_record_preserves_multidimensional_consequence(self):
+    def test_costly_training_has_immediate_goal_relevant_feedback(self):
         agent = self.record_training_experience(
             World(seed=1947, population=1),
             admitted=True,
@@ -135,6 +135,8 @@ class ContextualAdaptationTests(unittest.TestCase):
         self.assertEqual(value.observations, 1)
         self.assertGreater(value.mean_consequence.skill, 0.0)
         self.assertLess(value.mean_consequence.money, 0.0)
+        self.assertLess(value.mean_consequence.energy, 0.0)
+        self.assertLess(value.mean_consequence.stress_reduction, 0.0)
         self.assertGreater(value.mean_feedback, 0.0)
 
     def test_world_updates_online_only_when_adaptation_is_enabled(self):

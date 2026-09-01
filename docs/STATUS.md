@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7.0.2 is complete. SQLite schema v12 preserves the adaptive-cognition setting and each agent's minimal contextual action-value table; adaptive restart continuation now matches uninterrupted execution exactly.
+**Current position:** Phase 7.0 Adaptive Cognition Foundation is complete. The delayed-consequence gate found that costly training already supplies immediate capability feedback, so Q-learning is deferred rather than added speculatively.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The valid-action boundary, contextual learner, and learned-state persistence are complete; the delayed-consequence gate is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The adaptive cognition foundation is complete; compact founder prehistory is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,12 +40,12 @@
 
 ## What We Are Doing Next
 
-Evaluate Phase 7.0.3 only:
+Implement Phase 7A only:
 
-1. Construct one concrete Phase 7 behavior with immediate cost and possible later benefit.
-2. Determine whether the contextual learner can represent the required behavior without delayed credit.
-3. Add a small value learner only if the controlled evidence demonstrates a real failure.
-4. Otherwise record Q-learning as deferred and proceed to founder prehistory.
+1. Generate compact, seeded, structured prehistory for G0 founders.
+2. Derive only important starting differences that the current model already uses.
+3. Keep prehistory inspectable and cheap; do not simulate full childhoods or generate prose biographies.
+4. Warm-start learned policy only where a generated prior event causally supports it.
 
 ## Phase 7 Progress
 
@@ -54,8 +54,9 @@ Evaluate Phase 7.0.3 only:
 | 7.0.0 — Learning boundary | Complete | Learned preferences can influence only the ranking of already-valid actions; world rules still own eligibility and consequences. |
 | 7.0.1 — Contextual adaptation | Complete | Goal-context action values learn online from multidimensional consequences; controlled outcomes produce inspectable preference and later-choice divergence. |
 | 7.0.2 — Learned-state persistence | Complete | Schema v12 preserves adaptive configuration and minimal learned values; legacy worlds remain empty/disabled and adaptive split runs remain exact. |
-| 7.0.3 — Delayed-consequence gate | Next | Decide from a controlled behavior whether contextual adaptation is sufficient or delayed-credit learning is justified. |
-| 7A–7F | Planned | Founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by the adaptive foundation. |
+| 7.0.3 — Delayed-consequence gate | Complete | Costly training has immediate goal-relevant capability feedback, so contextual adaptation is sufficient and Q-learning is deferred. |
+| 7A — Founder prehistory | Next | Explain important G0 starting differences through compact seeded structured history. |
+| 7B–7F | Planned | Reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 

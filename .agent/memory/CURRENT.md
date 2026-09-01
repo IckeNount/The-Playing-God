@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0–7.0.2 are implemented and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; the Phase 7.0 Adaptive Cognition Foundation is complete and verified.
 
 ## Recent completed work
 
@@ -62,6 +62,7 @@ Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0–7.
 - Opt-in adaptive worlds use the existing current goal as a five-value learning context. Each `(context, action)` retains a running mean of multidimensional consequences and goal-relevant feedback, producing a bounded `0.75` preference adjustment without consuming RNG.
 - A controlled equal-prior training scenario proves that institutional admission versus denial creates different learned preference and later choice. Same-seed adaptive runs remain exact, and adaptation stays explicitly opt-in so legacy default behavior is unchanged.
 - SQLite schema version 12 persists the world adaptive-cognition flag and each agent's exact contextual action-value table. Schema-v11 and older worlds load disabled/empty without RNG draws or fabricated history, malformed adaptive JSON is rejected, and adaptive split-run continuation matches uninterrupted execution.
+- The 7.0.3 delayed-consequence gate defers Q-learning: successful training has immediate money/energy/stress costs but also immediate skill progress, which supplies positive `improve_skill` feedback; denied training supplies none. No current Phase 7 behavior requires backward assignment of later income.
 
 ## Active architectural concern
 
@@ -69,8 +70,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7.0.2 failure. The full suite passes 153 tests.
+- No known Phase 7.0 failure. The full suite passes 153 tests.
 
 ## Next logical task
 
-Evaluate Phase 7.0.3: use one concrete delayed-benefit behavior to decide whether contextual adaptation is sufficient; add tabular value learning only if controlled evidence proves it necessary.
+Implement Phase 7A: compact seeded structured prehistory that causally explains important G0 starting differences without rerunning full childhoods.

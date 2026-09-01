@@ -264,7 +264,7 @@ Record only durable rationale or failures future agents would otherwise rediscov
 
 **Reason:** The goal already summarizes the NPC's most pressing employment, resource, skill, or social condition. It provides contextual adaptation without a large bucket taxonomy. Keeping raw consequence dimensions inspectable avoids treating all life outcomes as one happiness score, while a goal-specific projection supplies the scalar preference required by the existing seeded chooser.
 
-**Compatibility:** Learning consumes no RNG and is explicitly enabled with `World(adaptive_cognition=True)`. Default and SQLite-loaded worlds remain non-adaptive, preserving Phase 1–6 behavior. Learned-state and model-setting persistence are intentionally deferred to 7.0.2.
+**Compatibility:** Learning consumes no RNG and is explicitly enabled with `World(adaptive_cognition=True)`. Default worlds remain non-adaptive, preserving Phase 1–6 behavior. Schema-v12 persistence is recorded in the later adaptive-persistence decision.
 
 **Affected:** `src/playing_god/core/adaptive.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `tests/test_adaptive.py`
 
@@ -279,3 +279,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Compatibility:** Schema-v11 and older worlds load with adaptation disabled and empty learned values, preserving RNG state and never fabricating experience. Saving migrates them to v12. Adaptive save/reload continuation exactly matches an uninterrupted run.
 
 **Affected:** `src/playing_god/persistence/sqlite_store.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`
+
+## 2026-09-01 — Defer delayed-credit learning at the Phase 7.0 gate
+
+**Area:** adaptive-cognition, development, anti-overengineering
+
+**Decision:** Do not add Q-learning in Phase 7.0. Successful training already produces immediate positive skill progress in the `improve_skill` context, even though it also reduces money and energy and increases stress. The contextual learner can therefore reinforce training from a real one-step developmental consequence.
+
+**Reason:** Later employability and income are downstream benefits, but they are not the only signal. The current model directly changes capability during training, and institutional denial correctly produces no capability feedback. No approved Phase 7 behavior currently lacks a meaningful immediate progress signal, so a multi-step value learner would add state/action-transition machinery without solving a demonstrated failure.
+
+**Revisit gate:** Add delayed-credit learning only when a controlled approved behavior has a necessary benefit that appears only in a future context and the contextual action-value learner demonstrably cannot represent it.
+
+**Affected:** `src/playing_god/core/adaptive.py`, `src/playing_god/core/world.py`, `tests/test_adaptive.py`, `docs/phases/phase-07-development-generations.md`
