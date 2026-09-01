@@ -51,7 +51,7 @@ def scores(
             + money
             - s["sloth"]
             - 0.7 * tired
-        ) if a.employed else -99,
+        ) if a.employed and not a.lifecycle.retired else -99,
 
         "job_hunt": (
             1.3 * t["ambition"]
@@ -59,7 +59,7 @@ def scores(
             + 1.2 * money
             + 0.4 * s["greed"]
             - 0.8 * s["sloth"]
-        ) if not a.employed else -99,
+        ) if not a.employed and not a.lifecycle.retired else -99,
 
         "train": (
             1.0 * t["ambition"]

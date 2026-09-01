@@ -1031,11 +1031,14 @@ with its developed skill and learned institutional preference. Later-generation
 ages use exact birth anniversaries; founder aging preserves the legacy global
 year boundary.
 
-A controlled same-seed/same-prior comparison produces 0.295559 skill and 12
-positive training observations under supported school access, versus zero
-skill and no learned training value under constrained resources and
-relationships. The developmental mechanism consumes no RNG, while chance
-still enters through the bounded inherited priors created at birth.
+A controlled same-seed/same-prior comparison at the 7C boundary produced
+0.295559 skill and 12 positive training observations under supported school
+access, versus zero skill and no learned training value under constrained
+resources and relationships. The developmental mechanism consumes no RNG,
+while chance still enters through the bounded inherited priors created at
+birth. Phase 7D subsequently made household support consume guardian resources,
+so the same supported trajectory now reaches 0.237020 skill while retaining all
+12 school years.
 
 SQLite schema v15 persists strictly checked developmental history. Schema-v14
 and older worlds load with empty history rather than reconstructed childhood,
@@ -1112,6 +1115,50 @@ A practical safety cap may exist to protect weak hardware, but it should be clea
 ## Exit condition
 
 The simulation can sustain generational turnover without indefinite population accumulation, and important resource/lifecycle transitions remain traceable.
+
+### Implementation record — 2026-09-02
+
+**Phase 7D complete.** New reproduction-enabled worlds now enable the bounded
+lifecycle by default; it remains separately configurable, and legacy/default
+worlds keep it disabled. Dependents receive one annual household-support record
+from ages 1–17. A fixed 48-unit yearly target is divided among living guardians,
+deducted from their actual money, and can reduce child stress. The record freezes
+each guardian contribution, total support, and before/after stress. Household
+snapshots expose living guardians, employment, stress, and currently available
+guardian plus dependent resources without creating a household framework.
+
+Lifecycle-enabled founders age at the existing 365-day boundary, while later
+generations continue to use exact birth anniversaries. Employment ends at age
+65 and retired agents cannot work or job-hunt. From age 70, one annual seeded
+mortality check uses the explicit bounded rule:
+
+```text
+0.03 + 0.04 × years after 70 + 0.12 × stress
+```
+
+Mortality is guaranteed by age 90. Each check preserves probability, roll, and
+outcome. This is an abstract turnover mechanism, not a medical claim or disease
+model.
+
+Death closes employment and the estate, retains the deceased agent and all
+genealogical/event history, and removes that agent from actions, encounters,
+interventions, reproduction, and current living-population metrics. Positive
+money is divided deterministically among living direct children; debt is not
+inherited. Both the death-owned estate record and heir-owned receipt preserve
+the exact transfer. If no living child exists, the record marks the positive
+estate as unallocated rather than inventing an heir.
+
+The fixed 100-agent ceiling is now explicitly a living-population engineering
+guardrail: a death reopens capacity for a later birth while historical deceased
+agents remain inspectable. Controlled tests prove material support, retirement,
+seeded mortality, inheritance, inactive death, and renewed birth capacity.
+
+SQLite schema v16 persists the lifecycle opt-in and strictly checked support,
+retirement, mortality, death, and inheritance histories. Schema-v15 and older
+worlds load lifecycle-disabled with empty history rather than fabricated past
+transitions. Exact restart continuation passes. The full 189-test suite passes;
+a direct 91-year daily lifecycle scan took about 0.056 seconds and ended with 11
+mortality records.
 
 ---
 

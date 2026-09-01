@@ -101,7 +101,10 @@ def advance_development(
     if age < 1 or age > ADULT_AGE:
         raise ValueError("Development age must be within [1, 18].")
 
-    household_money = sum(guardian.money for guardian in guardians)
+    household_money = child.money + sum(
+        guardian.money
+        for guardian in guardians
+    )
     employed_guardians = sum(guardian.employed for guardian in guardians)
     guardian_stress = sum(
         guardian.stress

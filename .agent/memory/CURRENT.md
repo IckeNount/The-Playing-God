@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, Phase 7B Family / Reproduction Foundation, and Phase 7C Child Development are complete and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, Phase 7B Family / Reproduction Foundation, Phase 7C Child Development, and Phase 7D Household / Inheritance / Lifecycle are complete and verified.
 
 ## Recent completed work
 
@@ -75,6 +75,11 @@ Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Co
 - Children remain outside adult movement, action, intervention, encounter, and social-target paths through age 17. The age-18 checkpoint ends dependency and admits the developed agent to ordinary adult behavior.
 - A controlled same-prior comparison reaches 0.295559 skill with 12 learned training observations under supported access versus zero skill/no training value under constrained upbringing. SQLite schema v15 persists checked developmental histories; schema-v14 and older histories remain honestly empty, and restart continuation is exact.
 - A direct 6,570-day anniversary scan took about 0.012 seconds for one child and retained only 18 developmental records; no benchmark framework was added.
+- Lifecycle defaults on for new reproduction-enabled worlds but remains separately configurable; default and schema-v15 worlds remain disabled. Ages 1–17 receive one structured annual support record whose 48-unit target is divided among living guardians and deducted from their actual money.
+- Lifecycle-enabled founders age at global 365-day boundaries while descendants retain exact birth anniversaries. Retirement at 65 ends employment and blocks work/job-hunt; annual world-RNG mortality checks begin at 70, use explicit age/stress probability, and guarantee exit at 90.
+- Death retains the agent, genealogy, and event history while excluding the deceased from actions, encounters, interventions, reproduction, and living economy/diffusion/collective metrics. Positive estates transfer deterministically to living direct children with mirrored receipts; debt does not transfer and childless estates remain explicitly unallocated.
+- The 100-agent limit now counts living population as a weak-hardware guardrail, so a traceable death reopens birth capacity without deleting history. The supported 7C comparison now reaches 0.237020 skill after 816 total guardian support cost versus zero under constrained upbringing.
+- SQLite schema v16 persists the lifecycle setting and checked support, retirement, mortality, death, and inheritance records. Schema-v15 and older worlds load disabled/empty; death/inheritance and split lifecycle continuation survive restart exactly. A direct 91-year scan took about 0.056 seconds and retained 11 mortality checks.
 
 ## Active architectural concern
 
@@ -82,8 +87,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7C failure. The full suite passes 179 tests.
+- No known Phase 7D failure. The full suite passes 189 tests.
 
 ## Next logical task
 
-Implement Phase 7D: the smallest household support, resource continuity, lifecycle exit, and inheritance mechanisms needed for traceable generational turnover without indefinite population accumulation.
+Implement Phase 7E: causal cultural transmission through existing guardian, relationship, institution, and information channels without copying parent policy or treating culture as inherited priors.

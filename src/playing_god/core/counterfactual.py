@@ -10,6 +10,7 @@ from playing_god.core.intervention import (
     Intervention,
     InterventionResponse,
 )
+from playing_god.core.lifecycle import LifecycleState
 from playing_god.core.perception import Belief, Observation
 from playing_god.core.prayer import Prayer
 from playing_god.core.world import World
@@ -86,6 +87,7 @@ class AgentSnapshot:
     events: tuple[EventSnapshot, ...]
     current_location: str
     destination: str | None
+    lifecycle: LifecycleState
     social_ties: tuple[
         tuple[str, tuple[tuple[str, float], ...]],
         ...,
@@ -214,6 +216,7 @@ def snapshot_agents(world: World) -> tuple[AgentSnapshot, ...]:
                 ),
                 current_location=agent.current_location,
                 destination=agent.destination,
+                lifecycle=agent.lifecycle,
                 social_ties=_social_ties(world, agent.id),
             )
         )
@@ -259,6 +262,7 @@ def _trajectory_signature(world: World) -> tuple:
             _today_events(agent, world.day),
             agent.current_location,
             agent.destination,
+            agent.lifecycle,
             _social_ties(world, agent.id),
         )
         for agent in world.agents

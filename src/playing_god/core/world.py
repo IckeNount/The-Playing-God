@@ -67,6 +67,19 @@ from playing_god.core.intervention import (
     intervention_confidence,
 )
 from playing_god.core.institution import SchoolSnapshot, SchoolState
+from playing_god.core.lifecycle import (
+    ANNUAL_DEPENDENT_SUPPORT,
+    MIN_MORTALITY_AGE,
+    RETIREMENT_AGE,
+    DeathRecord,
+    HouseholdSnapshot,
+    HouseholdSupportRecord,
+    InheritanceTransfer,
+    MortalityCheck,
+    SupportContribution,
+    household_snapshot,
+    mortality_probability,
+)
 from playing_god.core.information import (
     DiffusionSnapshot,
     EMPLOYMENT_STATUS,
@@ -105,12 +118,18 @@ class World:
         *,
         adaptive_cognition: bool = False,
         reproduction_enabled: bool = False,
+        lifecycle_enabled: bool | None = None,
     ):
         self.seed = seed
         self.rng = create_rng(seed)
         self.day = 0
         self.adaptive_cognition = adaptive_cognition
         self.reproduction_enabled = reproduction_enabled
+        self.lifecycle_enabled = (
+            reproduction_enabled
+            if lifecycle_enabled is None
+            else lifecycle_enabled
+        )
         self.interventions: list[Intervention] = []
         self.intervention_responses: list[
             InterventionResponse
@@ -187,7 +206,14 @@ class World:
         )
 
     def economic_snapshot(self) -> EconomySnapshot:
-        return self.economy.snapshot(self.agents)
+        return self.economy.snapshot(self.living_agents())
+
+    def living_agents(self) -> list[Agent]:
+        return [
+            agent
+            for agent in self.agents
+            if agent.lifecycle.alive
+        ]
 
     def school_snapshot(self) -> SchoolSnapshot:
         return self.school.snapshot(self.day)
@@ -197,7 +223,7 @@ class World:
         information_id: str,
     ) -> DiffusionSnapshot:
         return diffusion_snapshot(
-            self.agents,
+            self.living_agents(),
             information_id,
         )
 
@@ -215,7 +241,7 @@ class World:
         )
 
     def collective_snapshot(self) -> CollectiveSnapshot:
-        return build_collective_snapshot(self.agents)
+        return build_collective_snapshot(self.living_agents())
 
     def reproduction_eligibility(
         self,
@@ -235,7 +261,7 @@ class World:
             agents_by_id,
             self.day,
         )
-        if len(self.agents) >= MAX_POPULATION:
+        if len(self.living_agents()) >= MAX_POPULATION:
             return replace(
                 eligibility,
                 eligible=False,
@@ -423,7 +449,10 @@ class World:
             (
                 agent
                 for agent in self.agents
-                if not agent.family.dependent
+                if (
+                    agent.lifecycle.alive
+                    and not agent.family.dependent
+                )
             ),
             key=lambda agent: agent.id,
         )
@@ -436,7 +465,7 @@ class World:
                 continue
             births.append(child)
             used_parents.update((first.id, second.id))
-            if len(self.agents) >= MAX_POPULATION:
+            if len(self.living_agents()) >= MAX_POPULATION:
                 break
 
         return births
@@ -465,6 +494,9 @@ class World:
                 and child.development.records[-1].age >= age
             ):
                 continue
+
+            if self.lifecycle_enabled and age < ADULT_AGE:
+                self.resolve_household_support(child, age)
 
             guardians = [
                 agents_by_id[guardian_id]
@@ -524,6 +556,237 @@ class World:
             progressed.append(child)
         return progressed
 
+    def household_snapshot(self, dependent_id: str) -> HouseholdSnapshot:
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        if dependent_id not in agents_by_id:
+            raise ValueError(f"Unknown dependent: {dependent_id}")
+        return household_snapshot(
+            agents_by_id[dependent_id],
+            agents_by_id,
+        )
+
+    def resolve_household_support(
+        self,
+        child: Agent,
+        age: int,
+    ) -> HouseholdSupportRecord:
+        if not child.family.dependent or not child.lifecycle.alive:
+            raise ValueError("Household support requires a living dependent.")
+        if (
+            child.lifecycle.support_received
+            and child.lifecycle.support_received[-1].day == self.day
+        ):
+            return child.lifecycle.support_received[-1]
+
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        guardians = [
+            agents_by_id[guardian_id]
+            for guardian_id in child.family.guardian_ids
+        ]
+        living = [
+            guardian
+            for guardian in guardians
+            if guardian.lifecycle.alive
+        ]
+        target_share = (
+            ANNUAL_DEPENDENT_SUPPORT / len(living)
+            if living
+            else 0.0
+        )
+        contributions = []
+        for guardian in guardians:
+            amount = (
+                min(target_share, max(0.0, guardian.money))
+                if guardian.lifecycle.alive
+                else 0.0
+            )
+            guardian.money -= amount
+            contributions.append(SupportContribution(
+                guardian_id=guardian.id,
+                amount=amount,
+            ))
+
+        total_support = sum(item.amount for item in contributions)
+        stress_before = child.stress
+        child.stress -= min(0.08, total_support / 600.0)
+        child.normalize()
+        record = HouseholdSupportRecord(
+            day=self.day,
+            age=age,
+            dependent_id=child.id,
+            guardian_ids=child.family.guardian_ids,
+            contributions=tuple(contributions),
+            total_support=total_support,
+            stress_before=stress_before,
+            stress_after=child.stress,
+        )
+        child.lifecycle = replace(
+            child.lifecycle,
+            support_received=(
+                child.lifecycle.support_received + (record,)
+            ),
+        )
+        return record
+
+    def _retire(self, agent: Agent) -> None:
+        agent.lifecycle = replace(
+            agent.lifecycle,
+            retired=True,
+            retirement_day=self.day,
+        )
+        agent.employed = False
+        agent.salary = 0.0
+        agent.job_level = 0
+        self.record(
+            agent,
+            "lifecycle",
+            f"Retired at age {agent.age}",
+            0.80,
+            location=agent.current_location,
+        )
+
+    def _die(self, agent: Agent) -> None:
+        agents_by_id = {
+            item.id: item
+            for item in self.agents
+        }
+        heirs = sorted(
+            (
+                agents_by_id[child_id]
+                for child_id in agent.family.child_ids
+                if agents_by_id[child_id].lifecycle.alive
+            ),
+            key=lambda item: item.id,
+        )
+        estate = max(0.0, agent.money)
+        transfers = []
+        remaining = estate
+        distribution_heirs = heirs if estate > 0.0 else []
+        for index, heir in enumerate(distribution_heirs):
+            amount = (
+                remaining
+                if index == len(distribution_heirs) - 1
+                else estate / len(distribution_heirs)
+            )
+            remaining -= amount
+            transfer = InheritanceTransfer(
+                day=self.day,
+                deceased_id=agent.id,
+                heir_id=heir.id,
+                amount=amount,
+            )
+            transfers.append(transfer)
+            heir.money += amount
+            heir.lifecycle = replace(
+                heir.lifecycle,
+                inheritance_received=(
+                    heir.lifecycle.inheritance_received + (transfer,)
+                ),
+            )
+            self.record(
+                heir,
+                "inheritance",
+                f"Inherited {amount:.2f} from {agent.name}",
+                0.82,
+                target_id=agent.id,
+                location=heir.current_location,
+            )
+
+        death = DeathRecord(
+            day=self.day,
+            age=agent.age,
+            estate=estate,
+            transfers=tuple(transfers),
+            unallocated=estate if not distribution_heirs else 0.0,
+        )
+        agent.lifecycle = replace(
+            agent.lifecycle,
+            alive=False,
+            death=death,
+        )
+        agent.money = 0.0
+        agent.employed = False
+        agent.salary = 0.0
+        agent.job_level = 0
+        agent.destination = None
+        self.record(
+            agent,
+            "lifecycle",
+            f"Died at age {agent.age}",
+            1.0,
+            location=agent.current_location,
+        )
+
+    def resolve_lifecycle(self) -> list[Agent]:
+        if not self.lifecycle_enabled:
+            return []
+
+        transitioned = []
+        for agent in sorted(self.agents, key=lambda item: item.id):
+            if not agent.lifecycle.alive:
+                continue
+            birth_day = agent.family.birth_day
+            is_anniversary = False
+            if birth_day is None:
+                is_anniversary = self.day > 0 and self.day % 365 == 0
+                if (
+                    is_anniversary
+                    and agent.lifecycle.last_age_day != self.day
+                ):
+                    agent.age += 1
+                else:
+                    is_anniversary = False
+            else:
+                days_since_birth = self.day - birth_day
+                is_anniversary = (
+                    days_since_birth > 0
+                    and days_since_birth % 365 == 0
+                    and agent.lifecycle.last_age_day != self.day
+                )
+                if is_anniversary:
+                    agent.age = days_since_birth // 365
+
+            if not is_anniversary:
+                continue
+            agent.lifecycle = replace(
+                agent.lifecycle,
+                last_age_day=self.day,
+            )
+
+            if agent.age >= RETIREMENT_AGE and not agent.lifecycle.retired:
+                self._retire(agent)
+                transitioned.append(agent)
+
+            if agent.age < MIN_MORTALITY_AGE:
+                continue
+            probability = mortality_probability(agent.age, agent.stress)
+            roll = self.rng.random()
+            check = MortalityCheck(
+                day=self.day,
+                age=agent.age,
+                probability=probability,
+                roll=roll,
+                died=roll < probability,
+            )
+            agent.lifecycle = replace(
+                agent.lifecycle,
+                mortality_checks=(
+                    agent.lifecycle.mortality_checks + (check,)
+                ),
+            )
+            if check.died:
+                self._die(agent)
+                if all(item.id != agent.id for item in transitioned):
+                    transitioned.append(agent)
+
+        return transitioned
+
     def participation_trace(
         self,
         agent_id: str,
@@ -546,6 +809,18 @@ class World:
         target_id: str,
         event_type: str,
     ) -> None:
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        if (
+            actor_id in agents_by_id
+            and not agents_by_id[actor_id].lifecycle.alive
+        ) or (
+            target_id in agents_by_id
+            and not agents_by_id[target_id].lifecycle.alive
+        ):
+            raise ValueError("Social events require living agents")
         self.social.apply_social_event(
             actor_id,
             target_id,
@@ -579,6 +854,8 @@ class World:
             raise ValueError(
                 "Dependent interventions require child development"
             )
+        if not targets[target_id].lifecycle.alive:
+            raise ValueError("Interventions require a living target")
 
         if not theme.strip():
             raise ValueError("Intervention theme cannot be empty")
@@ -705,6 +982,8 @@ class World:
                 continue
 
             agent = agents_by_id[intervention.target_id]
+            if not agent.lifecycle.alive:
+                continue
             if (
                 intervention.kind != "dream"
                 and agent.current_location != intervention.location
@@ -954,7 +1233,13 @@ class World:
         )
 
     def update_goal(self, a: Agent) -> None:
-        if not a.employed:
+        if a.lifecycle.retired:
+            new_goal = (
+                "build_relationships"
+                if belonging_need(a) > 0.46
+                else "improve_skill"
+            )
+        elif not a.employed:
             new_goal = "find_job"
 
         elif a.money < 180:
@@ -985,7 +1270,7 @@ class World:
         a: Agent,
         action: str,
     ) -> None:
-        if a.family.dependent:
+        if a.family.dependent or not a.lifecycle.alive:
             return
 
         destination = choose_destination(a, action)
@@ -1027,7 +1312,7 @@ class World:
         active_agents = [
             agent
             for agent in self.agents
-            if not agent.family.dependent
+            if agent.lifecycle.alive and not agent.family.dependent
         ]
         self.last_exposures = detect_exposures(active_agents)
 
@@ -1339,7 +1624,7 @@ class World:
         active_agents = [
             agent
             for agent in self.agents
-            if not agent.family.dependent
+            if agent.lifecycle.alive and not agent.family.dependent
         ]
 
         for exposure in detect_exposures(active_agents):
@@ -1365,13 +1650,17 @@ class World:
             others = [
                 b
                 for b in self.agents
-                if b.id != a.id and not b.family.dependent
+                if (
+                    b.id != a.id
+                    and b.lifecycle.alive
+                    and not b.family.dependent
+                )
             ]
         else:
             others = [
                 other
                 for other in others
-                if not other.family.dependent
+                if other.lifecycle.alive and not other.family.dependent
             ]
 
         if not others:
@@ -1417,7 +1706,11 @@ class World:
         candidates = []
 
         for other in self.agents:
-            if other.id == a.id or other.family.dependent:
+            if (
+                other.id == a.id
+                or not other.lifecycle.alive
+                or other.family.dependent
+            ):
                 continue
 
             if self.believed_location(a, other) is None:
@@ -1483,7 +1776,9 @@ class World:
         a: Agent,
         action: str,
     ) -> None:
-        if a.family.dependent:
+        if a.family.dependent or not a.lifecycle.alive:
+            return
+        if a.lifecycle.retired and action in {"work", "job_hunt"}:
             return
 
         participation = None
@@ -1984,7 +2279,7 @@ class World:
         a.normalize()
 
     def end_day(self, a: Agent) -> None:
-        if a.family.dependent:
+        if a.family.dependent or not a.lifecycle.alive:
             return
 
         # Employment is a background condition.
@@ -2076,7 +2371,7 @@ class World:
             order = [
                 agent
                 for agent in self.agents
-                if not agent.family.dependent
+                if agent.lifecycle.alive and not agent.family.dependent
             ]
             self.rng.shuffle(order)
 
@@ -2143,6 +2438,7 @@ class World:
             self.resolve_daily_interactions()
             self.resolve_reproduction()
             self.resolve_development()
+            self.resolve_lifecycle()
             self.resolve_daily_attributions()
 
         # Preserve Phase-1 aging for uninterrupted runs,
@@ -2152,7 +2448,7 @@ class World:
             - start_day // 365
         )
 
-        if birthdays_crossed:
+        if birthdays_crossed and not self.lifecycle_enabled:
             for a in self.agents:
                 if a.family.birth_day is None:
                     a.age += birthdays_crossed
@@ -2173,6 +2469,14 @@ class World:
         ]
 
         for a in self.agents:
+            if not a.lifecycle.alive:
+                livelihood = "deceased"
+            elif a.lifecycle.retired:
+                livelihood = "retired"
+            elif a.employed:
+                livelihood = "L" + str(a.job_level)
+            else:
+                livelihood = "unemployed"
             best = max(
                 a.relationships.items(),
                 key=lambda x: x[1],
@@ -2218,7 +2522,7 @@ class World:
                 ),
                 (
                     f"  job="
-                    f"{'L' + str(a.job_level) if a.employed else 'unemployed'}"
+                    f"{livelihood}"
                     f"  money={a.money:.0f}"
                     f"  skill={a.skill:.2f}"
                     f"  stress={a.stress:.2f}"

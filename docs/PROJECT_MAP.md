@@ -108,6 +108,32 @@ opportunity. Skill requires aptitude plus access, practice, opportunity, and
 feedback. Schema v15 persists exact history; older schemas remain empty rather
 than receiving reconstructed childhood.
 
+## `household-lifecycle` — support, turnover, and inheritance
+
+**Owns:** annual dependent support, living-population inspection, retirement,
+seeded age/stress mortality, inactive-but-retained deceased agents, estate
+closure, and descendant inheritance receipts.
+
+**Entry points:**
+
+- `src/playing_god/core/lifecycle.py` — lifecycle records, household snapshots,
+  mortality rule, parsing, and cross-agent validation.
+- `src/playing_god/core/agent.py` — per-agent `lifecycle` state.
+- `src/playing_god/core/world.py` — support deductions, anniversary transitions,
+  retirement/death consequences, estate distribution, and active-agent filters.
+
+**Focused tests:** `tests/test_lifecycle.py`, plus persistence, economy,
+counterfactual, family, development, and reproducibility coverage.
+
+**Important boundary:** Lifecycle defaults on for new reproduction-enabled
+worlds but remains separately configurable; default and schema-v15 worlds stay
+disabled. Support is one 48-unit annual summary, retirement occurs at 65, and
+one world-RNG mortality check occurs per birthday from 70 with guaranteed exit
+at 90. Positive estates go only to living direct children; debt does not
+transfer. Deceased agents remain as immutable causal history but cannot act or
+participate in current society. The 100-agent limit counts living agents and is
+an engineering guardrail, not the primary demographic law.
+
 ## `social` — relationships and contact
 
 **Owns:** directed multidimensional relationships, social-event effects, co-location exposure detection, and probabilistic interaction resolution.

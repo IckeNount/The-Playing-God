@@ -128,6 +128,8 @@ def reproduction_eligibility(
 
     if first.id == second.id:
         reasons.append("same_agent")
+    if not first.lifecycle.alive or not second.lifecycle.alive:
+        reasons.append("deceased")
     if first.family.dependent or second.family.dependent:
         reasons.append("dependent")
     if not (

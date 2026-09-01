@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7C Child Development is complete. Later-generation children now acquire traceable skill and adaptive training experience through age-appropriate family and school exposure, then enter ordinary adult behavior at age 18.
+**Current position:** Phase 7D Household, Inheritance & Lifecycle is complete. Material guardian support now shapes development, retirement and mortality create turnover, and positive estates transfer traceably to living children.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, reproduction, and child development are complete; household/lifecycle turnover is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, reproduction, development, and lifecycle turnover are complete; cultural transmission is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,11 +40,11 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7D only:
+Implement Phase 7E only:
 
-1. Add the smallest household/dependent support and resource-continuity model.
-2. Add traceable lifecycle exit and inheritance sufficient for generational turnover.
-3. Keep mortality abstract and avoid a universal household framework or medical simulation.
+1. Reuse parent/guardian, social, school, and information channels for cultural exposure.
+2. Let descendants accept, reject, or modify transmitted beliefs/norms without copying parent policy.
+3. Keep culture separate from inherited priors and prevent society-wide teleportation.
 
 ## Phase 7 Progress
 
@@ -57,8 +57,9 @@ Implement Phase 7D only:
 | 7A — Founder prehistory | Complete | Three seeded structured records causally define each new founder's capability, livelihood, resources, and recent wellbeing; schema v13 persists them without fabricating legacy history. |
 | 7B — Family / reproduction foundation | Complete | Opt-in seeded reproduction checks explicit relationship, age, co-location, resource, stress, kinship, cooldown, and population constraints; G1 children retain parents, guardians, birth context, and bounded inherited priors through schema v14. |
 | 7C — Child development | Complete | Exact birth-anniversary checkpoints turn inherited aptitude plus family resources, relationships, school access, practice, and feedback into persisted skill and learned training value; adult actions remain blocked through age 17. |
-| 7D — Household, inheritance, and lifecycle | Next | Add causal dependent support, resource continuity, and lifecycle exit so generations can turn over without indefinite accumulation. |
-| 7E–7F | Planned | Cultural transmission and optional recurrence detection remain gated by earlier milestones. |
+| 7D — Household, inheritance, and lifecycle | Complete | Annual guardian support consumes real resources; retirement, seeded mortality, living-descendant inheritance, and inactive historical death create traceable turnover through schema v16. |
+| 7E — Cultural transmission | Next | Move beliefs, norms, or knowledge through explicit family, social, institutional, and information exposure rather than genetic or society-wide copying. |
+| 7F — Optional recurrence detection | Planned | Structural recurrence remains gated by completion of causal cultural transmission. |
 
 ## Documentation Guide
 

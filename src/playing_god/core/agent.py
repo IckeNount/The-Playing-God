@@ -8,6 +8,7 @@ from playing_god.core.development import DevelopmentState
 from playing_god.core.events import Event
 from playing_god.core.family import FamilyState
 from playing_god.core.faith import Attribution
+from playing_god.core.lifecycle import LifecycleState
 from playing_god.core.perception import Belief, Observation
 from playing_god.core.prehistory import FounderEvent
 from playing_god.core.prayer import Prayer
@@ -101,6 +102,9 @@ class Agent:
     family: FamilyState = field(default_factory=FamilyState)
     development: DevelopmentState = field(
         default_factory=DevelopmentState,
+    )
+    lifecycle: LifecycleState = field(
+        default_factory=LifecycleState,
     )
 
     current_location: str = "home"
