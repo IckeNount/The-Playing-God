@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7D Household, Inheritance & Lifecycle is complete. Material guardian support now shapes development, retirement and mortality create turnover, and positive estates transfer traceably to living children.
+**Current position:** Phase 7E Cultural Transmission is complete. Explicit guardian, school, and social-information exposure can now produce accepted, modified, or rejected later-generation norms without copying parent policy or treating culture as a genetic prior.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, reproduction, development, and lifecycle turnover are complete; cultural transmission is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | All required work through causal cultural transmission is complete; the conditional 7F recurrence gate is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,11 +40,11 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7E only:
+Evaluate the conditional Phase 7F gate only:
 
-1. Reuse parent/guardian, social, school, and information channels for cultural exposure.
-2. Let descendants accept, reject, or modify transmitted beliefs/norms without copying parent policy.
-3. Keep culture separate from inherited priors and prevent society-wide teleportation.
+1. Determine whether current persisted generational histories provide enough data for meaningful structural recurrence detection.
+2. If sufficient, implement only the minimum inspectable recurrence comparison in the approved brief.
+3. If insufficient, record the evidence-based deferral and close the required Phase 7 scope without manufacturing recurrence.
 
 ## Phase 7 Progress
 
@@ -58,8 +58,8 @@ Implement Phase 7E only:
 | 7B — Family / reproduction foundation | Complete | Opt-in seeded reproduction checks explicit relationship, age, co-location, resource, stress, kinship, cooldown, and population constraints; G1 children retain parents, guardians, birth context, and bounded inherited priors through schema v14. |
 | 7C — Child development | Complete | Exact birth-anniversary checkpoints turn inherited aptitude plus family resources, relationships, school access, practice, and feedback into persisted skill and learned training value; adult actions remain blocked through age 17. |
 | 7D — Household, inheritance, and lifecycle | Complete | Annual guardian support consumes real resources; retirement, seeded mortality, living-descendant inheritance, and inactive historical death create traceable turnover through schema v16. |
-| 7E — Cultural transmission | Next | Move beliefs, norms, or knowledge through explicit family, social, institutional, and information exposure rather than genetic or society-wide copying. |
-| 7F — Optional recurrence detection | Planned | Structural recurrence remains gated by completion of causal cultural transmission. |
+| 7E — Cultural transmission | Complete | One bounded norm model moves through annual guardian contact, school access, and ordinary social-information encounters; relationship-weighted recipients accept, modify to uncertainty, or reject while raw exposure remains traceable through schema v17. |
+| 7F — Optional recurrence detection | Next (conditional) | Evaluate whether current generational evidence is sufficient for structural recurrence detection; do not manufacture a pattern to satisfy the optional gate. |
 
 ## Documentation Guide
 

@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from playing_god.core.adaptive import ActionValue
+from playing_god.core.culture import CulturalState
 from playing_god.core.development import DevelopmentState
 from playing_god.core.events import Event
 from playing_god.core.family import FamilyState
@@ -105,6 +106,9 @@ class Agent:
     )
     lifecycle: LifecycleState = field(
         default_factory=LifecycleState,
+    )
+    culture: CulturalState = field(
+        default_factory=CulturalState,
     )
 
     current_location: str = "home"

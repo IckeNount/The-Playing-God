@@ -14,7 +14,7 @@ scripts
        -> social graph
 
 core world
-  -> agent + founder prehistory + family/reproduction + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
+  -> agent + founder prehistory + family/reproduction + development + lifecycle + culture + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
   -> perception / belief
 
 exposure
@@ -133,6 +133,30 @@ at 90. Positive estates go only to living direct children; debt does not
 transfer. Deceased agents remain as immutable causal history but cannot act or
 participate in current society. The 100-agent limit counts living agents and is
 an engineering guardrail, not the primary demographic law.
+
+## `cultural-transmission` — explicit social inheritance
+
+**Owns:** one bounded cultural-norm representation, self-originated claims,
+relationship-weighted accept/modify/reject responses, append-only exposure
+records, school cultural exposure, and contact-bound norm relay.
+
+**Entry points:**
+
+- `src/playing_god/core/culture.py` — cultural values, information identity,
+  deterministic response rule, persisted records, and causal-link validation.
+- `src/playing_god/core/agent.py` — per-agent cultural transmission history.
+- `src/playing_god/core/world.py` — explicit norm expression, annual guardian
+  and school exposure, social-contact transmission, and belief updates.
+
+**Focused tests:** `tests/test_culture.py`, plus information, development,
+persistence, counterfactual, and split-run coverage.
+
+**Important boundary:** Culture is not copied at birth and never copies adaptive
+policy. A recipient must receive a guardian-anniversary, school-access, or
+successful-interaction exposure. The raw claim remains an observation even when
+the recipient rejects it; accepted or modified interpretations alone update the
+existing belief state. The model has three abstract stances and one concrete
+school norm, not a generic ideology engine. Transmission consumes no world RNG.
 
 ## `social` — relationships and contact
 
@@ -278,17 +302,17 @@ an engineering guardrail, not the primary demographic law.
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, reproduction configuration/family state, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, reproduction configuration/family state, development/lifecycle/cultural history, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 14, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 17, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 adds compact founder history, and v14 adds the reproduction flag plus checked family JSON. Older worlds load reproduction-disabled with founder-only family state; no genealogy is reconstructed.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, and v17 checked cultural history. Older schemas load missing later-phase histories empty rather than reconstructing them.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 
@@ -340,4 +364,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: the complete 7.0 adaptive foundation includes the valid-action preference boundary, contextual learner, learned-state persistence, and an evidence-based deferral of delayed-credit learning. Founder prehistory, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: adaptive cognition, founder prehistory, reproduction, development, lifecycle turnover, and causal cultural transmission are implemented. Only the conditional structural-recurrence gate remains before Phase 7 closure. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

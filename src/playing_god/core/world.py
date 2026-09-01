@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from itertools import combinations, islice
+import math
 
 from playing_god.core.adaptive import (
     capture_state,
@@ -33,6 +34,17 @@ from playing_god.core.collective import (
     participation_information_id,
     participation_pressure,
     recent_participation_day,
+)
+from playing_god.core.culture import (
+    CULTURAL_NORM,
+    CULTURAL_VALUES,
+    SCHOOL_NORM_SUBJECT,
+    SCHOOL_NORM_VALUE,
+    SCHOOL_SOURCE_ID,
+    CulturalState,
+    cultural_information_id,
+    make_transmission,
+    select_cultural_claim,
 )
 from playing_god.core.economy import EconomySnapshot, EconomyState
 from playing_god.core.events import Event
@@ -92,8 +104,10 @@ from playing_god.core.information import (
 )
 from playing_god.core.perception import (
     Observation,
+    Perception,
     belief_key,
     receive_observation,
+    update_belief,
 )
 from playing_god.core.prayer import create_prayer
 from playing_god.core.prehistory import (
@@ -226,6 +240,70 @@ class World:
             self.living_agents(),
             information_id,
         )
+
+    def express_cultural_norm(
+        self,
+        agent_id: str,
+        subject_id: str,
+        value: str,
+        *,
+        confidence: float = 1.0,
+    ) -> Observation:
+        """Give one living agent an explicit, self-originated norm."""
+        if not isinstance(agent_id, str) or not agent_id:
+            raise ValueError("Cultural agent ID must not be empty.")
+        agents_by_id = {agent.id: agent for agent in self.agents}
+        if agent_id not in agents_by_id:
+            raise ValueError(f"Unknown agent: {agent_id}")
+        agent = agents_by_id[agent_id]
+        if not agent.lifecycle.alive:
+            raise ValueError("A deceased agent cannot express culture.")
+        if not isinstance(subject_id, str) or not subject_id:
+            raise ValueError("Cultural subject must not be empty.")
+        if not isinstance(value, str) or value not in CULTURAL_VALUES:
+            raise ValueError(f"Unknown cultural value: {value}")
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not math.isfinite(confidence)
+            or not 0.0 <= confidence <= 1.0
+        ):
+            raise ValueError("Cultural confidence must be within [0, 1].")
+        confidence = float(confidence)
+
+        information_id = cultural_information_id(
+            subject_id,
+            agent.id,
+            self.day,
+            value,
+        )
+        observation = Observation(
+            day=self.day,
+            kind=CULTURAL_NORM,
+            subject_id=subject_id,
+            value=value,
+            source_id=agent.id,
+            reliability=confidence,
+            location=agent.current_location,
+            information_id=information_id,
+            origin_agent_id=agent.id,
+            origin_day=self.day,
+            hop_count=0,
+        )
+        receive_observation(agent, observation)
+        self._ensure_information_index(agent)
+        self._information_seen[agent.id].add(information_id)
+        self._information_observation_counts[agent.id] = len(
+            agent.observations
+        )
+        self.record(
+            agent,
+            "cultural_expression",
+            f"Expressed {subject_id} as {value}",
+            confidence,
+            location=agent.current_location,
+        )
+        return observation
 
     def participation_pressure(
         self,
@@ -537,6 +615,20 @@ class World:
                 )
 
             record = outcome.state.records[-1]
+            for guardian in sorted(
+                guardians,
+                key=lambda agent: agent.id,
+            ):
+                if guardian.lifecycle.alive:
+                    self._transmit_cultural_claim(
+                        guardian,
+                        child,
+                        route="guardian",
+                        location=child.current_location,
+                        allow_repeat=True,
+                    )
+            self._transmit_school_culture(child)
+
             description = (
                 f"Reached age {age}: {record.stage}; "
                 f"school_access={str(record.school_access).lower()}; "
@@ -1429,6 +1521,19 @@ class World:
                 interaction.location,
             )
 
+            self._transmit_cultural_claim(
+                first,
+                second,
+                route="social",
+                location=interaction.location,
+            )
+            self._transmit_cultural_claim(
+                second,
+                first,
+                route="social",
+                location=interaction.location,
+            )
+
             self._observe_employment(
                 first,
                 second,
@@ -1441,6 +1546,185 @@ class World:
             )
 
         return self.last_interactions
+
+    def _transmit_cultural_claim(
+        self,
+        source: Agent,
+        recipient: Agent,
+        *,
+        route: str,
+        location: str,
+        allow_repeat: bool = False,
+    ) -> InformationItem | None:
+        seen = {
+            (record.source_id, record.information_id)
+            for record in recipient.culture.records
+            if record.information_id is not None
+        }
+        seen.update(
+            (source.id, observation.information_id)
+            for observation in recipient.observations
+            if observation.information_id is not None
+        )
+        item = select_cultural_claim(
+            source,
+            seen=seen,
+            allow_repeat=allow_repeat,
+        )
+        if item is None:
+            return None
+
+        relationship = self.social.get_relationship(
+            recipient.id,
+            source.id,
+        ) or {}
+        record = make_transmission(
+            recipient,
+            day=self.day,
+            subject_id=item.subject_id,
+            source_id=source.id,
+            route=route,
+            source_value=item.value,
+            source_confidence=item.reliability,
+            trust=relationship.get("trust", 0.0),
+            familiarity=relationship.get("familiarity", 0.0),
+            information_id=item.id,
+            origin_agent_id=item.origin_agent_id,
+            origin_day=item.origin_day,
+            hop_count=item.hop_count,
+        )
+        recipient.culture = CulturalState(
+            records=recipient.culture.records + (record,),
+        )
+
+        if item.id not in self._information_item_ids:
+            self.information_items.append(item)
+            self._information_item_ids.add(item.id)
+
+        observation = Observation(
+            day=self.day,
+            kind=item.kind,
+            subject_id=item.subject_id,
+            value=item.value,
+            source_id=source.id,
+            reliability=item.reliability,
+            location=location,
+            information_id=item.id,
+            origin_agent_id=item.origin_agent_id,
+            origin_day=item.origin_day,
+            hop_count=item.hop_count,
+        )
+        recipient.observations.append(observation)
+        if record.resulting_value is not None:
+            update_belief(
+                recipient,
+                Perception(
+                    day=self.day,
+                    kind=CULTURAL_NORM,
+                    subject_id=item.subject_id,
+                    value=record.resulting_value,
+                    confidence=record.resulting_confidence,
+                ),
+            )
+        self._ensure_information_index(recipient)
+        self._information_seen[recipient.id].add(item.id)
+        self._information_observation_counts[recipient.id] = len(
+            recipient.observations
+        )
+
+        response_label = {
+            "accept": "Accepted",
+            "modify": "Modified",
+            "reject": "Rejected",
+        }[record.response]
+        description = (
+            f"{response_label} {item.subject_id} "
+            f"from {source.name} via {route}"
+        )
+        self.record(
+            recipient,
+            "cultural_transmission",
+            description,
+            record.influence,
+            target_id=source.id,
+            location=location,
+        )
+        self.record(
+            source,
+            "cultural_transmission",
+            f"Shared {item.subject_id} with {recipient.name} via {route}",
+            item.reliability,
+            target_id=recipient.id,
+            location=location,
+        )
+        return item
+
+    def _transmit_school_culture(
+        self,
+        child: Agent,
+    ) -> None:
+        record = child.development.records[-1]
+        if not record.school_access:
+            return
+
+        school_years = sum(
+            item.school_access
+            for item in child.development.records
+        )
+        transmission = make_transmission(
+            child,
+            day=self.day,
+            subject_id=SCHOOL_NORM_SUBJECT,
+            source_id=SCHOOL_SOURCE_ID,
+            route="school",
+            source_value=SCHOOL_NORM_VALUE,
+            source_confidence=round(record.feedback, 6),
+            trust=record.relationship_support,
+            familiarity=min(1.0, school_years / 4),
+            information_id=None,
+            origin_agent_id=None,
+            origin_day=None,
+            hop_count=None,
+        )
+        child.culture = CulturalState(
+            records=child.culture.records + (transmission,),
+        )
+        observation = Observation(
+            day=self.day,
+            kind=CULTURAL_NORM,
+            subject_id=SCHOOL_NORM_SUBJECT,
+            value=SCHOOL_NORM_VALUE,
+            source_id=SCHOOL_SOURCE_ID,
+            reliability=round(record.feedback, 6),
+            location=self.school.location,
+        )
+        child.observations.append(observation)
+        if transmission.resulting_value is not None:
+            update_belief(
+                child,
+                Perception(
+                    day=self.day,
+                    kind=CULTURAL_NORM,
+                    subject_id=SCHOOL_NORM_SUBJECT,
+                    value=transmission.resulting_value,
+                    confidence=transmission.resulting_confidence,
+                ),
+            )
+        self._ensure_information_index(child)
+        self._information_observation_counts[child.id] = len(
+            child.observations
+        )
+        self.record(
+            child,
+            "cultural_transmission",
+            {
+                "accept": "Accepted learning via school",
+                "modify": "Modified learning via school",
+                "reject": "Rejected learning via school",
+            }[transmission.response],
+            transmission.influence,
+            location=self.school.location,
+        )
 
     def _observe_participation(
         self,

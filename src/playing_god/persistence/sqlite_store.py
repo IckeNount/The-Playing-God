@@ -15,6 +15,10 @@ from playing_god.core.adaptive import (
     LEARNING_CONTEXTS,
 )
 from playing_god.core.agent import Agent
+from playing_god.core.culture import (
+    cultural_state_from_data,
+    validate_cultural_links,
+)
 from playing_god.core.decision import scores as decision_scores
 from playing_god.core.development import (
     development_state_from_data,
@@ -56,7 +60,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 16
+SCHEMA_VERSION = 17
 
 
 class PersistenceError(RuntimeError):
@@ -116,7 +120,8 @@ CREATE TABLE IF NOT EXISTS agents (
     founder_prehistory_json TEXT NOT NULL DEFAULT '[]',
     family_json TEXT NOT NULL DEFAULT '{}',
     development_json TEXT NOT NULL DEFAULT '{"records": []}',
-    lifecycle_json TEXT NOT NULL DEFAULT '{}'
+    lifecycle_json TEXT NOT NULL DEFAULT '{}',
+    culture_json TEXT NOT NULL DEFAULT '{"records": []}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -577,6 +582,23 @@ def _migrate_lifecycle_state_to_v16(
         )
 
 
+def _migrate_cultural_state_to_v17(
+    conn: sqlite3.Connection,
+) -> None:
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "culture_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "culture_json TEXT NOT NULL "
+            "DEFAULT '{\"records\": []}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -838,6 +860,14 @@ def _save_agents(
     except ValueError as exc:
         raise PersistenceError("Invalid lifecycle state.") from exc
 
+    try:
+        validate_cultural_links(
+            world.agents,
+            current_day=world.day,
+        )
+    except ValueError as exc:
+        raise PersistenceError("Invalid cultural state.") from exc
+
     for agent in world.agents:
         if agent.founder_prehistory:
             try:
@@ -874,10 +904,11 @@ def _save_agents(
                 founder_prehistory_json,
                 family_json,
                 development_json,
-                lifecycle_json
+                lifecycle_json,
+                culture_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -904,7 +935,8 @@ def _save_agents(
                 founder_prehistory_json = excluded.founder_prehistory_json,
                 family_json = excluded.family_json,
                 development_json = excluded.development_json,
-                lifecycle_json = excluded.lifecycle_json
+                lifecycle_json = excluded.lifecycle_json,
+                culture_json = excluded.culture_json
             """,
             (
                 agent.id,
@@ -947,6 +979,7 @@ def _save_agents(
                 json.dumps(asdict(agent.family), sort_keys=True),
                 json.dumps(asdict(agent.development), sort_keys=True),
                 json.dumps(asdict(agent.lifecycle), sort_keys=True),
+                json.dumps(asdict(agent.culture), sort_keys=True),
             ),
         )
 
@@ -1667,6 +1700,7 @@ def save_world(
             _migrate_family_state_to_v14(conn)
             _migrate_development_state_to_v15(conn)
             _migrate_lifecycle_state_to_v16(conn)
+            _migrate_cultural_state_to_v17(conn)
 
             _save_world_state(
                 conn,
@@ -1819,6 +1853,7 @@ def _load_agents(
     require_family_state: bool = False,
     require_development_state: bool = False,
     require_lifecycle_state: bool = False,
+    require_cultural_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1874,6 +1909,15 @@ def _load_agents(
         require_lifecycle_state
         and has_lifecycle_column
     )
+    has_culture_column = "culture_json" in columns
+    if require_cultural_state and not has_culture_column:
+        raise WorldLoadError(
+            "Cultural schema is missing agent history."
+        )
+    has_cultural_state = (
+        require_cultural_state
+        and has_culture_column
+    )
 
     rows = conn.execute(
         """
@@ -1925,6 +1969,10 @@ def _load_agents(
             lifecycle_data = json.loads(
                 row["lifecycle_json"]
             ) if has_lifecycle_state else None
+
+            culture_data = json.loads(
+                row["culture_json"]
+            ) if has_cultural_state else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -2012,6 +2060,16 @@ def _load_agents(
             except (TypeError, ValueError) as exc:
                 raise WorldLoadError(
                     "Invalid lifecycle state for agent "
+                    f"{agent.id}."
+                ) from exc
+        if culture_data is not None:
+            try:
+                agent.culture = cultural_state_from_data(
+                    culture_data
+                )
+            except (TypeError, ValueError) as exc:
+                raise WorldLoadError(
+                    "Invalid cultural state for agent "
                     f"{agent.id}."
                 ) from exc
 
@@ -2821,6 +2879,7 @@ def load_world(
                 13,
                 14,
                 15,
+                16,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2861,6 +2920,9 @@ def load_world(
             )
             has_lifecycle_state = (
                 state["schema_version"] >= 16
+            )
+            has_cultural_state = (
+                state["schema_version"] >= 17
             )
 
             if (
@@ -2920,6 +2982,7 @@ def load_world(
                 require_family_state=has_family_state,
                 require_development_state=has_development_state,
                 require_lifecycle_state=has_lifecycle_state,
+                require_cultural_state=has_cultural_state,
             )
             if has_family_state:
                 try:
@@ -2981,6 +3044,17 @@ def load_world(
                     conn,
                     agents_by_id,
                 )
+
+            if has_cultural_state:
+                try:
+                    validate_cultural_links(
+                        agents,
+                        current_day=state["day"],
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid cultural links."
+                    ) from exc
 
             if has_prayer_state:
                 _load_prayers(

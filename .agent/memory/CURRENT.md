@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, Phase 7B Family / Reproduction Foundation, Phase 7C Child Development, and Phase 7D Household / Inheritance / Lifecycle are complete and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition and Phases 7A–7E through Cultural Transmission are complete and verified. Only the conditional Phase 7F recurrence gate remains.
 
 ## Recent completed work
 
@@ -80,6 +80,10 @@ Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Co
 - Death retains the agent, genealogy, and event history while excluding the deceased from actions, encounters, interventions, reproduction, and living economy/diffusion/collective metrics. Positive estates transfer deterministically to living direct children with mirrored receipts; debt does not transfer and childless estates remain explicitly unallocated.
 - The 100-agent limit now counts living population as a weak-hardware guardrail, so a traceable death reopens birth capacity without deleting history. The supported 7C comparison now reaches 0.237020 skill after 816 total guardian support cost versus zero under constrained upbringing.
 - SQLite schema v16 persists the lifecycle setting and checked support, retirement, mortality, death, and inheritance records. Schema-v15 and older worlds load disabled/empty; death/inheritance and split lifecycle continuation survive restart exactly. A direct 91-year scan took about 0.056 seconds and retained 11 mortality checks.
+- One bounded `cultural_norm` claim uses abstract support/oppose/uncertain stances. Explicit agent expression can move through annual guardian exposure, actual school access, or successful social contact; culture never copies at birth and never copies adaptive policy.
+- Each exposure freezes route, source, relationship inputs, influence, accept/modify/reject response, resulting stance, and information provenance. Rejected and modified claims remain raw observations, while only accepted or modified interpretations revise beliefs. Transmission consumes no world RNG.
+- Cultural link validation requires a matching developmental guardian checkpoint, school-access record, or interaction event plus the raw received observation. Schema v17 persists this history; schema-v16 and older worlds load empty cultural records, and split continuation remains exact.
+- Counterfactual snapshots and compact trajectory signatures include cultural history, so a changed response remains visible even when later belief state converges.
 
 ## Active architectural concern
 
@@ -87,8 +91,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7D failure. The full suite passes 189 tests.
+- No known Phase 7E failure. The full suite passes 197 tests.
 
 ## Next logical task
 
-Implement Phase 7E: causal cultural transmission through existing guardian, relationship, institution, and information channels without copying parent policy or treating culture as inherited priors.
+Evaluate the conditional Phase 7F gate. Implement minimal structural recurrence detection only if current generational histories provide sufficient evidence; otherwise record the evidence-based deferral and close required Phase 7 scope.

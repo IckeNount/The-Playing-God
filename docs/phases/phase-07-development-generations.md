@@ -1268,6 +1268,45 @@ Do not create:
 
 A later-generation NPC can inherit culture through explicit social/institutional exposure while remaining capable of rejecting, modifying, or diverging from it.
 
+### Implementation record — 2026-09-02
+
+**Phase 7E complete.** The simulation now has one deliberately bounded cultural
+claim type, `cultural_norm`, with abstract `support`, `oppose`, and `uncertain`
+stances. A living agent can explicitly originate a norm, but birth copies none
+of its parent's observations, beliefs, cultural records, or adaptive policy.
+
+Culture moves only through an existing causal channel. A dependent can receive
+one held guardian claim at its annual developmental checkpoint; school access
+creates one concrete institutional exposure to a pro-learning norm; and a
+successful ordinary interaction can relay one held norm through the existing
+information identity, origin, hop, observation, and belief machinery. Social
+relay ignores an already-seen source/item pair, while annual guardian and school
+contact permit repeated exposure. No society-wide registry pushes culture into
+agents.
+
+Each exposure freezes the day, subject, source, route, source stance and
+confidence, directed trust and familiarity, computed influence, response,
+resulting stance/confidence, and information provenance. Influence is a bounded
+deterministic combination of source confidence, directed trust, familiarity,
+recipient empathy, and a small guardian/institution contact term. Existing
+opposing belief reduces influence. Scores at or above `0.70` accept; scores from
+`0.50` to below `0.70` modify a definite stance to `uncertain`; lower scores
+reject. A raw observation remains even after modification or rejection, but
+only acceptance or modification revises the recipient's belief. This cleanly
+separates received information from internal interpretation.
+
+Controlled same-prior descendants accept, modify, or reject the same guardian
+norm solely because their exposure relationship/empathy differs. Another test
+proves school transmission, and a contact scenario preserves the originating
+information ID through social diffusion. All routes consume no world RNG.
+
+SQLite schema v17 persists strictly checked cultural histories. Validation
+requires guardian records to coincide with an actual developmental checkpoint,
+school records with recorded school access, social records with a matching
+interaction, and every transmission with its raw observation. Schema-v16 and
+older worlds load empty cultural history rather than fabricated exposure.
+Restart continuation is exact, and the full 197-test suite passes.
+
 ---
 
 # 10. Phase 7F — Ouroboros Foundation

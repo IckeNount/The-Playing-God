@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, fields
 from typing import Iterable
 
+from playing_god.core.culture import CulturalState
 from playing_god.core.events import Event
 from playing_god.core.faith import Attribution
 from playing_god.core.intervention import (
@@ -88,6 +89,7 @@ class AgentSnapshot:
     current_location: str
     destination: str | None
     lifecycle: LifecycleState
+    culture: CulturalState
     social_ties: tuple[
         tuple[str, tuple[tuple[str, float], ...]],
         ...,
@@ -217,6 +219,7 @@ def snapshot_agents(world: World) -> tuple[AgentSnapshot, ...]:
                 current_location=agent.current_location,
                 destination=agent.destination,
                 lifecycle=agent.lifecycle,
+                culture=agent.culture,
                 social_ties=_social_ties(world, agent.id),
             )
         )
@@ -263,6 +266,7 @@ def _trajectory_signature(world: World) -> tuple:
             agent.current_location,
             agent.destination,
             agent.lifecycle,
+            agent.culture,
             _social_ties(world, agent.id),
         )
         for agent in world.agents
