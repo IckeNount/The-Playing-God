@@ -1,10 +1,10 @@
 # Current Engineering State
 
-**Updated:** 2026-08-31
+**Updated:** 2026-09-01
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; milestone 7.0.0 is implemented and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0 and 7.0.1 are implemented and verified.
 
 ## Recent completed work
 
@@ -58,7 +58,9 @@ Phases 4–6 are complete and accepted. Phase 7 is active; milestone 7.0.0 is im
 - Participation events now freeze the decision-time influencer and evidence IDs used by traces and cascade depth. Later trust mutation cannot rewrite that history, and existing schema-v11 event persistence carries the data without a migration.
 - The Phase 6 integration scenario now includes an actual job-hunt attempt against zero vacancies and verifies the resulting unemployment evidence before diffusion and selective participation.
 - `save_world()` and `load_world()` explicitly close SQLite connections; repeated round trips produce no connection `ResourceWarning`. `scripts/show_social_graph.py` again loads a supplied persisted-world path through the existing `load_world()` API.
-- `decision.choose()` accepts a separate learned-preference mapping only after it fixes the base-valid candidate set. Learned and intervention adjustments can rank valid actions but cannot resurrect an ineligible action; no learner or learned persistence exists yet.
+- `decision.choose()` accepts a separate learned-preference mapping only after it fixes the base-valid candidate set. Learned and intervention adjustments can rank valid actions but cannot resurrect an ineligible action.
+- Opt-in adaptive worlds use the existing current goal as a five-value learning context. Each `(context, action)` retains a running mean of multidimensional consequences and goal-relevant feedback, producing a bounded `0.75` preference adjustment without consuming RNG.
+- A controlled equal-prior training scenario proves that institutional admission versus denial creates different learned preference and later choice. Same-seed adaptive runs remain exact; existing and loaded worlds keep adaptation disabled until 7.0.2 persists the setting and values.
 
 ## Active architectural concern
 
@@ -66,8 +68,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7.0.0 failure. The full suite passes 145 tests.
+- No known Phase 7.0.1 failure. The full suite passes 149 tests.
 
 ## Next logical task
 
-Implement Phase 7.0.1: one compact contextual online learner, bounded feedback from existing consequences, and a controlled experience-divergence proof. Persistence remains 7.0.2 scope.
+Implement Phase 7.0.2: persist the adaptive setting and minimal action-value table, default schema-v11 worlds to empty/disabled adaptive state, and prove exact adaptive restart continuation.

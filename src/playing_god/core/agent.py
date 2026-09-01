@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field
 
+from playing_god.core.adaptive import ActionValue
 from playing_god.core.events import Event
 from playing_god.core.faith import Attribution
 from playing_god.core.perception import Belief, Observation
@@ -87,6 +88,10 @@ class Agent:
     beliefs: dict[str, Belief] = field(default_factory=dict)
     prayers: list[Prayer] = field(default_factory=list)
     attributions: list[Attribution] = field(default_factory=list)
+    adaptive_values: dict[
+        str,
+        dict[str, ActionValue],
+    ] = field(default_factory=dict)
 
     current_location: str = "home"
     destination: str | None = None

@@ -255,3 +255,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Deferred:** Context representation, consequence feedback, online updates, learned state on `Agent`, and persistence all remain in milestones 7.0.1–7.0.2.
 
 **Affected:** `src/playing_god/core/decision.py`, `tests/test_decision.py`, `docs/phases/phase-07-development-generations.md`
+
+## 2026-09-01 — Learn action values within the NPC's current goal
+
+**Area:** adaptive-cognition, core-simulation, reproducibility
+
+**Decision:** Use the existing five-value current goal as the contextual learner's state. For each `(goal, action)`, retain observation count, running mean goal-relevant feedback, and running means of the separate money, skill, energy, social-energy, stress, reputation, relationship, employment, and job-level consequences. Convert mean feedback into an additive decision adjustment capped at `0.75`.
+
+**Reason:** The goal already summarizes the NPC's most pressing employment, resource, skill, or social condition. It provides contextual adaptation without a large bucket taxonomy. Keeping raw consequence dimensions inspectable avoids treating all life outcomes as one happiness score, while a goal-specific projection supplies the scalar preference required by the existing seeded chooser.
+
+**Compatibility:** Learning consumes no RNG and is explicitly enabled with `World(adaptive_cognition=True)`. Default and SQLite-loaded worlds remain non-adaptive, preserving Phase 1–6 behavior. Learned-state and model-setting persistence are intentionally deferred to 7.0.2.
+
+**Affected:** `src/playing_god/core/adaptive.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `tests/test_adaptive.py`

@@ -14,7 +14,7 @@ scripts
        -> social graph
 
 core world
-  -> agent + decision + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
+  -> agent + decision + adaptive cognition + events + RNG + social graph + mobility + spatial map + intervention + faith + economy + institution + information + collective action
   -> perception / belief
 
 exposure
@@ -40,6 +40,20 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 **Focused tests:** `tests/test_decision.py`, `tests/test_reproducibility.py`, `tests/test_prayer.py`.
 
 **Important boundary:** All causal randomness must use the world's seeded RNG. Avoid global randomness and changes to RNG call order unless the resulting determinism migration is intentional and tested. Decision modifiers, including learned preferences, are applied only after the base-valid candidate set is fixed; they may rank actions but cannot create eligibility or resolve consequences.
+
+## `adaptive-cognition` — goal-context online action learning
+
+**Owns:** compact goal context, before/after action-state capture, multidimensional consequence records, goal-relevant feedback, running mean action values, and bounded learned preference adjustments.
+
+**Entry points:**
+
+- `src/playing_god/core/adaptive.py` — learning context, consequence, update, and preference functions.
+- `src/playing_god/core/agent.py` — per-agent in-memory `adaptive_values` table.
+- `src/playing_god/core/world.py` — opt-in online capture/update around normal action execution.
+
+**Focused tests:** `tests/test_adaptive.py`, `tests/test_decision.py`.
+
+**Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Learned state is intentionally not persisted until milestone 7.0.2, so loaded worlds disable adaptation.
 
 ## `social` — relationships and contact
 
@@ -247,4 +261,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestone 7.0.0 establishes the learned-preference boundary, while the online learner, persistence, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestones 7.0.0–7.0.1 establish the valid-action preference boundary and first contextual online learner, while persistence, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

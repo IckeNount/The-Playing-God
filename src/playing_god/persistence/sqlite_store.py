@@ -2511,6 +2511,8 @@ def load_world(
 
             world.seed = state["seed"]
             world.day = state["day"]
+            # Learned state is intentionally not persisted until Phase 7.0.2.
+            world.adaptive_cognition = False
             world.agents = agents
             world.economy = economy
             world.school = SchoolState()

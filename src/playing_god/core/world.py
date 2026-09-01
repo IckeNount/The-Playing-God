@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from itertools import islice
 
+from playing_god.core.adaptive import (
+    capture_state,
+    consequence_between,
+    context_for,
+    learn,
+    learned_preferences,
+)
 from playing_god.core.agent import Agent, NAMES, SINS, TRAITS
 from playing_god.core.decision import (
     belonging_need,
@@ -76,10 +83,13 @@ class World:
         self,
         seed: int = 1947,
         population: int = 10,
+        *,
+        adaptive_cognition: bool = False,
     ):
         self.seed = seed
         self.rng = create_rng(seed)
         self.day = 0
+        self.adaptive_cognition = adaptive_cognition
         self.interventions: list[Intervention] = []
         self.intervention_responses: list[
             InterventionResponse
@@ -1721,6 +1731,16 @@ class World:
                 self.update_goal(a)
 
                 participation = self.participation_pressure(a)
+                learning_context = (
+                    context_for(a)
+                    if self.adaptive_cognition
+                    else None
+                )
+                before_action = (
+                    capture_state(a)
+                    if learning_context is not None
+                    else None
+                )
 
                 action = choose(
                     a,
@@ -1731,6 +1751,11 @@ class World:
                     participation_utility=(
                         participation.score
                         if participation.eligible
+                        else None
+                    ),
+                    learned_preferences=(
+                        learned_preferences(a, learning_context)
+                        if learning_context is not None
                         else None
                     ),
                 )
@@ -1744,6 +1769,20 @@ class World:
                     a,
                     action,
                 )
+
+                if (
+                    learning_context is not None
+                    and before_action is not None
+                ):
+                    learn(
+                        a,
+                        learning_context,
+                        action,
+                        consequence_between(
+                            before_action,
+                            capture_state(a),
+                        ),
+                    )
 
                 self.end_day(a)
 

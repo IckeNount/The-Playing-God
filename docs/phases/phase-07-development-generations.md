@@ -458,6 +458,30 @@ Do not:
 
 At least one controlled scenario shows that experience changes later action preference and that the change can be inspected.
 
+### Implementation record — 2026-09-01
+
+**7.0.1 complete.** The first learner is a deterministic contextual action-value
+table in `core/adaptive.py`:
+
+- context is the NPC's existing current goal, one of five compact state
+  summaries already derived by `World.update_goal()`;
+- each action observation retains mean money, skill, energy, social-energy,
+  stress, reputation, relationship, employment, and job-level consequences;
+- feedback is projected only onto the dimension relevant to the current goal,
+  rather than collapsed into a universal happiness score;
+- the running mean feedback becomes an additive preference bounded to `0.75`;
+- updates occur after normal movement/action resolution and consume no RNG.
+
+Adaptive execution is explicitly enabled with
+`World(adaptive_cognition=True)`. It remains off for existing and loaded worlds
+until 7.0.2 persists the learned table and model setting. The controlled test
+holds priors and later decision state equal: an agent admitted to training
+learns enough preference to select `train`, while an otherwise equivalent
+agent denied by the institution later selects `rest`. Repeated same-seed
+adaptive runs remain exact.
+
+No delayed-credit learner, new dependency, or persistence schema was added.
+
 ---
 
 ## 7.0.2 — Learned-State Persistence & Reproducibility

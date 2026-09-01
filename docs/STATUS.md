@@ -1,10 +1,10 @@
 # Playing God — Current Status
 
-**Updated:** 2026-08-31
+**Updated:** 2026-09-01
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 6 is accepted and closed. Phase 7.0.0 is complete: the existing decision chooser exposes a minimal learned-preference input that can change ranking only among actions already made valid by deterministic world state and constraints.
+**Current position:** Phase 7.0.1 is complete. An opt-in deterministic contextual learner uses the NPC's current goal, records multidimensional action consequences, and converts goal-relevant running mean feedback into a bounded preference among valid actions.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | 7.0.0 establishes the valid-action learning boundary; the first online learner is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The valid-action boundary and first contextual online learner are complete; learned-state persistence is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,20 +40,21 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7.0.1 only:
+Implement Phase 7.0.2 only:
 
-1. Define one compact, inspectable learning context over existing NPC/world information.
-2. Derive bounded consequence feedback from existing state/event changes.
-3. Prove in a controlled scenario that different experience changes later valid-action preference.
-4. Do not add persistence yet; learned-state persistence belongs to 7.0.2.
+1. Persist only each agent's contextual action-value table and the world's adaptive-cognition setting.
+2. Load schema-v11 worlds with empty learned state and adaptation disabled.
+3. Prove adaptive save/reload continuation matches uninterrupted execution.
+4. Do not add delayed-credit learning unless the separate 7.0.3 gate justifies it.
 
 ## Phase 7 Progress
 
 | Step | Status | What it means |
 |---|---|---|
 | 7.0.0 — Learning boundary | Complete | Learned preferences can influence only the ranking of already-valid actions; world rules still own eligibility and consequences. |
-| 7.0.1 — Contextual adaptation | Next | Add the first deterministic, CPU-friendly online learner and prove experience-driven preference divergence. |
-| 7.0.2–7F | Planned | Persistence, delayed-credit gate, founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
+| 7.0.1 — Contextual adaptation | Complete | Goal-context action values learn online from multidimensional consequences; controlled outcomes produce inspectable preference and later-choice divergence. |
+| 7.0.2 — Learned-state persistence | Next | Preserve adaptive configuration and minimal learned values across SQLite restart without fabricating legacy history. |
+| 7.0.3–7F | Planned | Delayed-credit gate, founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 
