@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 
 from collections import Counter
 from contextlib import closing
+from dataclasses import asdict, fields
 from pathlib import Path
 
+from playing_god.core.adaptive import (
+    ActionValue,
+    Consequence,
+    LEARNING_CONTEXTS,
+)
 from playing_god.core.agent import Agent
+from playing_god.core.decision import scores as decision_scores
 from playing_god.core.economy import EconomyState
 from playing_god.core.events import Event
 from playing_god.core.faith import ATTRIBUTION_CAUSES, Attribution
@@ -32,7 +40,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 
 class PersistenceError(RuntimeError):
@@ -49,7 +57,9 @@ CREATE TABLE IF NOT EXISTS world_state (
     schema_version INTEGER NOT NULL,
     seed INTEGER NOT NULL,
     day INTEGER NOT NULL,
-    rng_state TEXT NOT NULL
+    rng_state TEXT NOT NULL,
+    adaptive_cognition INTEGER NOT NULL DEFAULT 0
+        CHECK (adaptive_cognition IN (0, 1))
 );
 
 CREATE TABLE IF NOT EXISTS economy_state (
@@ -81,7 +91,8 @@ CREATE TABLE IF NOT EXISTS agents (
     actions_json TEXT NOT NULL,
 
     current_location TEXT NOT NULL DEFAULT 'home',
-    destination TEXT
+    destination TEXT,
+    adaptive_values_json TEXT NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -421,6 +432,36 @@ def _migrate_observations_to_v11(
                 f"ADD COLUMN {name} {definition}"
             )
 
+
+def _migrate_adaptive_state_to_v12(
+    conn: sqlite3.Connection,
+) -> None:
+    world_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(world_state)"
+        ).fetchall()
+    }
+    if "adaptive_cognition" not in world_columns:
+        conn.execute(
+            "ALTER TABLE world_state ADD COLUMN "
+            "adaptive_cognition INTEGER NOT NULL DEFAULT 0 "
+            "CHECK (adaptive_cognition IN (0, 1))"
+        )
+
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "adaptive_values_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "adaptive_values_json TEXT NOT NULL DEFAULT '{}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -595,22 +636,25 @@ def _save_world_state(
             schema_version,
             seed,
             day,
-            rng_state
+            rng_state,
+            adaptive_cognition
         )
-        VALUES (1, ?, ?, ?, ?)
+        VALUES (1, ?, ?, ?, ?, ?)
 
         ON CONFLICT(id)
         DO UPDATE SET
             schema_version = excluded.schema_version,
             seed = excluded.seed,
             day = excluded.day,
-            rng_state = excluded.rng_state
+            rng_state = excluded.rng_state,
+            adaptive_cognition = excluded.adaptive_cognition
         """,
         (
             SCHEMA_VERSION,
             world.seed,
             world.day,
             serialize_state(world.rng),
+            int(world.adaptive_cognition),
         ),
     )
     _migrate_relationships_to_v2(conn)
@@ -670,10 +714,11 @@ def _save_agents(
                 goal,
                 actions_json,
                 current_location,
-                destination
+                destination,
+                adaptive_values_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -695,7 +740,8 @@ def _save_agents(
                 goal = excluded.goal,
                 actions_json = excluded.actions_json,
                 current_location = excluded.current_location,
-                destination = excluded.destination
+                destination = excluded.destination,
+                adaptive_values_json = excluded.adaptive_values_json
             """,
             (
                 agent.id,
@@ -717,6 +763,17 @@ def _save_agents(
                 json.dumps(dict(agent.actions)),
                 agent.current_location,
                 agent.destination,
+                json.dumps(
+                    {
+                        context: {
+                            action: asdict(value)
+                            for action, value in actions.items()
+                        }
+                        for context, actions
+                        in agent.adaptive_values.items()
+                    },
+                    sort_keys=True,
+                ),
             ),
         )
 
@@ -1432,6 +1489,7 @@ def save_world(
             _migrate_agents_to_v5(conn)
             _migrate_agents_to_v9(conn)
             _migrate_observations_to_v11(conn)
+            _migrate_adaptive_state_to_v12(conn)
 
             _save_world_state(
                 conn,
@@ -1494,8 +1552,92 @@ def save_world(
         ) from exc
 
 
+def _load_adaptive_values(
+    agent: Agent,
+    data: object,
+) -> dict[str, dict[str, ActionValue]]:
+    if not isinstance(data, dict):
+        raise WorldLoadError(
+            f"Invalid adaptive state for agent {agent.id}."
+        )
+
+    consequence_fields = {
+        item.name
+        for item in fields(Consequence)
+    }
+    valid_actions = set(decision_scores(agent))
+    loaded: dict[str, dict[str, ActionValue]] = {}
+
+    for context, actions in data.items():
+        if (
+            context not in LEARNING_CONTEXTS
+            or not isinstance(actions, dict)
+        ):
+            raise WorldLoadError(
+                f"Invalid adaptive context for agent {agent.id}."
+            )
+
+        loaded_actions: dict[str, ActionValue] = {}
+        for action, value in actions.items():
+            if (
+                action not in valid_actions
+                or not isinstance(value, dict)
+                or set(value) != {
+                    "observations",
+                    "mean_feedback",
+                    "mean_consequence",
+                }
+            ):
+                raise WorldLoadError(
+                    f"Invalid adaptive action for agent {agent.id}."
+                )
+
+            observations = value["observations"]
+            mean_feedback = value["mean_feedback"]
+            consequence = value["mean_consequence"]
+            if (
+                isinstance(observations, bool)
+                or not isinstance(observations, int)
+                or observations < 1
+                or isinstance(mean_feedback, bool)
+                or not isinstance(mean_feedback, (int, float))
+                or not math.isfinite(mean_feedback)
+                or not -1.0 <= mean_feedback <= 1.0
+                or not isinstance(consequence, dict)
+                or set(consequence) != consequence_fields
+            ):
+                raise WorldLoadError(
+                    f"Invalid adaptive value for agent {agent.id}."
+                )
+
+            if any(
+                isinstance(component, bool)
+                or not isinstance(component, (int, float))
+                or not math.isfinite(component)
+                for component in consequence.values()
+            ):
+                raise WorldLoadError(
+                    f"Invalid adaptive consequence for agent {agent.id}."
+                )
+
+            loaded_actions[action] = ActionValue(
+                observations=observations,
+                mean_feedback=float(mean_feedback),
+                mean_consequence=Consequence(**{
+                    name: float(component)
+                    for name, component in consequence.items()
+                }),
+            )
+
+        loaded[context] = loaded_actions
+
+    return loaded
+
+
 def _load_agents(
     conn: sqlite3.Connection,
+    *,
+    require_adaptive_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1509,6 +1651,15 @@ def _load_agents(
     }.issubset(columns)
     has_social_energy = "social_energy" in columns
     has_faith = "faith" in columns
+    has_adaptive_column = "adaptive_values_json" in columns
+    if require_adaptive_state and not has_adaptive_column:
+        raise WorldLoadError(
+            "Adaptive schema is missing agent learned state."
+        )
+    has_adaptive_state = (
+        require_adaptive_state
+        and has_adaptive_column
+    )
 
     rows = conn.execute(
         """
@@ -1540,6 +1691,10 @@ def _load_agents(
                     row["actions_json"]
                 )
             )
+
+            adaptive_values = json.loads(
+                row["adaptive_values_json"]
+            ) if has_adaptive_state else {}
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -1585,6 +1740,10 @@ def _load_agents(
                 if has_spatial_state
                 else None
             ),
+        )
+        agent.adaptive_values = _load_adaptive_values(
+            agent,
+            adaptive_values,
         )
 
         agents.append(agent)
@@ -2366,11 +2525,7 @@ def load_world(
 
             state = conn.execute(
                 """
-                SELECT
-                    schema_version,
-                    seed,
-                    day,
-                    rng_state
+                SELECT *
                 FROM world_state
                 WHERE id = 1
                 """
@@ -2392,6 +2547,7 @@ def load_world(
                 8,
                 9,
                 10,
+                11,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2418,6 +2574,20 @@ def load_world(
             has_information_state = (
                 state["schema_version"] >= 11
             )
+            has_adaptive_state = (
+                state["schema_version"] >= 12
+            )
+
+            if (
+                has_adaptive_state
+                and (
+                    "adaptive_cognition" not in state.keys()
+                    or state["adaptive_cognition"] not in (0, 1)
+                )
+            ):
+                raise WorldLoadError(
+                    "Invalid adaptive cognition setting."
+                )
 
             if has_perception_state:
                 _validate_perception_tables(conn)
@@ -2434,7 +2604,10 @@ def load_world(
             if has_economy_state:
                 _validate_economy_tables(conn)
 
-            agents = _load_agents(conn)
+            agents = _load_agents(
+                conn,
+                require_adaptive_state=has_adaptive_state,
+            )
             economy = (
                 _load_economy_state(conn, agents)
                 if has_economy_state
@@ -2511,8 +2684,11 @@ def load_world(
 
             world.seed = state["seed"]
             world.day = state["day"]
-            # Learned state is intentionally not persisted until Phase 7.0.2.
-            world.adaptive_cognition = False
+            world.adaptive_cognition = (
+                bool(state["adaptive_cognition"])
+                if has_adaptive_state
+                else False
+            )
             world.agents = agents
             world.economy = economy
             world.school = SchoolState()

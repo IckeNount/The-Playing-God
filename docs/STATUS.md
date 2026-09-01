@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7.0.1 is complete. An opt-in deterministic contextual learner uses the NPC's current goal, records multidimensional action consequences, and converts goal-relevant running mean feedback into a bounded preference among valid actions.
+**Current position:** Phase 7.0.2 is complete. SQLite schema v12 preserves the adaptive-cognition setting and each agent's minimal contextual action-value table; adaptive restart continuation now matches uninterrupted execution exactly.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The valid-action boundary and first contextual online learner are complete; learned-state persistence is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | The valid-action boundary, contextual learner, and learned-state persistence are complete; the delayed-consequence gate is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,12 +40,12 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7.0.2 only:
+Evaluate Phase 7.0.3 only:
 
-1. Persist only each agent's contextual action-value table and the world's adaptive-cognition setting.
-2. Load schema-v11 worlds with empty learned state and adaptation disabled.
-3. Prove adaptive save/reload continuation matches uninterrupted execution.
-4. Do not add delayed-credit learning unless the separate 7.0.3 gate justifies it.
+1. Construct one concrete Phase 7 behavior with immediate cost and possible later benefit.
+2. Determine whether the contextual learner can represent the required behavior without delayed credit.
+3. Add a small value learner only if the controlled evidence demonstrates a real failure.
+4. Otherwise record Q-learning as deferred and proceed to founder prehistory.
 
 ## Phase 7 Progress
 
@@ -53,8 +53,9 @@ Implement Phase 7.0.2 only:
 |---|---|---|
 | 7.0.0 — Learning boundary | Complete | Learned preferences can influence only the ranking of already-valid actions; world rules still own eligibility and consequences. |
 | 7.0.1 — Contextual adaptation | Complete | Goal-context action values learn online from multidimensional consequences; controlled outcomes produce inspectable preference and later-choice divergence. |
-| 7.0.2 — Learned-state persistence | Next | Preserve adaptive configuration and minimal learned values across SQLite restart without fabricating legacy history. |
-| 7.0.3–7F | Planned | Delayed-credit gate, founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
+| 7.0.2 — Learned-state persistence | Complete | Schema v12 preserves adaptive configuration and minimal learned values; legacy worlds remain empty/disabled and adaptive split runs remain exact. |
+| 7.0.3 — Delayed-consequence gate | Next | Decide from a controlled behavior whether contextual adaptation is sufficient or delayed-credit learning is justified. |
+| 7A–7F | Planned | Founders, reproduction, development, lifecycle, culture, and optional recurrence detection remain gated by the adaptive foundation. |
 
 ## Documentation Guide
 

@@ -39,6 +39,7 @@ def world_snapshot(world: World) -> dict:
     return {
         "seed": world.seed,
         "day": world.day,
+        "adaptive_cognition": world.adaptive_cognition,
         "economy": asdict(world.economy),
         "agents": {
             agent.id: agent_snapshot(agent)
@@ -156,7 +157,129 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
+
+    def test_adaptive_state_survives_restart(self):
+        world = World(
+            seed=1947,
+            population=2,
+            adaptive_cognition=True,
+        )
+        world.run(15)
+        before = world_snapshot(world)
+
+        save_world(world, self.db_path)
+        loaded = load_world(self.db_path)
+
+        self.assertTrue(loaded.adaptive_cognition)
+        self.assertTrue(loaded.agents[0].adaptive_values)
+        self.assertEqual(world_snapshot(loaded), before)
+
+    def test_adaptive_continuation_matches_uninterrupted_run(self):
+        uninterrupted = World(
+            seed=1947,
+            population=2,
+            adaptive_cognition=True,
+        )
+        uninterrupted.run(40)
+
+        interrupted = World(
+            seed=1947,
+            population=2,
+            adaptive_cognition=True,
+        )
+        interrupted.run(17)
+        save_world(interrupted, self.db_path)
+        resumed = load_world(self.db_path)
+        resumed.run(23)
+
+        self.assertEqual(
+            world_snapshot(resumed),
+            world_snapshot(uninterrupted),
+        )
+        self.assertEqual(
+            resumed.rng.getstate(),
+            uninterrupted.rng.getstate(),
+        )
+
+    def test_schema11_defaults_to_empty_disabled_adaptation(self):
+        world = World(
+            seed=1947,
+            population=2,
+            adaptive_cognition=True,
+        )
+        world.run(3)
+        save_world(world, self.db_path)
+        expected_rng_state = world.rng.getstate()
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute(
+                "ALTER TABLE agents "
+                "DROP COLUMN adaptive_values_json"
+            )
+            conn.execute(
+                "ALTER TABLE world_state "
+                "DROP COLUMN adaptive_cognition"
+            )
+            conn.execute(
+                "UPDATE world_state "
+                "SET schema_version = 11 WHERE id = 1"
+            )
+
+        loaded = load_world(self.db_path)
+
+        self.assertFalse(loaded.adaptive_cognition)
+        self.assertTrue(all(
+            not agent.adaptive_values
+            for agent in loaded.agents
+        ))
+        self.assertEqual(loaded.rng.getstate(), expected_rng_state)
+
+        save_world(loaded, self.db_path)
+        with sqlite_connection(self.db_path) as conn:
+            schema_version = conn.execute(
+                "SELECT schema_version "
+                "FROM world_state WHERE id = 1"
+            ).fetchone()[0]
+            world_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(world_state)"
+                )
+            }
+            agent_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(agents)"
+                )
+            }
+
+        self.assertEqual(schema_version, 12)
+        self.assertIn("adaptive_cognition", world_columns)
+        self.assertIn("adaptive_values_json", agent_columns)
+
+    def test_corrupted_adaptive_state_fails_clearly(self):
+        world = World(
+            seed=1947,
+            population=1,
+            adaptive_cognition=True,
+        )
+        world.run(1)
+        save_world(world, self.db_path)
+
+        with sqlite_connection(self.db_path) as conn:
+            conn.execute(
+                "UPDATE agents "
+                "SET adaptive_values_json = '[]' "
+                "WHERE id = ?",
+                (world.agents[0].id,),
+            )
+
+        with self.assertRaisesRegex(
+            WorldLoadError,
+            "Invalid adaptive state",
+        ):
+            load_world(self.db_path)
 
     def test_economy_capacity_survives_restart(self):
         world = World(seed=1947)
@@ -202,7 +325,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM economy_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
         self.assertEqual(capacity, loaded.economy.job_capacity)
 
     def test_schema10_defaults_missing_information_identity(self):
@@ -253,7 +376,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
         self.assertTrue(
             {
                 "information_id",
@@ -394,7 +517,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
 
     def test_prayers_survive_restart(self):
         world = World(seed=1947)
@@ -461,7 +584,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'prayers'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
         self.assertIsNotNone(prayer_table)
 
     def test_schema7_defaults_to_empty_intervention_state(self):
@@ -496,7 +619,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
         self.assertIn("interventions", tables)
         self.assertIn("intervention_responses", tables)
 
@@ -534,7 +657,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'attributions'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 11)
+        self.assertEqual(schema_version, 12)
         self.assertIn("faith", agent_columns)
         self.assertIsNotNone(attribution_table)
 

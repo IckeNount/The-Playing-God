@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0 and 7.0.1 are implemented and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0–7.0.2 are implemented and verified.
 
 ## Recent completed work
 
@@ -60,7 +60,8 @@ Phases 4–6 are complete and accepted. Phase 7 is active; milestones 7.0.0 and 
 - `save_world()` and `load_world()` explicitly close SQLite connections; repeated round trips produce no connection `ResourceWarning`. `scripts/show_social_graph.py` again loads a supplied persisted-world path through the existing `load_world()` API.
 - `decision.choose()` accepts a separate learned-preference mapping only after it fixes the base-valid candidate set. Learned and intervention adjustments can rank valid actions but cannot resurrect an ineligible action.
 - Opt-in adaptive worlds use the existing current goal as a five-value learning context. Each `(context, action)` retains a running mean of multidimensional consequences and goal-relevant feedback, producing a bounded `0.75` preference adjustment without consuming RNG.
-- A controlled equal-prior training scenario proves that institutional admission versus denial creates different learned preference and later choice. Same-seed adaptive runs remain exact; existing and loaded worlds keep adaptation disabled until 7.0.2 persists the setting and values.
+- A controlled equal-prior training scenario proves that institutional admission versus denial creates different learned preference and later choice. Same-seed adaptive runs remain exact, and adaptation stays explicitly opt-in so legacy default behavior is unchanged.
+- SQLite schema version 12 persists the world adaptive-cognition flag and each agent's exact contextual action-value table. Schema-v11 and older worlds load disabled/empty without RNG draws or fabricated history, malformed adaptive JSON is rejected, and adaptive split-run continuation matches uninterrupted execution.
 
 ## Active architectural concern
 
@@ -68,8 +69,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7.0.1 failure. The full suite passes 149 tests.
+- No known Phase 7.0.2 failure. The full suite passes 153 tests.
 
 ## Next logical task
 
-Implement Phase 7.0.2: persist the adaptive setting and minimal action-value table, default schema-v11 worlds to empty/disabled adaptive state, and prove exact adaptive restart continuation.
+Evaluate Phase 7.0.3: use one concrete delayed-benefit behavior to decide whether contextual adaptation is sufficient; add tabular value learning only if controlled evidence proves it necessary.

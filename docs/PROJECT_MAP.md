@@ -53,7 +53,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_adaptive.py`, `tests/test_decision.py`.
 
-**Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Learned state is intentionally not persisted until milestone 7.0.2, so loaded worlds disable adaptation.
+**Important boundary:** The current goal is the only learning context; base scores still handle immediate energy, stress, trait, and world-state detail. Consequences remain inspectable by dimension even though the current goal selects one bounded feedback projection. Learning consumes no RNG and is opt-in through `World(adaptive_cognition=True)`. Schema v12 persists the opt-in setting and exact running statistics; earlier worlds begin empty and disabled.
 
 ## `social` — relationships and contact
 
@@ -199,17 +199,17 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 11, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 12, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores the adaptive setting plus one nested JSON value table per agent; schema-v11 and older worlds load with no fabricated learning history.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 
@@ -261,4 +261,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestones 7.0.0–7.0.1 establish the valid-action preference boundary and first contextual online learner, while persistence, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: milestones 7.0.0–7.0.2 establish the valid-action preference boundary, first contextual online learner, and learned-state persistence, while the delayed-credit gate, generations, and culture remain planned behind their numbered gates. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

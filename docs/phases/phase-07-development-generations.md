@@ -523,6 +523,25 @@ Migration must not fabricate a history they never experienced.
 
 A split run preserves the NPC's learned behavior consistently and does not silently reset or randomize it.
 
+### Implementation record — 2026-09-01
+
+**7.0.2 complete.** SQLite schema version 12 stores:
+
+- the world-level `adaptive_cognition` setting;
+- each agent's minimal nested contextual action-value table as deterministic
+  JSON containing observation counts, mean feedback, and mean consequence
+  dimensions.
+
+Loading validates known contexts/actions, positive observation counts, bounded
+finite feedback, and complete finite consequence fields. Corrupt learned state
+fails with `WorldLoadError`. Schema-v11 and older worlds load with adaptation
+disabled and empty learned state, preserving their real history and RNG state;
+their next save performs the schema-v12 migration.
+
+A controlled adaptive split run now matches uninterrupted execution exactly in
+world state, learned values, future decisions, and RNG state. No separate policy
+table, new dependency, or fabricated legacy learning history was added.
+
 ---
 
 ## 7.0.3 — Delayed Consequence Gate

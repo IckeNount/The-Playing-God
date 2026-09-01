@@ -267,3 +267,15 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Compatibility:** Learning consumes no RNG and is explicitly enabled with `World(adaptive_cognition=True)`. Default and SQLite-loaded worlds remain non-adaptive, preserving Phase 1–6 behavior. Learned-state and model-setting persistence are intentionally deferred to 7.0.2.
 
 **Affected:** `src/playing_god/core/adaptive.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `tests/test_adaptive.py`
+
+## 2026-09-01 — Persist adaptive values as agent-owned JSON
+
+**Area:** adaptive-cognition, persistence, reproducibility
+
+**Decision:** SQLite schema v12 adds one checked `adaptive_cognition` flag to `world_state` and one `adaptive_values_json` field to each agent. The JSON contains only the nested `(goal, action)` observation count, mean feedback, and mean multidimensional consequence already owned by the agent.
+
+**Reason:** The table is small, variable, agent-owned state similar to existing action/trait JSON. A separate relational policy subsystem would add joins, tables, and synchronization without a current query requirement. Strict load validation preserves inspectability and rejects unknown contexts/actions, invalid counts, non-finite components, and out-of-range feedback.
+
+**Compatibility:** Schema-v11 and older worlds load with adaptation disabled and empty learned values, preserving RNG state and never fabricating experience. Saving migrates them to v12. Adaptive save/reload continuation exactly matches an uninterrupted run.
+
+**Affected:** `src/playing_god/persistence/sqlite_store.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`
