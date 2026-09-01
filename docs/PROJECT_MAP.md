@@ -364,4 +364,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–6 satisfy their roadmap exit conditions. Phase 7 is active: adaptive cognition, founder prehistory, reproduction, development, lifecycle turnover, and causal cultural transmission are implemented. Only the conditional structural-recurrence gate remains before Phase 7 closure. Later phases covering discovery and recursive simulation remain planned. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–7 satisfy their roadmap exit conditions. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. Later phases covering discovery and recursive simulation remain planned and unapproved. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

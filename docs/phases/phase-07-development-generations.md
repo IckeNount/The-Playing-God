@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 7
 ## Development, Adaptive Cognition, Reproduction & Generations
 
-**Document revision:** v1.0.0
+**Document revision:** v1.1.0
 **Prepared:** 2026-08-30
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life and artificial-society simulation
-**Status:** APPROVED — IMPLEMENTATION IN PROGRESS
+**Status:** COMPLETE — 7F DEFERRED TO PHASE 9 BY EVIDENCE GATE
 **Execution gate:** Human-approved 2026-08-31. Implement one numbered milestone at a time.
 **Canonical destination:** `docs/phases/phase-07-development-generations.md`
 
@@ -1369,6 +1369,41 @@ Embeddings or learned representations may be considered later only if structured
 If enough generational data exists, the system can identify structurally similar historical candidates and report their similarities/differences without changing the simulation.
 
 If not enough data exists, record Phase 7F as deferred to Phase 9 analysis rather than manufacturing data merely to complete a checklist.
+
+### Gate record — 2026-09-02
+
+**Phase 7F deferred to Phase 9 analysis.** The current repository does not yet
+contain a deep-time generational dataset on which a recurrence detector could
+make a meaningful observation.
+
+The two persisted repository worlds are schema-v1 and schema-v2 snapshots with
+ten G0 founders each. Neither contains family, development, lifecycle, or
+cultural state. A fresh ordinary seed-1947 world with reproduction, lifecycle,
+and adaptive cognition enabled was then run as a bounded gate probe. After
+seven simulated years and about 53.81 seconds it contained ten G0 founders and
+thirteen G1 descendants, but no adult descendant, no G2 agent, only eleven
+descendants with any annual development, and only two with cultural exposure.
+
+Those records are sufficient to test development mechanics but not the stated
+deep-time question. There are no separated adult generations or historically
+different adult trajectories to compare. Implementing a detector now would
+require manufacturing matched fixtures, comparing children with founders, or
+calling ordinary kin resemblance recurrence. Each would build the conclusion
+into the input and violate the critical rule.
+
+No detector, similarity threshold, event type, schema field, dependency, or
+runtime scan was added. Phase 9 may revisit structured numeric comparison after
+persisted runs contain multiple adult generations and adequate trajectory,
+social-position, and world-context histories. The analysis must remain
+read-only and outside the learner request path because long ordinary runs are
+already materially expensive on the supported hardware.
+
+The required Phase 7 exit remains satisfied independently of 7F. The controlled
+same-prior development scenario now verifies both descendants through age 18:
+the supported adult retains `0.237020` skill, twelve school exposures, and a
+learned training value, while the constrained adult retains zero skill, no
+school exposure, and no learned training value. The full 197-test suite passes.
+Phase 7 is therefore complete.
 
 ---
 

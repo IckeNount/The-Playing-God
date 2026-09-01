@@ -2,9 +2,9 @@
 
 **Updated:** 2026-09-02
 
-**Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
+**Current phase:** Phase 7 — Complete
 
-**Current position:** Phase 7E Cultural Transmission is complete. Explicit guardian, school, and social-information exposure can now produce accepted, modified, or rejected later-generation norms without copying parent policy or treating culture as a genetic prior.
+**Current position:** Phase 7F was evaluated and deferred to Phase 9 because no persisted multi-adult-generation dataset exists. Required Phase 7 scope is complete; Phase 8 is planned but not started.
 
 ## Phase Progress
 
@@ -16,8 +16,8 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | All required work through causal cultural transmission is complete; the conditional 7F recurrence gate is next. |
-| 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
+| 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
+| 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; Phase 8 requires separate approval before implementation. |
 
 ## Phase 5 Progress
 
@@ -40,11 +40,11 @@
 
 ## What We Are Doing Next
 
-Evaluate the conditional Phase 7F gate only:
+Await approval for Phase 8 — Discovery & Open-Ended Civilization:
 
-1. Determine whether current persisted generational histories provide enough data for meaningful structural recurrence detection.
-2. If sufficient, implement only the minimum inspectable recurrence comparison in the approved brief.
-3. If insufficient, record the evidence-based deferral and close the required Phase 7 scope without manufacturing recurrence.
+1. Do not implement recurrence detection before Phase 9 has a real multi-adult-generation dataset.
+2. Do not begin discovery or dynamic-affordance work without an approved Phase 8 brief.
+3. Preserve the completed Phase 7 causal and reproducibility boundaries.
 
 ## Phase 7 Progress
 
@@ -59,7 +59,7 @@ Evaluate the conditional Phase 7F gate only:
 | 7C — Child development | Complete | Exact birth-anniversary checkpoints turn inherited aptitude plus family resources, relationships, school access, practice, and feedback into persisted skill and learned training value; adult actions remain blocked through age 17. |
 | 7D — Household, inheritance, and lifecycle | Complete | Annual guardian support consumes real resources; retirement, seeded mortality, living-descendant inheritance, and inactive historical death create traceable turnover through schema v16. |
 | 7E — Cultural transmission | Complete | One bounded norm model moves through annual guardian contact, school access, and ordinary social-information encounters; relationship-weighted recipients accept, modify to uncertainty, or reject while raw exposure remains traceable through schema v17. |
-| 7F — Optional recurrence detection | Next (conditional) | Evaluate whether current generational evidence is sufficient for structural recurrence detection; do not manufacture a pattern to satisfy the optional gate. |
+| 7F — Optional recurrence detection | Deferred to Phase 9 | Repository worlds are founder-only legacy snapshots; a bounded seven-year ordinary run produced G1 children but no adult descendants or G2, so recurrence analysis would manufacture its evidence. |
 
 ## Documentation Guide
 

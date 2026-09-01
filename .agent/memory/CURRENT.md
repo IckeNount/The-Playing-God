@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition and Phases 7A–7E through Cultural Transmission are complete and verified. Only the conditional Phase 7F recurrence gate remains.
+Phases 4–7 are complete. Phase 7F recurrence detection was evaluated and deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset. Phase 8 is planned but not approved or started.
 
 ## Recent completed work
 
@@ -84,6 +84,8 @@ Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Co
 - Each exposure freezes route, source, relationship inputs, influence, accept/modify/reject response, resulting stance, and information provenance. Rejected and modified claims remain raw observations, while only accepted or modified interpretations revise beliefs. Transmission consumes no world RNG.
 - Cultural link validation requires a matching developmental guardian checkpoint, school-access record, or interaction event plus the raw received observation. Schema v17 persists this history; schema-v16 and older worlds load empty cultural records, and split continuation remains exact.
 - Counterfactual snapshots and compact trajectory signatures include cultural history, so a changed response remains visible even when later belief state converges.
+- The 7F gate found both repository databases are founder-only schema-v1/v2 worlds. A bounded ordinary seed-1947 probe reached 10 G0 plus 13 G1 after seven years/53.81 seconds, but had no adult descendant or G2 and only two descendants with culture; implementing recurrence now would manufacture the evidence.
+- The controlled same-prior development scenario now runs both descendants through age 18 and directly proves Phase 7's exit: supported adulthood retains 0.237020 skill, 12 school exposures, and learned training value, while constrained adulthood retains zero for all three.
 
 ## Active architectural concern
 
@@ -91,8 +93,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7E failure. The full suite passes 197 tests.
+- No known Phase 7 failure. The full suite passes 197 tests.
 
 ## Next logical task
 
-Evaluate the conditional Phase 7F gate. Implement minimal structural recurrence detection only if current generational histories provide sufficient evidence; otherwise record the evidence-based deferral and close required Phase 7 scope.
+Await an approved Phase 8 implementation brief. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.

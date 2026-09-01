@@ -101,13 +101,19 @@ class ChildDevelopmentTests(unittest.TestCase):
             constrained_child.sins,
         )
 
-        progress_to(supported, 12)
-        progress_to(constrained, 12)
+        progress_to(supported, ADULT_AGE)
+        progress_to(constrained, ADULT_AGE)
 
-        supported_record = supported_child.development.records[-1]
-        constrained_record = constrained_child.development.records[-1]
-        self.assertTrue(supported_record.school_access)
-        self.assertFalse(constrained_record.school_access)
+        self.assertFalse(supported_child.family.dependent)
+        self.assertFalse(constrained_child.family.dependent)
+        self.assertTrue(any(
+            record.school_access
+            for record in supported_child.development.records
+        ))
+        self.assertFalse(any(
+            record.school_access
+            for record in constrained_child.development.records
+        ))
         self.assertGreater(supported_child.skill, constrained_child.skill)
         self.assertEqual(constrained_child.skill, 0.0)
         self.assertIn(

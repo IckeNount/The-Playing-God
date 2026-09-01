@@ -317,3 +317,17 @@ Record only durable rationale or failures future agents would otherwise rediscov
 **Compatibility:** SQLite schema v14 stores the reproduction flag and checked agent-owned family JSON. Schema-v13 and older worlds load disabled with empty founder family state, preserve RNG state, and migrate without fabricated genealogy. Reciprocal parent/child links are validated on save and load.
 
 **Affected:** `src/playing_god/core/family.py`, `src/playing_god/core/agent.py`, `src/playing_god/core/world.py`, `src/playing_god/persistence/sqlite_store.py`, `tests/test_family.py`, `tests/test_persistence.py`, `docs/phases/phase-07-development-generations.md`
+
+## 2026-09-02 — Defer recurrence detection until real deep-time data exists
+
+**Area:** generations, recurrence-analysis, anti-overengineering, weak-hardware
+
+**Decision:** Close conditional Phase 7F without implementing an Ouroboros detector. Revisit structured numeric recurrence comparison in Phase 9 only after persisted histories contain multiple adult generations with meaningful trajectory, social-position, culture, and world-context separation.
+
+**Evidence:** Both repository databases are schema-v1/v2 founder-only worlds with ten G0 agents and no family, development, or culture state. A bounded ordinary seed-1947 probe with reproduction, lifecycle, and adaptive cognition reached ten G0 plus thirteen G1 after seven simulated years and about 53.81 seconds, but produced no adult descendant, no G2, and only two culturally exposed descendants.
+
+**Reason:** Comparing founders with children or constructing deliberately matched fixtures would encode recurrence into the input rather than detect it. The current data can validate generational mechanisms but cannot answer whether structurally similar adults recur under different historical contexts. Long-run generation must also remain outside interactive analysis paths on supported hardware.
+
+**Rejected:** A detector over hand-built fixtures, parent-child resemblance labeled as recurrence, exact-float matching, forced recurrence events, embeddings, deep learning, and a new persistence schema without observations to store.
+
+**Affected:** `docs/phases/phase-07-development-generations.md`, `docs/STATUS.md`, `docs/PROJECT_MAP.md`, `.agent/memory/CURRENT.md`, `tests/test_development.py`
