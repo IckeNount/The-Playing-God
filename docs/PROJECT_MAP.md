@@ -71,7 +71,7 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 ## `family-reproduction` — constrained later-generation creation
 
-**Owns:** opt-in adult-pair eligibility, seeded reproduction attempts, explicit genealogy and guardianship, birth environment context, bounded prior inheritance, and dependent-child inactivity before development exists.
+**Owns:** opt-in adult-pair eligibility, seeded reproduction attempts, explicit genealogy and guardianship, birth environment context, bounded prior inheritance, and dependent-child creation.
 
 **Entry points:**
 
@@ -81,7 +81,32 @@ Simulation code must not depend on `.agent/`, memory documents, or coding-agent 
 
 **Focused tests:** `tests/test_family.py`, plus persistence and split-run coverage.
 
-**Important boundary:** Reproduction is abstract and enabled only with `World(reproduction_enabled=True)`. Eligibility requires two nondependent co-located adults with sufficient mutual affinity/trust/familiarity, resources, employment stability, acceptable stress, no close genealogical relationship, no recent child, and remaining population capacity. A successful 1% seeded daily attempt creates one dependent child with parent/guardian links and ±0.08 bounded variation around parent priors. It never copies memories, learned values, occupation, reputation, beliefs, or adult capability. Dependents cannot move, act, receive interventions, or enter encounters until Phase 7C supplies development.
+**Important boundary:** Reproduction is abstract and enabled only with `World(reproduction_enabled=True)`. Eligibility requires two nondependent co-located adults with sufficient mutual affinity/trust/familiarity, resources, employment stability, acceptable stress, no close genealogical relationship, no recent child, and remaining population capacity. A successful 1% seeded daily attempt creates one dependent child with parent/guardian links and ±0.08 bounded variation around parent priors. It never copies memories, learned values, occupation, reputation, beliefs, or adult capability.
+
+## `child-development` — annual causal development
+
+**Owns:** exact birth-anniversary aging, age stages, inspectable upbringing and
+school-exposure records, developed skill, adaptive training experience, and the
+age-18 dependency boundary.
+
+**Entry points:**
+
+- `src/playing_god/core/development.py` — annual developmental inputs, outcomes,
+  stages, and strict history validation.
+- `src/playing_god/core/agent.py` — per-agent `development` history.
+- `src/playing_god/core/world.py` — anniversary resolution, adaptive-policy
+  integration, and adulthood activation.
+
+**Focused tests:** `tests/test_development.py`, plus persistence and
+reproducibility coverage.
+
+**Important boundary:** Children do not run the adult daily action loop.
+Development is one deterministic checkpoint per birth anniversary. Ages 6–17
+can access the existing school only when current household resources,
+employment, guardian stress, and guardian relationship support produce enough
+opportunity. Skill requires aptitude plus access, practice, opportunity, and
+feedback. Schema v15 persists exact history; older schemas remain empty rather
+than receiving reconstructed childhood.
 
 ## `social` — relationships and contact
 

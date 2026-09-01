@@ -1008,6 +1008,41 @@ Do not implement:
 
 A child can reach later life with state and learned behavior that are traceably shaped by the simulated world experienced during development.
 
+### Implementation record — 2026-09-02
+
+**Phase 7C complete.** Later-generation agents now progress through one compact
+checkpoint on each exact birth anniversary. Records preserve age/stage,
+guardians, household resources, guardian employment/stress, relationship
+support, inherited learning potential, school availability/opportunity,
+practice, feedback, and the resulting skill change. No daily child action loop
+or psychology milestone catalog was added.
+
+School exposure is available only from ages 6–17 and only when the existing
+school is present and the current family/resource opportunity crosses the
+explicit threshold. Skill gain then composes aptitude, access, annual practice,
+opportunity, and feedback; a high prior alone produces no skill. When adaptive
+cognition is enabled, successful school years also update the existing
+`improve_skill` / `train` action value from the observed skill consequence.
+
+Dependents remain excluded from adult movement, action selection,
+interventions, social targets, and encounters through age 17. At the age-18
+checkpoint dependency ends, so the later agent enters the ordinary adult world
+with its developed skill and learned institutional preference. Later-generation
+ages use exact birth anniversaries; founder aging preserves the legacy global
+year boundary.
+
+A controlled same-seed/same-prior comparison produces 0.295559 skill and 12
+positive training observations under supported school access, versus zero
+skill and no learned training value under constrained resources and
+relationships. The developmental mechanism consumes no RNG, while chance
+still enters through the bounded inherited priors created at birth.
+
+SQLite schema v15 persists strictly checked developmental history. Schema-v14
+and older worlds load with empty history rather than reconstructed childhood,
+and exact restart continuation is covered through later anniversaries. The full
+179-test suite passes. A direct 6,570-day anniversary scan for one child took
+about 0.012 seconds on the development machine and retained only 18 records.
+
 ---
 
 # 8. Phase 7D — Household, Inheritance & Lifecycle

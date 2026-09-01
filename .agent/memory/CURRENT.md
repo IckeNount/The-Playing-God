@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, and Phase 7B Family / Reproduction Foundation are complete and verified.
+Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Cognition, Phase 7A Founder Prehistory, Phase 7B Family / Reproduction Foundation, and Phase 7C Child Development are complete and verified.
 
 ## Recent completed work
 
@@ -70,6 +70,11 @@ Phases 4–6 are complete and accepted. Phase 7 is active; Phase 7.0 Adaptive Co
 - A successful birth creates a deterministic G1 identity, reciprocal parent/child links, parent guardianship, birth day/location, a structured household/relationship/roll context, and bounded ±0.08 parent-derived trait/sin priors. It never copies memories, beliefs, learned values, occupation, reputation, adult skill, or founder history.
 - Later-generation children remain dependent and cannot move, act, receive interventions, become social-action targets, or enter encounters before Phase 7C. Parents receive a modest resource/stress cost and all three agents receive structured birth events.
 - SQLite schema version 14 persists the reproduction flag and checked agent family JSON. Schema-v13 and older worlds load disabled with empty founder family state, preserve RNG, and migrate without fabricated genealogy; reciprocal family links and restart continuation are validated.
+- Later-generation agents now age on exact birth anniversaries through one compact annual developmental checkpoint; founders preserve legacy global-year aging. Each record freezes guardian IDs, household resources, employment/stress, relationship support, learning potential, school availability/opportunity, practice, feedback, and skill change.
+- Ages 6–17 can acquire skill only when the existing school is available and current family/resource opportunity crosses the explicit threshold. Supported school years also update the existing adaptive `improve_skill` / `train` value when adaptive cognition is enabled; development itself consumes no RNG.
+- Children remain outside adult movement, action, intervention, encounter, and social-target paths through age 17. The age-18 checkpoint ends dependency and admits the developed agent to ordinary adult behavior.
+- A controlled same-prior comparison reaches 0.295559 skill with 12 learned training observations under supported access versus zero skill/no training value under constrained upbringing. SQLite schema v15 persists checked developmental histories; schema-v14 and older histories remain honestly empty, and restart continuation is exact.
+- A direct 6,570-day anniversary scan took about 0.012 seconds for one child and retained only 18 developmental records; no benchmark framework was added.
 
 ## Active architectural concern
 
@@ -77,8 +82,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7B failure. The full suite passes 170 tests.
+- No known Phase 7C failure. The full suite passes 179 tests.
 
 ## Next logical task
 
-Implement Phase 7C: lightweight child development driven by age, family environment, resources, exposure, and institutions without granting adult behavior prematurely.
+Implement Phase 7D: the smallest household support, resource continuity, lifecycle exit, and inheritance mechanisms needed for traceable generational turnover without indefinite population accumulation.

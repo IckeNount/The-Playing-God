@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from playing_god.core.adaptive import ActionValue
+from playing_god.core.development import DevelopmentState
 from playing_god.core.events import Event
 from playing_god.core.family import FamilyState
 from playing_god.core.faith import Attribution
@@ -98,6 +99,9 @@ class Agent:
         default_factory=list,
     )
     family: FamilyState = field(default_factory=FamilyState)
+    development: DevelopmentState = field(
+        default_factory=DevelopmentState,
+    )
 
     current_location: str = "home"
     destination: str | None = None

@@ -16,6 +16,10 @@ from playing_god.core.adaptive import (
 )
 from playing_god.core.agent import Agent
 from playing_god.core.decision import scores as decision_scores
+from playing_god.core.development import (
+    development_state_from_data,
+    validate_development_links,
+)
 from playing_god.core.economy import EconomyState
 from playing_god.core.events import Event
 from playing_god.core.family import (
@@ -48,7 +52,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 
 
 class PersistenceError(RuntimeError):
@@ -104,7 +108,8 @@ CREATE TABLE IF NOT EXISTS agents (
     destination TEXT,
     adaptive_values_json TEXT NOT NULL DEFAULT '{}',
     founder_prehistory_json TEXT NOT NULL DEFAULT '[]',
-    family_json TEXT NOT NULL DEFAULT '{}'
+    family_json TEXT NOT NULL DEFAULT '{}',
+    development_json TEXT NOT NULL DEFAULT '{"records": []}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -519,6 +524,23 @@ def _migrate_family_state_to_v14(
         )
 
 
+def _migrate_development_state_to_v15(
+    conn: sqlite3.Connection,
+) -> None:
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "development_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "development_json TEXT NOT NULL "
+            "DEFAULT '{\"records\": []}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -761,6 +783,14 @@ def _save_agents(
     except ValueError as exc:
         raise PersistenceError("Invalid family state.") from exc
 
+    try:
+        validate_development_links(
+            world.agents,
+            current_day=world.day,
+        )
+    except ValueError as exc:
+        raise PersistenceError("Invalid development state.") from exc
+
     for agent in world.agents:
         if agent.founder_prehistory:
             try:
@@ -795,10 +825,11 @@ def _save_agents(
                 destination,
                 adaptive_values_json,
                 founder_prehistory_json,
-                family_json
+                family_json,
+                development_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -823,7 +854,8 @@ def _save_agents(
                 destination = excluded.destination,
                 adaptive_values_json = excluded.adaptive_values_json,
                 founder_prehistory_json = excluded.founder_prehistory_json,
-                family_json = excluded.family_json
+                family_json = excluded.family_json,
+                development_json = excluded.development_json
             """,
             (
                 agent.id,
@@ -864,6 +896,7 @@ def _save_agents(
                     sort_keys=True,
                 ),
                 json.dumps(asdict(agent.family), sort_keys=True),
+                json.dumps(asdict(agent.development), sort_keys=True),
             ),
         )
 
@@ -1582,6 +1615,7 @@ def save_world(
             _migrate_adaptive_state_to_v12(conn)
             _migrate_founder_prehistory_to_v13(conn)
             _migrate_family_state_to_v14(conn)
+            _migrate_development_state_to_v15(conn)
 
             _save_world_state(
                 conn,
@@ -1732,6 +1766,7 @@ def _load_agents(
     require_adaptive_state: bool = False,
     require_founder_prehistory: bool = False,
     require_family_state: bool = False,
+    require_development_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1769,6 +1804,15 @@ def _load_agents(
             "Family schema is missing agent family state."
         )
     has_family_state = require_family_state and has_family_column
+    has_development_column = "development_json" in columns
+    if require_development_state and not has_development_column:
+        raise WorldLoadError(
+            "Development schema is missing agent history."
+        )
+    has_development_state = (
+        require_development_state
+        and has_development_column
+    )
 
     rows = conn.execute(
         """
@@ -1812,6 +1856,10 @@ def _load_agents(
             family_data = json.loads(
                 row["family_json"]
             ) if has_family_state else None
+
+            development_data = json.loads(
+                row["development_json"]
+            ) if has_development_state else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -1880,6 +1928,16 @@ def _load_agents(
             except (TypeError, ValueError) as exc:
                 raise WorldLoadError(
                     f"Invalid family state for agent {agent.id}."
+                ) from exc
+        if development_data is not None:
+            try:
+                agent.development = development_state_from_data(
+                    development_data
+                )
+            except (TypeError, ValueError) as exc:
+                raise WorldLoadError(
+                    "Invalid development state for agent "
+                    f"{agent.id}."
                 ) from exc
 
         agents.append(agent)
@@ -2686,6 +2744,7 @@ def load_world(
                 11,
                 12,
                 13,
+                14,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2720,6 +2779,9 @@ def load_world(
             )
             has_family_state = (
                 state["schema_version"] >= 14
+            )
+            has_development_state = (
+                state["schema_version"] >= 15
             )
 
             if (
@@ -2766,6 +2828,7 @@ def load_world(
                     has_founder_prehistory
                 ),
                 require_family_state=has_family_state,
+                require_development_state=has_development_state,
             )
             if has_family_state:
                 try:
@@ -2773,6 +2836,16 @@ def load_world(
                 except ValueError as exc:
                     raise WorldLoadError(
                         "Invalid family links."
+                    ) from exc
+            if has_development_state:
+                try:
+                    validate_development_links(
+                        agents,
+                        current_day=state["day"],
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid development links."
                     ) from exc
             economy = (
                 _load_economy_state(conn, agents)

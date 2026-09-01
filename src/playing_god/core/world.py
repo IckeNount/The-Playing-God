@@ -17,6 +17,10 @@ from playing_god.core.decision import (
     money_pressure,
     scores as decision_scores,
 )
+from playing_god.core.development import (
+    ADULT_AGE,
+    advance_development,
+)
 from playing_god.core.collective import (
     CollectiveSnapshot,
     PARTICIPATED,
@@ -436,6 +440,89 @@ class World:
                 break
 
         return births
+
+    def resolve_development(self) -> list[Agent]:
+        """Resolve exact birth anniversaries without daily child actions."""
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        progressed = []
+        for child in sorted(self.agents, key=lambda agent: agent.id):
+            birth_day = child.family.birth_day
+            if birth_day is None:
+                continue
+            days_since_birth = self.day - birth_day
+            if days_since_birth <= 0 or days_since_birth % 365:
+                continue
+
+            age = days_since_birth // 365
+            child.age = age
+            if age > ADULT_AGE or not child.family.dependent:
+                continue
+            if (
+                child.development.records
+                and child.development.records[-1].age >= age
+            ):
+                continue
+
+            guardians = [
+                agents_by_id[guardian_id]
+                for guardian_id in child.family.guardian_ids
+            ]
+            outcome = advance_development(
+                child,
+                guardians,
+                self.social,
+                day=self.day,
+                age=age,
+                school_available=(
+                    self.school.location in self.world_map.locations
+                ),
+            )
+            child.development = outcome.state
+            child.skill = outcome.skill
+            if (
+                self.adaptive_cognition
+                and outcome.state.records[-1].school_access
+            ):
+                learn(
+                    child,
+                    "improve_skill",
+                    "train",
+                    consequence_between(
+                        replace(
+                            capture_state(child),
+                            skill=outcome.state.records[-1].skill_before,
+                        ),
+                        capture_state(child),
+                    ),
+                )
+            if outcome.became_adult:
+                child.family = replace(
+                    child.family,
+                    dependent=False,
+                )
+
+            record = outcome.state.records[-1]
+            description = (
+                f"Reached age {age}: {record.stage}; "
+                f"school_access={str(record.school_access).lower()}; "
+                f"skill_gain={record.skill_gain:.6f}"
+            )
+            self.record(
+                child,
+                "development",
+                description,
+                0.75 if outcome.became_adult else 0.30,
+                location=(
+                    self.school.location
+                    if record.school_access
+                    else child.current_location
+                ),
+            )
+            progressed.append(child)
+        return progressed
 
     def participation_trace(
         self,
@@ -2055,6 +2142,7 @@ class World:
             self.sync_social_affinities()
             self.resolve_daily_interactions()
             self.resolve_reproduction()
+            self.resolve_development()
             self.resolve_daily_attributions()
 
         # Preserve Phase-1 aging for uninterrupted runs,
@@ -2066,7 +2154,8 @@ class World:
 
         if birthdays_crossed:
             for a in self.agents:
-                a.age += birthdays_crossed
+                if a.family.birth_day is None:
+                    a.age += birthdays_crossed
 
     def report(self) -> str:
         names = {

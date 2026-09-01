@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 7 — Development, Adaptive Cognition, Reproduction & Generations
 
-**Current position:** Phase 7B Family / Reproduction Foundation is complete. Opt-in seeded worlds can now produce dependent G1 children with explicit genealogy, birth context, and bounded parent-derived priors.
+**Current position:** Phase 7C Child Development is complete. Later-generation children now acquire traceable skill and adaptive training experience through age-appropriate family and school exposure, then enter ordinary adult behavior at age 18.
 
 ## Phase Progress
 
@@ -16,7 +16,7 @@
 | 4 — Spatial world, mobility, and encounters | Complete | Movement, exposure, interaction, familiarity, visits, and path inspection. |
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
-| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, and the family/reproduction foundation are complete; child development is next. |
+| 7 — Development, adaptive cognition, reproduction, and generations | In progress | Adaptive cognition, founder prehistory, reproduction, and child development are complete; household/lifecycle turnover is next. |
 | 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; not part of the current implementation. |
 
 ## Phase 5 Progress
@@ -40,11 +40,11 @@
 
 ## What We Are Doing Next
 
-Implement Phase 7C only:
+Implement Phase 7D only:
 
-1. Add lightweight developmental progression for dependent later-generation agents.
-2. Make capability expression depend on age-appropriate exposure, family resources, and existing institutions.
-3. Do not encode a giant developmental-psychology model or let children use adult actions prematurely.
+1. Add the smallest household/dependent support and resource-continuity model.
+2. Add traceable lifecycle exit and inheritance sufficient for generational turnover.
+3. Keep mortality abstract and avoid a universal household framework or medical simulation.
 
 ## Phase 7 Progress
 
@@ -56,8 +56,9 @@ Implement Phase 7C only:
 | 7.0.3 — Delayed-consequence gate | Complete | Costly training has immediate goal-relevant capability feedback, so contextual adaptation is sufficient and Q-learning is deferred. |
 | 7A — Founder prehistory | Complete | Three seeded structured records causally define each new founder's capability, livelihood, resources, and recent wellbeing; schema v13 persists them without fabricating legacy history. |
 | 7B — Family / reproduction foundation | Complete | Opt-in seeded reproduction checks explicit relationship, age, co-location, resource, stress, kinship, cooldown, and population constraints; G1 children retain parents, guardians, birth context, and bounded inherited priors through schema v14. |
-| 7C — Child development | Next | Turn dependent children into lightweight developmental trajectories shaped by age, household conditions, exposure, and institutions. |
-| 7D–7F | Planned | Lifecycle, culture, and optional recurrence detection remain gated by earlier milestones. |
+| 7C — Child development | Complete | Exact birth-anniversary checkpoints turn inherited aptitude plus family resources, relationships, school access, practice, and feedback into persisted skill and learned training value; adult actions remain blocked through age 17. |
+| 7D — Household, inheritance, and lifecycle | Next | Add causal dependent support, resource continuity, and lifecycle exit so generations can turn over without indefinite accumulation. |
+| 7E–7F | Planned | Cultural transmission and optional recurrence detection remain gated by earlier milestones. |
 
 ## Documentation Guide
 
