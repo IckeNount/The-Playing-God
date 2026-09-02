@@ -29,6 +29,7 @@ def world_snapshot(world: World) -> dict:
         "day": world.day,
         "economy": asdict(world.economy),
         "school": asdict(world.school),
+        "civilization": asdict(world.civilization),
         "agents": [
             agent_snapshot(agent)
             for agent in world.agents

@@ -15,6 +15,13 @@ from playing_god.core.adaptive import (
     LEARNING_CONTEXTS,
 )
 from playing_god.core.agent import Agent
+from playing_god.core.civilization import (
+    CivilizationState,
+    agent_knowledge_state_from_data,
+    civilization_state_from_data,
+    validate_civilization_links,
+    validate_civilization_state,
+)
 from playing_god.core.culture import (
     cultural_state_from_data,
     validate_cultural_links,
@@ -60,7 +67,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 17
+SCHEMA_VERSION = 18
 
 
 class PersistenceError(RuntimeError):
@@ -83,7 +90,9 @@ CREATE TABLE IF NOT EXISTS world_state (
     reproduction_enabled INTEGER NOT NULL DEFAULT 0
         CHECK (reproduction_enabled IN (0, 1)),
     lifecycle_enabled INTEGER NOT NULL DEFAULT 0
-        CHECK (lifecycle_enabled IN (0, 1))
+        CHECK (lifecycle_enabled IN (0, 1)),
+    civilization_json TEXT NOT NULL DEFAULT
+        '{"knowledge": [], "affordances": []}'
 );
 
 CREATE TABLE IF NOT EXISTS economy_state (
@@ -121,7 +130,8 @@ CREATE TABLE IF NOT EXISTS agents (
     family_json TEXT NOT NULL DEFAULT '{}',
     development_json TEXT NOT NULL DEFAULT '{"records": []}',
     lifecycle_json TEXT NOT NULL DEFAULT '{}',
-    culture_json TEXT NOT NULL DEFAULT '{"records": []}'
+    culture_json TEXT NOT NULL DEFAULT '{"records": []}',
+    knowledge_json TEXT NOT NULL DEFAULT '{"records": []}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -599,6 +609,37 @@ def _migrate_cultural_state_to_v17(
         )
 
 
+def _migrate_civilization_state_to_v18(
+    conn: sqlite3.Connection,
+) -> None:
+    world_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(world_state)"
+        ).fetchall()
+    }
+    if "civilization_json" not in world_columns:
+        conn.execute(
+            "ALTER TABLE world_state ADD COLUMN "
+            "civilization_json TEXT NOT NULL "
+            "DEFAULT '{\"knowledge\": [], "
+            "\"affordances\": []}'"
+        )
+
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "knowledge_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "knowledge_json TEXT NOT NULL "
+            "DEFAULT '{\"records\": []}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -748,6 +789,13 @@ def _save_world_state(
     conn: sqlite3.Connection,
     world: World,
 ) -> None:
+    try:
+        validate_civilization_state(world.civilization)
+    except ValueError as exc:
+        raise PersistenceError(
+            "Invalid civilization state."
+        ) from exc
+
     existing = conn.execute(
         """
         SELECT seed
@@ -776,9 +824,10 @@ def _save_world_state(
             rng_state,
             adaptive_cognition,
             reproduction_enabled,
-            lifecycle_enabled
+            lifecycle_enabled,
+            civilization_json
         )
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
 
         ON CONFLICT(id)
         DO UPDATE SET
@@ -788,7 +837,8 @@ def _save_world_state(
             rng_state = excluded.rng_state,
             adaptive_cognition = excluded.adaptive_cognition,
             reproduction_enabled = excluded.reproduction_enabled,
-            lifecycle_enabled = excluded.lifecycle_enabled
+            lifecycle_enabled = excluded.lifecycle_enabled,
+            civilization_json = excluded.civilization_json
         """,
         (
             SCHEMA_VERSION,
@@ -798,6 +848,7 @@ def _save_world_state(
             int(world.adaptive_cognition),
             int(world.reproduction_enabled),
             int(world.lifecycle_enabled),
+            json.dumps(asdict(world.civilization), sort_keys=True),
         ),
     )
     _migrate_relationships_to_v2(conn)
@@ -835,6 +886,17 @@ def _save_agents(
     conn: sqlite3.Connection,
     world: World,
 ) -> None:
+    try:
+        validate_civilization_links(
+            world.civilization,
+            world.agents,
+            current_day=world.day,
+        )
+    except ValueError as exc:
+        raise PersistenceError(
+            "Invalid civilization links."
+        ) from exc
+
     try:
         validate_family_links(
             world.agents,
@@ -905,10 +967,11 @@ def _save_agents(
                 family_json,
                 development_json,
                 lifecycle_json,
-                culture_json
+                culture_json,
+                knowledge_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -936,7 +999,8 @@ def _save_agents(
                 family_json = excluded.family_json,
                 development_json = excluded.development_json,
                 lifecycle_json = excluded.lifecycle_json,
-                culture_json = excluded.culture_json
+                culture_json = excluded.culture_json,
+                knowledge_json = excluded.knowledge_json
             """,
             (
                 agent.id,
@@ -980,6 +1044,7 @@ def _save_agents(
                 json.dumps(asdict(agent.development), sort_keys=True),
                 json.dumps(asdict(agent.lifecycle), sort_keys=True),
                 json.dumps(asdict(agent.culture), sort_keys=True),
+                json.dumps(asdict(agent.knowledge), sort_keys=True),
             ),
         )
 
@@ -1701,6 +1766,7 @@ def save_world(
             _migrate_development_state_to_v15(conn)
             _migrate_lifecycle_state_to_v16(conn)
             _migrate_cultural_state_to_v17(conn)
+            _migrate_civilization_state_to_v18(conn)
 
             _save_world_state(
                 conn,
@@ -1854,6 +1920,7 @@ def _load_agents(
     require_development_state: bool = False,
     require_lifecycle_state: bool = False,
     require_cultural_state: bool = False,
+    require_knowledge_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1918,6 +1985,15 @@ def _load_agents(
         require_cultural_state
         and has_culture_column
     )
+    has_knowledge_column = "knowledge_json" in columns
+    if require_knowledge_state and not has_knowledge_column:
+        raise WorldLoadError(
+            "Civilization schema is missing agent knowledge."
+        )
+    has_knowledge_state = (
+        require_knowledge_state
+        and has_knowledge_column
+    )
 
     rows = conn.execute(
         """
@@ -1973,6 +2049,10 @@ def _load_agents(
             culture_data = json.loads(
                 row["culture_json"]
             ) if has_cultural_state else None
+
+            knowledge_data = json.loads(
+                row["knowledge_json"]
+            ) if has_knowledge_state else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -2060,6 +2140,16 @@ def _load_agents(
             except (TypeError, ValueError) as exc:
                 raise WorldLoadError(
                     "Invalid lifecycle state for agent "
+                    f"{agent.id}."
+                ) from exc
+        if knowledge_data is not None:
+            try:
+                agent.knowledge = agent_knowledge_state_from_data(
+                    knowledge_data
+                )
+            except (TypeError, ValueError) as exc:
+                raise WorldLoadError(
+                    "Invalid knowledge state for agent "
                     f"{agent.id}."
                 ) from exc
         if culture_data is not None:
@@ -2880,6 +2970,7 @@ def load_world(
                 14,
                 15,
                 16,
+                17,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -2924,6 +3015,9 @@ def load_world(
             has_cultural_state = (
                 state["schema_version"] >= 17
             )
+            has_civilization_state = (
+                state["schema_version"] >= 18
+            )
 
             if (
                 has_adaptive_state
@@ -2958,6 +3052,29 @@ def load_world(
                     "Invalid lifecycle setting."
                 )
 
+            if (
+                has_civilization_state
+                and "civilization_json" not in state.keys()
+            ):
+                raise WorldLoadError(
+                    "Civilization schema is missing world state."
+                )
+
+            civilization = CivilizationState()
+            if has_civilization_state:
+                try:
+                    civilization = civilization_state_from_data(
+                        json.loads(state["civilization_json"])
+                    )
+                except (
+                    json.JSONDecodeError,
+                    TypeError,
+                    ValueError,
+                ) as exc:
+                    raise WorldLoadError(
+                        "Invalid civilization state."
+                    ) from exc
+
             if has_perception_state:
                 _validate_perception_tables(conn)
 
@@ -2983,6 +3100,9 @@ def load_world(
                 require_development_state=has_development_state,
                 require_lifecycle_state=has_lifecycle_state,
                 require_cultural_state=has_cultural_state,
+                require_knowledge_state=(
+                    has_civilization_state
+                ),
             )
             if has_family_state:
                 try:
@@ -3031,6 +3151,18 @@ def load_world(
                 conn,
                 agents_by_id,
             )
+
+            if has_civilization_state:
+                try:
+                    validate_civilization_links(
+                        civilization,
+                        agents,
+                        current_day=state["day"],
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid civilization links."
+                    ) from exc
 
             if has_perception_state:
                 _load_observations(
@@ -3119,6 +3251,7 @@ def load_world(
             world.interventions = interventions
             world.intervention_responses = intervention_responses
             world.information_items = []
+            world.civilization = civilization
 
             world.rng = create_rng(
                 world.seed

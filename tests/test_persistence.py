@@ -43,6 +43,7 @@ def world_snapshot(world: World) -> dict:
         "reproduction_enabled": world.reproduction_enabled,
         "lifecycle_enabled": world.lifecycle_enabled,
         "economy": asdict(world.economy),
+        "civilization": asdict(world.civilization),
         "agents": {
             agent.id: agent_snapshot(agent)
             for agent in world.agents
@@ -203,7 +204,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
 
     def test_adaptive_state_survives_restart(self):
         world = World(
@@ -300,7 +301,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("adaptive_cognition", world_columns)
         self.assertIn("adaptive_values_json", agent_columns)
 
@@ -341,7 +342,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("founder_prehistory_json", agent_columns)
         self.assertTrue(all(
             not agent.founder_prehistory
@@ -584,7 +585,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("reproduction_enabled", world_columns)
         self.assertIn("family_json", agent_columns)
         self.assertFalse(migrated.reproduction_enabled)
@@ -632,7 +633,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("development_json", agent_columns)
         self.assertTrue(all(
             not agent.development.records
@@ -708,7 +709,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("lifecycle_enabled", world_columns)
         self.assertIn("lifecycle_json", agent_columns)
         self.assertFalse(migrated.lifecycle_enabled)
@@ -763,7 +764,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("culture_json", agent_columns)
         self.assertTrue(all(
             not agent.culture.records
@@ -889,7 +890,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM economy_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertEqual(capacity, loaded.economy.job_capacity)
 
     def test_schema10_defaults_missing_information_identity(self):
@@ -940,7 +941,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertTrue(
             {
                 "information_id",
@@ -1081,7 +1082,7 @@ class PersistenceTests(unittest.TestCase):
                 "FROM world_state WHERE id = 1"
             ).fetchone()[0]
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
 
     def test_prayers_survive_restart(self):
         world = World(seed=1947)
@@ -1148,7 +1149,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'prayers'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIsNotNone(prayer_table)
 
     def test_schema7_defaults_to_empty_intervention_state(self):
@@ -1183,7 +1184,7 @@ class PersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("interventions", tables)
         self.assertIn("intervention_responses", tables)
 
@@ -1221,7 +1222,7 @@ class PersistenceTests(unittest.TestCase):
                 "WHERE type = 'table' AND name = 'attributions'"
             ).fetchone()
 
-        self.assertEqual(schema_version, 17)
+        self.assertEqual(schema_version, 18)
         self.assertIn("faith", agent_columns)
         self.assertIsNotNone(attribution_table)
 

@@ -12,6 +12,11 @@ from playing_god.core.adaptive import (
     learned_preferences,
 )
 from playing_god.core.agent import Agent, NAMES, SINS, TRAITS
+from playing_god.core.civilization import (
+    BASE_PRIMITIVES,
+    BasePrimitive,
+    CivilizationState,
+)
 from playing_god.core.decision import (
     belonging_need,
     choose,
@@ -149,6 +154,7 @@ class World:
             InterventionResponse
         ] = []
         self.information_items: list[InformationItem] = []
+        self.civilization = CivilizationState()
 
         self.agents = self._create_agents(population)
         self.economy = EconomyState.from_agents(self.agents)
@@ -157,6 +163,11 @@ class World:
         self.rebuild_social_graph()
         self.rebuild_spatial_map()
         self.rebuild_information_index()
+
+    @property
+    def base_primitives(self) -> tuple[BasePrimitive, ...]:
+        """Return engine-owned possibilities in canonical order."""
+        return BASE_PRIMITIVES
 
     def rebuild_social_graph(self) -> None:
         self.social = SocialGraph.from_agents(self.agents)

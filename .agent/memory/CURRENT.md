@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved and 8.0 is complete: the schema-v17, 197-test Phase 7 baseline remains unchanged, subsystem ownership is identified, and 8A is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved and 8A is complete: schema v18 persists the bounded civilization representation, and 8B causal problem pressure is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -88,6 +88,8 @@ Phases 4–7 are complete. Phase 8 is approved and 8.0 is complete: the schema-v
 - The controlled same-prior development scenario now runs both descendants through age 18 and directly proves Phase 7's exit: supported adulthood retains 0.237020 skill, 12 school exposures, and learned training value, while constrained adulthood retains zero for all three.
 - Phase 8.0 accepted `docs/phases/phase-08-development-open-ended-civilization.md` as the implementation authority and verified that Phase 7 still passes 197 tests at schema v17. No runtime seam was extracted: 8A should add a focused civilization-domain owner only when its primitive, knowledge, and affordance records are concrete. Existing action availability belongs to `decision.py`, training consequences to `world.py` plus `institution.py`, exposure semantics to `culture.py`/`information.py`, persistence to `sqlite_store.py`, and comparison state to `counterfactual.py`.
 - Generic events currently have no explicit causal-parent field; existing provenance uses domain records, stable evidence identities, or frozen event indices. Keep Phase 8 discovery provenance in its concrete domain records unless a later acceptance test demonstrates that a generic event migration is necessary.
+- Phase 8A added `core/civilization.py` with exactly three immutable learning primitives (`demonstration`, `feedback`, `shared_practice`), canonical SHA-256 discovery signatures, checked validated-knowledge and knowledge-backed-affordance records, a small numeric effect whitelist, and per-agent knowledge provenance. New worlds start with empty mutable civilization/agent knowledge state, and no decision or action path consumes the registry.
+- Schema v18 stores mutable world civilization state in `world_state.civilization_json` and agent knowledge in `agents.knowledge_json`; engine primitive definitions are rebuilt from code. Schema-v17 worlds load honest empty defaults without RNG draws and migrate on the next save. Knowledge origins reuse stable persisted `(agent_id, event_index)` references to `discovery_attempted` events rather than changing the generic event schema.
 
 ## Active architectural concern
 
@@ -95,8 +97,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8.0 failure. The full suite passes 197 tests.
+- No known Phase 8A failure. The full suite passes 205 tests.
 
 ## Next logical task
 
-Implement Phase 8A only when instructed: introduce the minimum concrete civilization registries and base primitives without unlocking actions. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8B only when instructed: derive bounded problem pressure from experienced training-access evidence without creating attempts or affordances early. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.

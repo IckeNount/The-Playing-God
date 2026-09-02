@@ -158,6 +158,31 @@ the recipient rejects it; accepted or modified interpretations alone update the
 existing belief state. The model has three abstract stances and one concrete
 school norm, not a generic ideology engine. Transmission consumes no world RNG.
 
+## `civilization-layer` — bounded runtime possibility records
+
+**Owns:** engine-defined base primitives, canonical validated-knowledge
+identity, per-agent knowledge provenance, knowledge-backed affordance
+definitions, bounded effect validation, and cross-record integrity.
+
+**Entry points:**
+
+- `src/playing_god/core/civilization.py` — immutable primitive definitions,
+  structured civilization state, deterministic lookup/signatures, JSON
+  parsing, and integrity validation.
+- `src/playing_god/core/agent.py` — per-agent knowledge history.
+- `src/playing_god/core/world.py` — empty mutable civilization state and
+  read-only access to engine-owned primitives.
+
+**Focused tests:** `tests/test_civilization.py`, plus persistence and
+reproducibility coverage.
+
+**Important boundary:** Schema v18 persists mutable knowledge and affordance
+state but rebuilds the three engine-owned peer-training primitives from code.
+The registry is not connected to action selection or execution. Knowledge
+origins use existing persisted event indices, and only the direct-discovery
+agent route is currently valid; pressure, attempts, diffusion, action use, and
+institutional adoption remain later subphases.
+
 ## `social` — relationships and contact
 
 **Owns:** directed multidimensional relationships, social-event effects, co-location exposure detection, and probabilistic interaction resolution.
@@ -302,17 +327,17 @@ school norm, not a generic ideology engine. Transmission consumes no world RNG.
 
 ## `persistence` — durable world state
 
-**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, reproduction configuration/family state, development/lifecycle/cultural history, adaptive-cognition setting/action values, shared job capacity, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
+**Owns:** SQLite schema/versioning, save/load, schema migration, validation, RNG continuation, agent state, founder prehistory, reproduction configuration/family state, development/lifecycle/cultural/knowledge history, adaptive-cognition setting/action values, shared job capacity, civilization state, relationship dimensions, immutable event/observation/prayer/intervention/attribution history, information origin/hop identity, and current beliefs.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 17, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 18, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, and v17 checked cultural history. Older schemas load missing later-phase histories empty rather than reconstructing them.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, v17 checked cultural history, and v18 compact civilization/agent-knowledge state. Older schemas load missing later-phase histories empty rather than reconstructing them.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 
@@ -364,4 +389,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–7 satisfy their roadmap exit conditions. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. Later phases covering discovery and recursive simulation remain planned and unapproved. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–7 satisfy their roadmap exit conditions. Phase 8A provides only the persistent civilization representation; problem pressure, experiments, diffusion, new action execution, and institutional adoption remain unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
