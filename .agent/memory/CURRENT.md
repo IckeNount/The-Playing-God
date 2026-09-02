@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved through its brief and 8D is complete: eligible agents can produce validated peer-training knowledge that begins with the discoverer and diffuses only through successful social contact or permitted annual guardian exposure. Recipient responses are deterministic and local; bounded action expansion in 8E is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved through its brief and 8E is complete: adopted peer-training knowledge can now expose one bounded action through the ordinary decision engine, with deterministic target selection and action-time revalidation of knowledge, relationship, co-location, skill, and energy. Institutional adoption in 8F is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -100,6 +100,11 @@ Phases 4–7 are complete. Phase 8 is approved through its brief and 8D is compl
 - Knowledge exposure reuses Phase 7's relationship-weighted accept/modify/reject thresholds without RNG. Every response is retained in per-agent knowledge history and linked to a `knowledge_exposed` event plus the underlying interaction or guardian-development record. Only first accept/modify emits `knowledge_adopted`; rejection grants no possession, and repeated social exposure from the same source is suppressed.
 - A modified response retains the original validated knowledge ID and uses the stable local `<knowledge>:variant:<agent>` identity. It cannot create registry entries, affordances, effects, or actions. Counterfactual agent snapshots now include knowledge history.
 - Schema remains v20 because the existing `knowledge_json` record already carries the required route, response, variant, and causal-parent fields. Focused 8D integration coverage passes 87 tests total (5 new plus 82 existing affected tests); the policy-triggered full suite passes 225 tests because shared world/event and counterfactual infrastructure changed.
+- Phase 8E activates exactly one canonical `peer_train` affordance when peer-training knowledge validates. Existing schema-v20 worlds with that validated entry derive the same affordance through the schema-v21 migration; empty or unrelated registries remain unchanged and RNG state is preserved.
+- An adopting teacher needs skill at least `0.35`, greater skill than the learner, mutual familiarity at least the existing `0.22` social-action threshold, co-location, and `0.06` energy; the living adult learner needs `0.04` energy. Target selection is stable by strongest mutual familiarity, then lowest learner skill and ID.
+- `peer_train` enters the ordinary weighted chooser only when a valid target exists. Learned preferences can rank it but cannot make it available. Execution rechecks eligibility, stays at the causal shared location, spends teacher/learner energy, grants the learner a fixed `0.006` skill gain, consumes no money or school capacity, and records the source knowledge plus exact teacher adoption-parent reference on both participants.
+- Adaptive worlds feed the learner's outcome into the existing `improve_skill/train` consequence signal; the acting teacher remains subject to the ordinary contextual action-learning wrapper. No second skill or feedback system was added.
+- Focused 8E and directly affected integration coverage passes 82 tests. The policy-triggered full suite passes 230 tests because action availability, deterministic choice ordering, shared world execution, adaptive persistence, and schema changed.
 
 ## Active architectural concern
 
@@ -107,8 +112,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8D failure. Focused knowledge-diffusion coverage passes 5 tests and 82 directly affected existing tests pass. The risk-policy-triggered full suite passes 225 tests because 8D changes shared interaction/development/event and counterfactual paths.
+- No known Phase 8E failure. Focused and directly affected coverage passes 82 tests; the risk-policy-triggered full suite passes 230 tests.
 
 ## Next logical task
 
-Implement Phase 8E only when instructed: let adopted knowledge unlock one bounded peer-training action through existing decision and training systems. Do not implement institutional adoption before 8F. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8F only when instructed: allow the existing school to adopt peer training from sufficient causal evidence, with explicit non-adoption and bounded opportunity changes. Keep Phase 8G counterfactual closure and recurrence analysis deferred until their gates.

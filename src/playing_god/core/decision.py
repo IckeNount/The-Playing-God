@@ -33,6 +33,7 @@ def scores(
     a: Agent,
     *,
     participation_utility: float | None = None,
+    peer_training_utility: float | None = None,
 ) -> dict[str, float]:
     t = a.traits
     s = a.sins
@@ -43,7 +44,7 @@ def scores(
     tired = 1 - a.energy
     socially_tired = 1 - a.social_energy
 
-    return {
+    action_scores = {
         "work": (
             1.2 * t["discipline"]
             + 0.7 * t["ambition"]
@@ -118,6 +119,9 @@ def scores(
             + 0.25 * s["gluttony"]
         ),
     }
+    if peer_training_utility is not None:
+        action_scores["peer_train"] = peer_training_utility
+    return action_scores
 
 
 def choose(
@@ -127,6 +131,7 @@ def choose(
     score_adjustments: dict[str, float] | None = None,
     learned_preferences: dict[str, float] | None = None,
     participation_utility: float | None = None,
+    peer_training_utility: float | None = None,
 ) -> str:
     """Choose among actions made available by current world-owned state.
 
@@ -137,6 +142,7 @@ def choose(
     action_scores = scores(
         a,
         participation_utility=participation_utility,
+        peer_training_utility=peer_training_utility,
     )
 
     available_scores = {

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import json
 import math
@@ -199,6 +199,18 @@ class DiscoveryEligibility:
 
 
 @dataclass(frozen=True)
+class PeerTrainingEligibility:
+    teacher_id: str
+    learner_id: str
+    knowledge_id: str
+    eligible: bool
+    blockers: tuple[str, ...]
+    knowledge_parent_agent_id: str | None
+    knowledge_parent_event_index: int | None
+    variant_id: str | None
+
+
+@dataclass(frozen=True)
 class AffordanceDefinition:
     id: str
     source_knowledge_id: str
@@ -245,6 +257,13 @@ PEER_TRAIN_COSTS = (
 )
 PEER_TRAIN_EFFECTS = (
     BoundedEffect("increase_skill", "learner", 0.006),
+)
+PEER_TRAIN_AFFORDANCE = AffordanceDefinition(
+    id=PEER_TRAIN_ACTION_ID,
+    source_knowledge_id=PEER_TRAIN_KNOWLEDGE_ID,
+    preconditions=PEER_TRAIN_PRECONDITIONS,
+    costs=PEER_TRAIN_COSTS,
+    effects=PEER_TRAIN_EFFECTS,
 )
 
 
@@ -304,6 +323,25 @@ def affordance_definition(
             if affordance.id == action_id
         ),
         None,
+    )
+
+
+def activate_peer_training_affordance(
+    state: CivilizationState,
+) -> CivilizationState:
+    """Materialize the canonical action definition for validated knowledge."""
+    entry = knowledge_entry(state, PEER_TRAIN_KNOWLEDGE_ID)
+    if entry is None or entry.action_id != PEER_TRAIN_ACTION_ID:
+        return state
+    existing = affordance_definition(state, PEER_TRAIN_ACTION_ID)
+    if existing is not None:
+        return state
+    return replace(
+        state,
+        affordances=tuple(sorted(
+            state.affordances + (PEER_TRAIN_AFFORDANCE,),
+            key=lambda item: item.id,
+        )),
     )
 
 
@@ -387,6 +425,96 @@ def knowledge_response(
         else None
     )
     return influence, response, variant_id
+
+
+def peer_training_eligibility(
+    teacher: Agent,
+    learner: Agent,
+    civilization: CivilizationState,
+    *,
+    outward_familiarity: float,
+    inward_familiarity: float,
+    minimum_familiarity: float,
+) -> PeerTrainingEligibility:
+    """Evaluate the canonical peer-training affordance without mutation."""
+    entry = knowledge_entry(
+        civilization,
+        PEER_TRAIN_KNOWLEDGE_ID,
+    )
+    affordance = affordance_definition(
+        civilization,
+        PEER_TRAIN_ACTION_ID,
+    )
+    adopted = next(
+        (
+            record
+            for record in teacher.knowledge.records
+            if record.knowledge_id == PEER_TRAIN_KNOWLEDGE_ID
+            and record.response in {"accept", "modify"}
+        ),
+        None,
+    )
+    blockers = []
+    if entry is None or entry.action_id != PEER_TRAIN_ACTION_ID:
+        blockers.append("registry")
+    if affordance != PEER_TRAIN_AFFORDANCE:
+        blockers.append("affordance")
+    if adopted is None:
+        blockers.append("knowledge")
+    if not teacher.lifecycle.alive or teacher.family.dependent:
+        blockers.append("teacher_status")
+    if (
+        teacher.id == learner.id
+        or not learner.lifecycle.alive
+        or learner.family.dependent
+    ):
+        blockers.append("learner_status")
+    if teacher.current_location != learner.current_location:
+        blockers.append("co_location")
+    if min(outward_familiarity, inward_familiarity) < minimum_familiarity:
+        blockers.append("relationship")
+    if teacher.skill < DISCOVERY_SKILL_THRESHOLD or (
+        teacher.skill <= learner.skill
+    ):
+        blockers.append("teacher_skill")
+    teacher_cost = next(
+        effect.amount
+        for effect in PEER_TRAIN_COSTS
+        if effect.operation == "consume_energy"
+        and effect.target == "teacher"
+    )
+    learner_cost = next(
+        effect.amount
+        for effect in PEER_TRAIN_COSTS
+        if effect.operation == "consume_energy"
+        and effect.target == "learner"
+    )
+    if teacher.energy < teacher_cost:
+        blockers.append("teacher_energy")
+    if learner.energy < learner_cost:
+        blockers.append("learner_energy")
+    return PeerTrainingEligibility(
+        teacher_id=teacher.id,
+        learner_id=learner.id,
+        knowledge_id=PEER_TRAIN_KNOWLEDGE_ID,
+        eligible=not blockers,
+        blockers=tuple(blockers),
+        knowledge_parent_agent_id=(
+            adopted.causal_parent_agent_id
+            if adopted is not None
+            else None
+        ),
+        knowledge_parent_event_index=(
+            adopted.causal_parent_event_index
+            if adopted is not None
+            else None
+        ),
+        variant_id=(
+            adopted.variant_id
+            if adopted is not None
+            else None
+        ),
+    )
 
 
 def record_primitive_exposure(

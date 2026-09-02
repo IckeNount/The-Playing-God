@@ -11,6 +11,7 @@ from pathlib import Path
 from playing_god.core.civilization import (
     AgentDiscoveryState,
     BoundedEffect,
+    PEER_TRAIN_AFFORDANCE,
     PEER_TRAIN_KNOWLEDGE_ID,
     compose_peer_training_candidate,
 )
@@ -105,7 +106,10 @@ class DiscoveryAttemptTests(unittest.TestCase):
             success_worlds[0].civilization.knowledge[0].id,
             PEER_TRAIN_KNOWLEDGE_ID,
         )
-        self.assertEqual(success_worlds[0].civilization.affordances, ())
+        self.assertEqual(
+            success_worlds[0].civilization.affordances,
+            (PEER_TRAIN_AFFORDANCE,),
+        )
         self.assertEqual(
             agent.knowledge.records[0].causal_parent_event_index,
             attempt.resolution_event_index,
@@ -191,7 +195,7 @@ class DiscoveryPersistenceTests(unittest.TestCase):
         self.assertEqual(len(loaded.agents[0].discovery.attempts), 1)
         self.assertEqual(loaded.civilization.knowledge, ())
 
-    def test_schema19_loads_empty_attempts_and_migrates_to_20(self):
+    def test_schema19_loads_empty_attempts_and_migrates_to_current(self):
         world = World(seed=31, population=1)
         save_world(world, self.db_path)
         expected_rng = world.rng.getstate()
@@ -214,7 +218,7 @@ class DiscoveryPersistenceTests(unittest.TestCase):
             version = conn.execute(
                 "SELECT schema_version FROM world_state WHERE id = 1"
             ).fetchone()[0]
-        self.assertEqual(version, 20)
+        self.assertEqual(version, 21)
 
 
 if __name__ == "__main__":

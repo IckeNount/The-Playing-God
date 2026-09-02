@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 8D is complete. Validated knowledge starts with its discoverer, then moves only through successful social contact or a permitted guardian-development checkpoint. Recipients deterministically accept, modify, or reject each exposure; rejection grants nothing, and no affordance or peer-training action is available yet.
+**Current position:** Phase 8E is complete. Validated peer-training knowledge now materializes one bounded affordance; only an adopter with sufficient skill, energy, co-location, and a mutually familiar lower-skill learner can select and execute it. Schema v21 migrates Phase 8C-era knowledge into the canonical affordance without changing RNG state.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | Causal pressure can produce costly discoveries whose validated knowledge remains local and diffuses only through explicit social or guardian exposure. |
+| 8 — Discovery and open-ended civilization | In Progress | Causal discoveries remain local, diffuse through explicit exposure, and can now unlock one bounded knowledge-dependent action. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8E — Bounded Action-Space Expansion:
+Await instruction for Phase 8F — Institutional Adoption and Inherited Opportunity:
 
-1. Make the peer-training action available only to valid adopters with satisfied execution preconditions.
-2. Apply bounded teacher/learner costs and existing skill progression.
-3. Keep institutional adoption deferred to Phase 8F.
+1. Let the existing school adopt peer training only from sufficient causal evidence.
+2. Preserve explicit non-adoption and bounded institutional effects.
+3. Keep Phase 8G counterfactual closure deferred.
 
 ## Phase 7 Progress
 
@@ -71,7 +71,7 @@ Await instruction for Phase 8E — Bounded Action-Space Expansion:
 | 8B — Problem pressure | Complete | Exactly three first-hand school denials recognize bounded training-access pressure; only directly exposed, capable, resourced adults become eligible on a later day, without consuming RNG. |
 | 8C — Experiment and validation | Complete | Eligible agents pay existing money, energy, and stress costs before pure candidate validation; valid attempts resolve through the seeded world RNG into failure or discoverer-only knowledge, with no affordance created. |
 | 8D — Knowledge diffusion | Complete | Discoverer-held knowledge moves through successful social contact or annual guardian exposure; deterministic accept/modify/reject history preserves lineage, causality, locality, and restart behavior. |
-| 8E — Affordance expansion | Planned | Let adopted knowledge unlock one bounded peer-training action. |
+| 8E — Affordance expansion | Complete | Adopted knowledge can expose one decision-ranked peer-training action; execution revalidates local relationship, skill, and energy constraints, then applies lower-cost, lower-gain effects through the existing learning system. |
 | 8F — Institutionalization | Planned | Let the existing school adopt the procedure from sufficient causal evidence. |
 | 8G — Counterfactual exit gate | Planned | Prove persistence, replay, causal integrity, metrics, and changed later opportunity. |
 

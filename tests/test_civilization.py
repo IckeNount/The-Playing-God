@@ -281,7 +281,7 @@ class CivilizationPersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 20)
+        self.assertEqual(schema_version, 21)
         self.assertIn("civilization_json", world_columns)
         self.assertIn("knowledge_json", agent_columns)
 

@@ -164,7 +164,8 @@ school norm, not a generic ideology engine. Transmission consumes no world RNG.
 bounded problem pressure and discovery eligibility, canonical candidate
 composition, costly seeded attempts, validated-knowledge identity, per-agent
 knowledge provenance and causal diffusion, knowledge-backed affordance
-definitions, bounded effect validation, and cross-record integrity.
+definitions, peer-training eligibility/execution, bounded effect validation,
+and cross-record integrity.
 
 **Entry points:**
 
@@ -172,25 +173,32 @@ definitions, bounded effect validation, and cross-record integrity.
   structured civilization/discovery state, deterministic pressure and
   eligibility rules, the peer-training candidate/validator, seeded-score
   construction, deterministic knowledge responses and selection,
+  canonical affordance activation, peer-training eligibility,
   lookup/signatures, JSON parsing, and integrity validation.
 - `src/playing_god/core/agent.py` — per-agent knowledge, primitive exposure,
   and problem-pressure state.
 - `src/playing_god/core/world.py` — training-outcome integration, explicit
   discovery-attempt resolution/costs, social and guardian knowledge exposure,
-  mutable civilization state, and read-only eligibility/primitive access.
+  peer-training target selection and action-time execution, mutable
+  civilization state, and read-only eligibility/primitive access.
+- `src/playing_god/core/decision.py` — includes peer training only when the
+  world supplies an eligible affordance utility; learned preferences may rank
+  but cannot create availability.
 - `src/playing_god/core/counterfactual.py` — immutable agent snapshots include
   local knowledge history.
 
 **Focused tests:** `tests/test_civilization.py`,
 `tests/test_problem_pressure.py`, `tests/test_discovery.py`,
-`tests/test_knowledge_diffusion.py`, plus persistence, culture, exposure, and
+`tests/test_knowledge_diffusion.py`, `tests/test_peer_training.py`, plus
+persistence, decision, adaptive-learning, institution, culture, exposure, and
 counterfactual coverage.
 
 **Important boundary:** Schema v18 persists mutable knowledge and affordance
 state but rebuilds the three engine-owned peer-training primitives from code.
-The registry is not connected to action selection or execution. Knowledge
-origins use existing persisted event indices, and only the direct-discovery
-agent route is currently valid. Schema v19 adds bounded per-agent primitive
+At Phase 8A the registry was not connected to action selection or execution.
+Knowledge origins use existing persisted event indices, and that subphase
+accepted only the direct-discovery agent route. Schema v19 adds bounded
+per-agent primitive
 exposure and training-access pressure linked to existing admission/denial event
 indices. Recognition and read-only eligibility create no candidate, attempt,
 knowledge, affordance, diffusion, action use, or institutional adoption.
@@ -203,7 +211,16 @@ have adopted the validated entry on an earlier day; relationship-weighted
 accept/modify/reject responses consume no RNG, rejected exposure grants no
 knowledge, and modified variants retain the original knowledge ID and bounded
 registry effects. School diffusion remains unavailable until institutional
-adoption in 8F. No affordance or executable action exists yet.
+adoption in 8F.
+Phase 8E materializes exactly one canonical affordance when peer-training
+knowledge validates. An adopter can offer it only to a co-located, mutually
+familiar, lower-skill adult when both participants can pay the stored energy
+costs. The ordinary chooser ranks the action; execution revalidates every
+precondition, gives the learner a fixed `0.006` skill gain versus formal
+training's minimum `0.009`, consumes no money or school capacity, and records
+the teacher's exact knowledge-parent reference. Schema v21 upgrades prior
+schema-v20 peer-training knowledge with this derivable canonical affordance.
+Institutional adoption remains unavailable until 8F.
 
 ## `social` — relationships and contact
 
@@ -353,13 +370,13 @@ adoption in 8F. No affordance or executable action exists yet.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 20, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 21, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, v17 checked cultural history, v18 compact civilization/agent-knowledge state, v19 bounded per-agent discovery pressure/exposure, and v20 resolved discovery attempts. Older schemas load missing later-phase histories empty rather than reconstructing them.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, v17 checked cultural history, v18 compact civilization/agent-knowledge state, v19 bounded per-agent discovery pressure/exposure, v20 resolved discovery attempts, and v21 canonical peer-training affordance activation for existing validated knowledge. Older schemas load missing later-phase histories empty rather than reconstructing them, except for this engine-defined affordance derived from already validated state.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 
@@ -411,4 +428,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8D now provide persistent civilization records, causal pressure, costly validated experiments, and local knowledge diffusion. Bounded action execution and institutional adoption remain unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8E now provide persistent civilization records, causal pressure, costly validated experiments, local knowledge diffusion, and one bounded knowledge-dependent action. Institutional adoption remains unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

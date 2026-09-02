@@ -17,6 +17,7 @@ from playing_god.core.adaptive import (
 from playing_god.core.agent import Agent
 from playing_god.core.civilization import (
     CivilizationState,
+    activate_peer_training_affordance,
     agent_discovery_state_from_data,
     agent_knowledge_state_from_data,
     civilization_state_from_data,
@@ -69,7 +70,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 20
+SCHEMA_VERSION = 21
 
 
 class PersistenceError(RuntimeError):
@@ -1878,7 +1879,10 @@ def _load_adaptive_values(
         item.name
         for item in fields(Consequence)
     }
-    valid_actions = set(decision_scores(agent))
+    valid_actions = set(decision_scores(
+        agent,
+        peer_training_utility=-99.0,
+    ))
     loaded: dict[str, dict[str, ActionValue]] = {}
 
     for context, actions in data.items():
@@ -3044,6 +3048,7 @@ def load_world(
                 17,
                 18,
                 19,
+                20,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -3145,6 +3150,12 @@ def load_world(
                     civilization = civilization_state_from_data(
                         json.loads(state["civilization_json"])
                     )
+                    if state["schema_version"] < 21:
+                        civilization = (
+                            activate_peer_training_affordance(
+                                civilization
+                            )
+                        )
                 except (
                     json.JSONDecodeError,
                     TypeError,

@@ -17,6 +17,7 @@ from playing_god.core.civilization import (
     EXPERIMENT_ENERGY_COST,
     EXPERIMENT_MONEY_COST,
     EXPERIMENT_STRESS_COST,
+    PEER_TRAIN_ACTION_ID,
     PEER_TRAIN_KNOWLEDGE_ID,
     TRAINING_ACCESS_PROBLEM_ID,
     AgentKnowledgeRecord,
@@ -27,12 +28,16 @@ from playing_god.core.civilization import (
     DiscoveryCandidate,
     DiscoveryEligibility,
     KnowledgeEntry,
+    PeerTrainingEligibility,
     PROBLEM_RECOGNITION_THRESHOLD,
+    activate_peer_training_affordance,
+    affordance_definition,
     compose_peer_training_candidate,
     discovery_attempt_score,
     discovery_eligibility,
     knowledge_response,
     knowledge_signature,
+    peer_training_eligibility as evaluate_peer_training_eligibility,
     record_primitive_exposure,
     record_training_access_denial,
     select_knowledge_for_exposure,
@@ -486,12 +491,14 @@ class World:
                     action_id=candidate.action_id,
                     creation_day=self.day,
                 )
-                self.civilization = replace(
-                    self.civilization,
-                    knowledge=tuple(sorted(
-                        self.civilization.knowledge + (entry,),
-                        key=lambda item: item.id,
-                    )),
+                self.civilization = activate_peer_training_affordance(
+                    replace(
+                        self.civilization,
+                        knowledge=tuple(sorted(
+                            self.civilization.knowledge + (entry,),
+                            key=lambda item: item.id,
+                        )),
+                    )
                 )
                 agent.knowledge = AgentKnowledgeState(
                     records=agent.knowledge.records + (
@@ -535,6 +542,101 @@ class World:
             attempts=agent.discovery.attempts + (attempt,),
         )
         return attempt
+
+    def peer_training_eligibility(
+        self,
+        teacher_id: str,
+        learner_id: str,
+    ) -> PeerTrainingEligibility:
+        agents_by_id = {
+            agent.id: agent
+            for agent in self.agents
+        }
+        if teacher_id not in agents_by_id or learner_id not in agents_by_id:
+            raise ValueError("Unknown peer-training participant")
+        teacher = agents_by_id[teacher_id]
+        learner = agents_by_id[learner_id]
+        outward = self.social.get_relationship(
+            teacher.id,
+            learner.id,
+        ) or {}
+        inward = self.social.get_relationship(
+            learner.id,
+            teacher.id,
+        ) or {}
+        return evaluate_peer_training_eligibility(
+            teacher,
+            learner,
+            self.civilization,
+            outward_familiarity=outward.get("familiarity", 0.0),
+            inward_familiarity=inward.get("familiarity", 0.0),
+            minimum_familiarity=MIN_RELATIONSHIP_FAMILIARITY,
+        )
+
+    def peer_training_target(self, teacher: Agent) -> Agent | None:
+        if affordance_definition(
+            self.civilization,
+            PEER_TRAIN_ACTION_ID,
+        ) is None or not any(
+            record.knowledge_id == PEER_TRAIN_KNOWLEDGE_ID
+            and record.response in {"accept", "modify"}
+            for record in teacher.knowledge.records
+        ):
+            return None
+        candidates = []
+        for learner in sorted(self.agents, key=lambda agent: agent.id):
+            if learner.id == teacher.id:
+                continue
+            eligibility = self.peer_training_eligibility(
+                teacher.id,
+                learner.id,
+            )
+            if not eligibility.eligible:
+                continue
+            outward = self.social.get_relationship(
+                teacher.id,
+                learner.id,
+            ) or {}
+            inward = self.social.get_relationship(
+                learner.id,
+                teacher.id,
+            ) or {}
+            familiarity = min(
+                outward.get("familiarity", 0.0),
+                inward.get("familiarity", 0.0),
+            )
+            candidates.append((
+                -familiarity,
+                learner.skill,
+                learner.id,
+                learner,
+            ))
+        return min(candidates)[-1] if candidates else None
+
+    def peer_training_utility(self, teacher: Agent) -> float | None:
+        learner = self.peer_training_target(teacher)
+        if learner is None:
+            return None
+        outward = self.social.get_relationship(
+            teacher.id,
+            learner.id,
+        ) or {}
+        inward = self.social.get_relationship(
+            learner.id,
+            teacher.id,
+        ) or {}
+        familiarity = min(
+            outward.get("familiarity", 0.0),
+            inward.get("familiarity", 0.0),
+        )
+        current = decision_scores(teacher)
+        return round(
+            0.55 * current["help"]
+            + 0.45 * current["train"]
+            - 0.20
+            + 0.10 * familiarity,
+            6,
+        )
 
     def reproduction_eligibility(
         self,
@@ -1626,6 +1728,8 @@ class World:
     ) -> None:
         if a.family.dependent or not a.lifecycle.alive:
             return
+        if action == "peer_train":
+            return
 
         destination = choose_destination(a, action)
         visit_target = None
@@ -2439,6 +2543,21 @@ class World:
                 a.normalize()
                 return
 
+        peer_learner = None
+        peer_training = None
+        if action == "peer_train":
+            peer_learner = self.peer_training_target(a)
+            if peer_learner is None:
+                a.normalize()
+                return
+            peer_training = self.peer_training_eligibility(
+                a.id,
+                peer_learner.id,
+            )
+            if not peer_training.eligible:
+                a.normalize()
+                return
+
         a.actions[action] += 1
 
         if action == "work":
@@ -2639,6 +2758,80 @@ class World:
                     "growth",
                     "Reached expert-skill level",
                     0.86,
+                )
+
+        elif action == "peer_train":
+            affordance = affordance_definition(
+                self.civilization,
+                action,
+            )
+            if (
+                peer_learner is None
+                or peer_training is None
+                or affordance is None
+            ):
+                raise RuntimeError("Peer-training eligibility drifted.")
+            learner_before = capture_state(peer_learner)
+            participants = {
+                "teacher": a,
+                "learner": peer_learner,
+            }
+            for effect in affordance.costs:
+                target = participants[effect.target]
+                if effect.operation == "consume_energy":
+                    target.energy -= effect.amount
+                elif effect.operation == "spend_money":
+                    target.money -= effect.amount
+                elif effect.operation == "increase_stress":
+                    target.stress += effect.amount
+                else:
+                    raise RuntimeError("Unsupported peer-training cost.")
+            for effect in affordance.effects:
+                target = participants[effect.target]
+                if effect.operation == "increase_skill":
+                    target.skill += effect.amount
+                else:
+                    raise RuntimeError("Unsupported peer-training effect.")
+            a.normalize()
+            peer_learner.normalize()
+            parent = (
+                f"{peer_training.knowledge_parent_agent_id}:"
+                f"{peer_training.knowledge_parent_event_index}"
+            )
+            variant = peer_training.variant_id or "original"
+            self.record(
+                a,
+                "peer_training",
+                (
+                    f"Peer-trained {peer_learner.name}; knowledge: "
+                    f"{peer_training.knowledge_id}; adoption parent: "
+                    f"{parent}; variant: {variant}"
+                ),
+                0.60,
+                target_id=peer_learner.id,
+                location=a.current_location,
+            )
+            self.record(
+                peer_learner,
+                "peer_training",
+                (
+                    f"Learned from {a.name}; knowledge: "
+                    f"{peer_training.knowledge_id}; teacher adoption "
+                    f"parent: {parent}; variant: {variant}"
+                ),
+                0.60,
+                target_id=a.id,
+                location=peer_learner.current_location,
+            )
+            if self.adaptive_cognition:
+                learn(
+                    peer_learner,
+                    "improve_skill",
+                    "train",
+                    consequence_between(
+                        learner_before,
+                        capture_state(peer_learner),
+                    ),
                 )
 
         elif action == "socialize":
@@ -3054,6 +3247,9 @@ class World:
                         participation.score
                         if participation.eligible
                         else None
+                    ),
+                    peer_training_utility=(
+                        self.peer_training_utility(a)
                     ),
                     learned_preferences=(
                         learned_preferences(a, learning_context)
