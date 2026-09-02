@@ -239,7 +239,7 @@ class ProblemPressurePersistenceTests(unittest.TestCase):
         ):
             load_world(self.db_path)
 
-    def test_schema18_loads_empty_discovery_and_migrates_to_19(self):
+    def test_schema18_loads_empty_discovery_and_migrates_to_current(self):
         world = World(seed=31, population=2)
         expected_rng_state = world.rng.getstate()
         save_world(world, self.db_path)
@@ -270,7 +270,7 @@ class ProblemPressurePersistenceTests(unittest.TestCase):
                 for row in conn.execute("PRAGMA table_info(agents)")
             }
 
-        self.assertEqual(schema_version, 19)
+        self.assertEqual(schema_version, 20)
         self.assertIn("discovery_json", columns)
 
 

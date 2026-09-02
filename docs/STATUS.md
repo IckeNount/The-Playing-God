@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 8B is complete. Repeated first-hand school denials now create bounded per-agent training-access pressure, and deterministic eligibility requires recognized unresolved pressure, direct primitive exposure, adult status, skill, resources, and a later day. Schema v19 preserves this state; no discovery attempt or new affordance exists yet.
+**Current position:** Phase 8C is complete. An eligible agent can pay a visible experiment cost for the canonical peer-training candidate; deterministic validation rejects malformed candidates before RNG, while valid attempts use the world RNG and either fail or create discoverer-only validated knowledge. Schema v20 preserves resolved attempts; no affordance or peer-training action is available yet.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | Minimal civilization registries and causal discovery eligibility persist safely; experimentation is the next gated milestone. |
+| 8 — Discovery and open-ended civilization | In Progress | Causal pressure can now produce costly, validated or rejected discovery attempts; knowledge diffusion is the next gated milestone. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8C — Experimentation, Candidate Composition, and Validation:
+Await instruction for Phase 8D — Knowledge Possession, Exposure, and Diffusion:
 
-1. Let an eligible proposer pay a visible cost for one structured attempt that can fail or succeed under seeded resolution.
-2. Keep candidate composition tiny and engine-owned; success may create discoverer knowledge but must not unlock global action use.
-3. Do not implement diffusion, peer-training execution, or institutional adoption early.
+1. Spread validated knowledge only through existing causal exposure routes.
+2. Preserve explicit accept, modify, and reject outcomes without copying knowledge globally.
+3. Do not implement peer-training execution or institutional adoption early.
 
 ## Phase 7 Progress
 
@@ -69,7 +69,7 @@ Await instruction for Phase 8C — Experimentation, Candidate Composition, and V
 | 8.0 — Entry boundary | Complete | The approved brief, schema-v17 baseline, 197-test suite, subsystem ownership, and behavior-preserving seam were verified; no runtime abstraction or RNG change was introduced. |
 | 8A — Civilization registries | Complete | Three engine-owned learning primitives remain separate from schema-v18 world knowledge, per-agent knowledge records, and knowledge-backed affordances; strict validation prevents unknown effects, broken provenance, duplicates, and implicit action availability. |
 | 8B — Problem pressure | Complete | Exactly three first-hand school denials recognize bounded training-access pressure; only directly exposed, capable, resourced adults become eligible on a later day, without consuming RNG. |
-| 8C — Experiment and validation | Planned | Resolve costly structured attempts through an engine-owned validator. |
+| 8C — Experiment and validation | Complete | Eligible agents pay existing money, energy, and stress costs before pure candidate validation; valid attempts resolve through the seeded world RNG into failure or discoverer-only knowledge, with no affordance created. |
 | 8D — Knowledge diffusion | Planned | Spread validated knowledge only through existing causal exposure routes. |
 | 8E — Affordance expansion | Planned | Let adopted knowledge unlock one bounded peer-training action. |
 | 8F — Institutionalization | Planned | Let the existing school adopt the procedure from sufficient causal evidence. |

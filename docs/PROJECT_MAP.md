@@ -161,24 +161,26 @@ school norm, not a generic ideology engine. Transmission consumes no world RNG.
 ## `civilization-layer` — bounded runtime possibility records
 
 **Owns:** engine-defined base primitives, first-hand primitive exposure,
-bounded problem pressure and discovery eligibility, canonical
-validated-knowledge identity, per-agent knowledge provenance,
-knowledge-backed affordance definitions, bounded effect validation, and
-cross-record integrity.
+bounded problem pressure and discovery eligibility, canonical candidate
+composition, costly seeded attempts, validated-knowledge identity, per-agent
+knowledge provenance, knowledge-backed affordance definitions, bounded effect
+validation, and cross-record integrity.
 
 **Entry points:**
 
 - `src/playing_god/core/civilization.py` — immutable primitive definitions,
   structured civilization/discovery state, deterministic pressure and
-  eligibility rules, lookup/signatures, JSON parsing, and integrity validation.
+  eligibility rules, the peer-training candidate/validator, seeded-score
+  construction, lookup/signatures, JSON parsing, and integrity validation.
 - `src/playing_god/core/agent.py` — per-agent knowledge, primitive exposure,
   and problem-pressure state.
-- `src/playing_god/core/world.py` — training-outcome integration, empty mutable
-  civilization state, and read-only eligibility/primitive access.
+- `src/playing_god/core/world.py` — training-outcome integration, explicit
+  discovery-attempt resolution/costs, mutable civilization state, and read-only
+  eligibility/primitive access.
 
 **Focused tests:** `tests/test_civilization.py`,
-`tests/test_problem_pressure.py`, plus persistence and reproducibility
-coverage.
+`tests/test_problem_pressure.py`, `tests/test_discovery.py`, plus persistence
+and reproducibility coverage.
 
 **Important boundary:** Schema v18 persists mutable knowledge and affordance
 state but rebuilds the three engine-owned peer-training primitives from code.
@@ -188,6 +190,10 @@ agent route is currently valid. Schema v19 adds bounded per-agent primitive
 exposure and training-access pressure linked to existing admission/denial event
 indices. Recognition and read-only eligibility create no candidate, attempt,
 knowledge, affordance, diffusion, action use, or institutional adoption.
+Schema v20 adds resolved per-agent attempts. An explicit eligible call pays the
+experiment cost before validation; only structurally valid candidates consume
+the existing world RNG. Success creates validated world knowledge and a direct
+discoverer record, but no affordance or executable action.
 
 ## `social` — relationships and contact
 
@@ -337,13 +343,13 @@ knowledge, affordance, diffusion, action use, or institutional adoption.
 
 **Entry points:**
 
-- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 19, and persistence errors.
+- `src/playing_god/persistence/sqlite_store.py` — `save_world()`, `load_world()`, schema version 20, and persistence errors.
 - `scripts/run_simulation.py` — create/load/run/save command line workflow.
 - `scripts/inspect_agent.py` — manual persisted-agent inspection.
 
 **Focused tests:** `tests/test_persistence.py`, plus split-run checks in `tests/test_reproducibility.py`.
 
-**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, v17 checked cultural history, v18 compact civilization/agent-knowledge state, and v19 bounded per-agent discovery pressure/exposure. Older schemas load missing later-phase histories empty rather than reconstructing them.
+**Important boundary:** A persisted restart must match an uninterrupted seeded run. Save/load transaction contexts explicitly close their SQLite connections. Schema changes require an explicit migration and round-trip/continuation coverage. Schema v12 stores adaptive state, v13 founder history, v14 family state, v15 development, v16 lifecycle, v17 checked cultural history, v18 compact civilization/agent-knowledge state, v19 bounded per-agent discovery pressure/exposure, and v20 resolved discovery attempts. Older schemas load missing later-phase histories empty rather than reconstructing them.
 
 ## `counterfactual-comparison` — paired same-seed experiments
 

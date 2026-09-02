@@ -57,6 +57,17 @@ REQUIRED_DISCOVERY_PRIMITIVES = (
     "feedback",
     "shared_practice",
 )
+PEER_TRAIN_ACTION_ID = "peer_train"
+PEER_TRAIN_KNOWLEDGE_ID = "knowledge:peer_training"
+PEER_TRAIN_PRECONDITIONS = tuple(sorted(
+    AFFORDANCE_PRECONDITIONS
+))
+DISCOVERY_ATTEMPT_OUTCOMES = frozenset(
+    {"failed", "structural_rejection", "validated"}
+)
+EXPERIMENT_MONEY_COST = 7.0
+EXPERIMENT_ENERGY_COST = 0.12
+EXPERIMENT_STRESS_COST = 0.04
 
 
 @dataclass(frozen=True)
@@ -136,9 +147,42 @@ class ProblemPressure:
 
 
 @dataclass(frozen=True)
+class DiscoveryCandidate:
+    signature: str
+    problem_id: str
+    primitive_ids: tuple[str, ...]
+    action_id: str
+    proposer_ids: tuple[str, ...]
+    evidence: tuple[ProblemEvidence, ...]
+    pressure_recognition_event_index: int
+    preconditions: tuple[str, ...]
+    costs: tuple[BoundedEffect, ...]
+    effects: tuple[BoundedEffect, ...]
+
+
+@dataclass(frozen=True)
+class DiscoveryAttempt:
+    id: str
+    day: int
+    candidate: DiscoveryCandidate
+    pressure_recognition_event_index: int
+    attempt_event_index: int
+    resolution_event_index: int
+    outcome: str
+    score: float | None
+    roll: float | None
+    validation_errors: tuple[str, ...]
+    money_cost: float
+    energy_cost: float
+    stress_cost: float
+    knowledge_id: str | None
+
+
+@dataclass(frozen=True)
 class AgentDiscoveryState:
     primitive_exposures: tuple[PrimitiveExposure, ...] = ()
     pressures: tuple[ProblemPressure, ...] = ()
+    attempts: tuple[DiscoveryAttempt, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -189,6 +233,14 @@ BASE_PRIMITIVES = (
         capabilities=("practice_together",),
         requirements=("co_location",),
     ),
+)
+
+PEER_TRAIN_COSTS = (
+    BoundedEffect("consume_energy", "learner", 0.04),
+    BoundedEffect("consume_energy", "teacher", 0.06),
+)
+PEER_TRAIN_EFFECTS = (
+    BoundedEffect("increase_skill", "learner", 0.006),
 )
 
 
@@ -289,6 +341,7 @@ def record_primitive_exposure(
             key=lambda exposure: exposure.primitive_id,
         )),
         pressures=state.pressures,
+        attempts=state.attempts,
     )
     validate_agent_discovery_state(updated)
     return updated
@@ -358,6 +411,7 @@ def record_training_access_denial(
     updated = AgentDiscoveryState(
         primitive_exposures=state.primitive_exposures,
         pressures=tuple(sorted(pressures, key=lambda item: item.id)),
+        attempts=state.attempts,
     )
     validate_agent_discovery_state(updated)
     return updated, newly_recognized
@@ -417,6 +471,54 @@ def discovery_eligibility(
         blockers=tuple(blockers),
         primitive_ids=possessed,
     )
+
+
+def compose_peer_training_candidate(
+    agent: Agent,
+) -> DiscoveryCandidate:
+    pressure = next(
+        (
+            item
+            for item in agent.discovery.pressures
+            if item.id == TRAINING_ACCESS_PROBLEM_ID
+            and item.recognition_event_index is not None
+        ),
+        None,
+    )
+    if pressure is None:
+        raise ValueError(
+            "Peer-training composition requires recognized pressure."
+        )
+    return DiscoveryCandidate(
+        signature=knowledge_signature(
+            REQUIRED_DISCOVERY_PRIMITIVES,
+            PEER_TRAIN_ACTION_ID,
+        ),
+        problem_id=TRAINING_ACCESS_PROBLEM_ID,
+        primitive_ids=REQUIRED_DISCOVERY_PRIMITIVES,
+        action_id=PEER_TRAIN_ACTION_ID,
+        proposer_ids=(agent.id,),
+        evidence=pressure.evidence,
+        pressure_recognition_event_index=(
+            pressure.recognition_event_index
+        ),
+        preconditions=PEER_TRAIN_PRECONDITIONS,
+        costs=PEER_TRAIN_COSTS,
+        effects=PEER_TRAIN_EFFECTS,
+    )
+
+
+def discovery_attempt_score(
+    agent: Agent,
+    pressure: ProblemPressure,
+) -> float:
+    return max(0.0, min(
+        1.0,
+        0.45 * agent.skill
+        + 0.25 * agent.traits["discipline"]
+        + 0.20 * agent.traits["risk_tolerance"]
+        + 0.10 * pressure.severity,
+    ))
 
 
 def _is_identifier(value: object) -> bool:
@@ -484,6 +586,81 @@ def _validate_effect(
         raise ValueError("Invalid bounded civilization effect.")
 
 
+def validate_discovery_candidate(
+    candidate: DiscoveryCandidate,
+    agent: Agent,
+    civilization: CivilizationState,
+    *,
+    current_day: int,
+) -> tuple[str, ...]:
+    """Return deterministic structural errors for the one Phase 8 candidate."""
+    if not isinstance(candidate, DiscoveryCandidate):
+        return ("candidate",)
+    errors = []
+    pressure = next(
+        (
+            item
+            for item in agent.discovery.pressures
+            if item.id == TRAINING_ACCESS_PROBLEM_ID
+        ),
+        None,
+    )
+    if (
+        candidate.proposer_ids != (agent.id,)
+        or candidate.problem_id != TRAINING_ACCESS_PROBLEM_ID
+    ):
+        errors.append("proposer_or_problem")
+    if (
+        pressure is None
+        or pressure.recognized_day is None
+        or pressure.recognition_event_index
+        != candidate.pressure_recognition_event_index
+        or current_day <= pressure.recognized_day
+        or candidate.evidence != pressure.evidence
+    ):
+        errors.append("evidence")
+    possessed = {
+        exposure.primitive_id
+        for exposure in agent.discovery.primitive_exposures
+    }
+    if (
+        candidate.primitive_ids != REQUIRED_DISCOVERY_PRIMITIVES
+        or not set(candidate.primitive_ids).issubset(possessed)
+    ):
+        errors.append("primitives")
+    if (
+        candidate.action_id != PEER_TRAIN_ACTION_ID
+        or candidate.signature
+        != knowledge_signature(
+            candidate.primitive_ids,
+            candidate.action_id,
+        )
+    ):
+        errors.append("identity")
+    if candidate.preconditions != PEER_TRAIN_PRECONDITIONS:
+        errors.append("preconditions")
+    try:
+        if candidate.costs != PEER_TRAIN_COSTS:
+            raise ValueError
+        for effect in candidate.costs:
+            _validate_effect(effect, allowed_operations=COST_OPERATIONS)
+    except (TypeError, ValueError):
+        errors.append("costs")
+    try:
+        if candidate.effects != PEER_TRAIN_EFFECTS:
+            raise ValueError
+        for effect in candidate.effects:
+            _validate_effect(effect, allowed_operations=RESULT_OPERATIONS)
+    except (TypeError, ValueError):
+        errors.append("effects")
+    if any(
+        entry.signature == candidate.signature
+        for entry in civilization.knowledge
+    ):
+        errors.append("duplicate_signature")
+    return tuple(errors)
+
+
 def validate_civilization_state(
     state: CivilizationState,
 ) -> None:
@@ -545,7 +722,7 @@ def validate_civilization_state(
         affordance_ids != tuple(sorted(affordance_ids))
         or len(set(affordance_ids)) != len(affordance_ids)
         or len(set(source_ids)) != len(source_ids)
-        or set(source_ids) != set(knowledge_ids)
+        or not set(source_ids).issubset(knowledge_ids)
     ):
         raise ValueError("Invalid knowledge-affordance registry.")
 
@@ -653,6 +830,7 @@ def validate_agent_discovery_state(
         not isinstance(state, AgentDiscoveryState)
         or not isinstance(state.primitive_exposures, tuple)
         or not isinstance(state.pressures, tuple)
+        or not isinstance(state.attempts, tuple)
         or not all(
             isinstance(item, PrimitiveExposure)
             for item in state.primitive_exposures
@@ -660,6 +838,10 @@ def validate_agent_discovery_state(
         or not all(
             isinstance(item, ProblemPressure)
             for item in state.pressures
+        )
+        or not all(
+            isinstance(item, DiscoveryAttempt)
+            for item in state.attempts
         )
     ):
         raise ValueError("Invalid agent discovery state.")
@@ -770,6 +952,157 @@ def validate_agent_discovery_state(
             ):
                 raise ValueError("Invalid problem evidence.")
 
+    attempt_keys = tuple(
+        (item.day, item.id) for item in state.attempts
+    )
+    if (
+        attempt_keys != tuple(sorted(attempt_keys))
+        or len({item.id for item in state.attempts})
+        != len(state.attempts)
+    ):
+        raise ValueError("Invalid discovery attempt registry.")
+    for attempt in state.attempts:
+        candidate = attempt.candidate
+        if (
+            not _is_identifier(attempt.id)
+            or isinstance(attempt.day, bool)
+            or not isinstance(attempt.day, int)
+            or attempt.day < 0
+            or not isinstance(candidate, DiscoveryCandidate)
+            or not isinstance(candidate.signature, str)
+            or not isinstance(candidate.problem_id, str)
+            or not isinstance(candidate.primitive_ids, tuple)
+            or not all(
+                isinstance(item, str) for item in candidate.primitive_ids
+            )
+            or not isinstance(candidate.action_id, str)
+            or not isinstance(candidate.proposer_ids, tuple)
+            or not all(
+                isinstance(item, str) for item in candidate.proposer_ids
+            )
+            or not isinstance(candidate.evidence, tuple)
+            or not all(
+                isinstance(item, ProblemEvidence)
+                and isinstance(item.day, int)
+                and not isinstance(item.day, bool)
+                and item.day >= 0
+                and isinstance(item.agent_id, str)
+                and isinstance(item.event_index, int)
+                and not isinstance(item.event_index, bool)
+                and item.event_index >= 0
+                and isinstance(item.reason, str)
+                for item in candidate.evidence
+            )
+            or isinstance(
+                candidate.pressure_recognition_event_index,
+                bool,
+            )
+            or not isinstance(
+                candidate.pressure_recognition_event_index,
+                int,
+            )
+            or candidate.pressure_recognition_event_index < 0
+            or not isinstance(candidate.preconditions, tuple)
+            or not all(
+                isinstance(item, str) for item in candidate.preconditions
+            )
+            or not isinstance(candidate.costs, tuple)
+            or not all(
+                isinstance(item, BoundedEffect)
+                and isinstance(item.operation, str)
+                and isinstance(item.target, str)
+                and not isinstance(item.amount, bool)
+                and isinstance(item.amount, (int, float))
+                and math.isfinite(item.amount)
+                for item in candidate.costs
+            )
+            or not isinstance(candidate.effects, tuple)
+            or not all(
+                isinstance(item, BoundedEffect)
+                and isinstance(item.operation, str)
+                and isinstance(item.target, str)
+                and not isinstance(item.amount, bool)
+                and isinstance(item.amount, (int, float))
+                and math.isfinite(item.amount)
+                for item in candidate.effects
+            )
+            or isinstance(
+                attempt.pressure_recognition_event_index,
+                bool,
+            )
+            or not isinstance(
+                attempt.pressure_recognition_event_index,
+                int,
+            )
+            or attempt.pressure_recognition_event_index < 0
+            or isinstance(attempt.attempt_event_index, bool)
+            or not isinstance(attempt.attempt_event_index, int)
+            or attempt.attempt_event_index < 0
+            or isinstance(attempt.resolution_event_index, bool)
+            or not isinstance(attempt.resolution_event_index, int)
+            or attempt.resolution_event_index
+            <= attempt.attempt_event_index
+            or attempt.outcome not in DISCOVERY_ATTEMPT_OUTCOMES
+            or not isinstance(attempt.validation_errors, tuple)
+            or not all(
+                _is_identifier(item)
+                for item in attempt.validation_errors
+            )
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value < 0.0
+                for value in (
+                    attempt.money_cost,
+                    attempt.energy_cost,
+                    attempt.stress_cost,
+                )
+            )
+            or attempt.money_cost != EXPERIMENT_MONEY_COST
+            or attempt.energy_cost != EXPERIMENT_ENERGY_COST
+            or attempt.stress_cost != EXPERIMENT_STRESS_COST
+            or (
+                attempt.outcome == "structural_rejection"
+                and (
+                    attempt.score is not None
+                    or attempt.roll is not None
+                    or not attempt.validation_errors
+                    or attempt.knowledge_id is not None
+                )
+            )
+            or (
+                attempt.outcome in {"failed", "validated"}
+                and (
+                    isinstance(attempt.score, bool)
+                    or not isinstance(attempt.score, (int, float))
+                    or not math.isfinite(attempt.score)
+                    or not 0.0 <= attempt.score <= 1.0
+                    or isinstance(attempt.roll, bool)
+                    or not isinstance(attempt.roll, (int, float))
+                    or not math.isfinite(attempt.roll)
+                    or not 0.0 <= attempt.roll < 1.0
+                    or bool(attempt.validation_errors)
+                    or (
+                        attempt.outcome == "failed"
+                        and (
+                            attempt.roll < attempt.score
+                            or attempt.knowledge_id is not None
+                        )
+                    )
+                    or (
+                        attempt.outcome == "validated"
+                        and (
+                            attempt.roll >= attempt.score
+                            or attempt.knowledge_id
+                            != PEER_TRAIN_KNOWLEDGE_ID
+                        )
+                    )
+                )
+            )
+        ):
+            raise ValueError("Invalid discovery attempt.")
+
 
 def validate_discovery_links(
     agents: list[Agent],
@@ -825,6 +1158,78 @@ def validate_discovery_links(
                     or event.kind != "problem_pressure_recognized"
                 ):
                     raise ValueError("Invalid problem recognition link.")
+        for attempt in agent.discovery.attempts:
+            candidate = attempt.candidate
+            pressure = next(
+                (
+                    item
+                    for item in agent.discovery.pressures
+                    if item.id == TRAINING_ACCESS_PROBLEM_ID
+                ),
+                None,
+            )
+            attempt_event = linked_event(attempt.attempt_event_index)
+            resolution_event = linked_event(
+                attempt.resolution_event_index
+            )
+            expected_resolution_kind = (
+                "discovery_validated"
+                if attempt.outcome == "validated"
+                else "discovery_rejected"
+            )
+            if (
+                attempt.id != f"attempt:{agent.id}:{attempt.day}"
+                or attempt.day > current_day
+                or pressure is None
+                or pressure.recognized_day is None
+                or attempt.day <= pressure.recognized_day
+                or attempt.pressure_recognition_event_index
+                != pressure.recognition_event_index
+                or attempt_event.day != attempt.day
+                or attempt_event.kind != "discovery_attempted"
+                or resolution_event.day != attempt.day
+                or resolution_event.kind != expected_resolution_kind
+            ):
+                raise ValueError("Invalid discovery attempt link.")
+            recognition_event = linked_event(
+                attempt.pressure_recognition_event_index
+            )
+            if recognition_event.kind != "problem_pressure_recognized":
+                raise ValueError("Invalid attempt pressure link.")
+            if attempt.outcome != "structural_rejection":
+                if (
+                    candidate.proposer_ids != (agent.id,)
+                    or candidate.problem_id
+                    != TRAINING_ACCESS_PROBLEM_ID
+                    or candidate.pressure_recognition_event_index
+                    != attempt.pressure_recognition_event_index
+                    or candidate.primitive_ids
+                    != REQUIRED_DISCOVERY_PRIMITIVES
+                    or candidate.action_id != PEER_TRAIN_ACTION_ID
+                    or candidate.signature
+                    != knowledge_signature(
+                        candidate.primitive_ids,
+                        candidate.action_id,
+                    )
+                    or candidate.preconditions
+                    != PEER_TRAIN_PRECONDITIONS
+                    or candidate.costs != PEER_TRAIN_COSTS
+                    or candidate.effects != PEER_TRAIN_EFFECTS
+                ):
+                    raise ValueError("Invalid resolved candidate link.")
+                for evidence in candidate.evidence:
+                    event = linked_event(evidence.event_index)
+                    if (
+                        evidence.reason not in denial_prefixes
+                        or evidence.agent_id != agent.id
+                        or evidence.day >= attempt.day
+                        or event.day != evidence.day
+                        or event.kind != "institution"
+                        or not event.description.startswith(
+                            denial_prefixes[evidence.reason]
+                        )
+                    ):
+                        raise ValueError("Invalid attempt evidence link.")
 
 
 def validate_civilization_links(
@@ -836,6 +1241,11 @@ def validate_civilization_links(
     validate_civilization_state(state)
     agents_by_id = {agent.id: agent for agent in agents}
     knowledge_by_id = {entry.id: entry for entry in state.knowledge}
+    attempts_by_origin = {
+        (agent.id, attempt.attempt_event_index): attempt
+        for agent in agents
+        for attempt in agent.discovery.attempts
+    }
 
     def linked_event(agent_id: str, event_index: int):
         if agent_id not in agents_by_id:
@@ -864,6 +1274,15 @@ def validate_civilization_links(
             or origin.day > entry.creation_day
         ):
             raise ValueError("Knowledge lacks a valid origin attempt.")
+        attempt = attempts_by_origin.get((
+            entry.origin_agent_id,
+            entry.origin_event_index,
+        ))
+        if attempt is not None and (
+            attempt.outcome != "validated"
+            or attempt.knowledge_id != entry.id
+        ):
+            raise ValueError("Knowledge origin attempt was not validated.")
 
     for agent in agents:
         validate_agent_knowledge_state(agent.knowledge)
@@ -970,12 +1389,15 @@ def agent_discovery_state_from_data(
     data: object,
 ) -> AgentDiscoveryState:
     if not isinstance(data, dict) or set(data) != {
+        "attempts",
         "pressures",
         "primitive_exposures",
     }:
         raise ValueError("Invalid agent discovery state structure.")
-    if not isinstance(data["primitive_exposures"], list) or not isinstance(
-        data["pressures"], list
+    if (
+        not isinstance(data["primitive_exposures"], list)
+        or not isinstance(data["pressures"], list)
+        or not isinstance(data["attempts"], list)
     ):
         raise ValueError("Invalid agent discovery collections.")
 
@@ -1006,9 +1428,58 @@ def agent_discovery_state_from_data(
         values["evidence"] = tuple(evidence)
         pressures.append(ProblemPressure(**values))
 
+    candidate_fields = set(DiscoveryCandidate.__dataclass_fields__)
+    attempt_fields = set(DiscoveryAttempt.__dataclass_fields__)
+    effect_fields = set(BoundedEffect.__dataclass_fields__)
+    attempts = []
+    for item in data["attempts"]:
+        if not isinstance(item, dict) or set(item) != attempt_fields:
+            raise ValueError("Invalid discovery attempt structure.")
+        values = dict(item)
+        candidate_data = values["candidate"]
+        if (
+            not isinstance(candidate_data, dict)
+            or set(candidate_data) != candidate_fields
+        ):
+            raise ValueError("Invalid discovery candidate structure.")
+        candidate_values = dict(candidate_data)
+        for name in ("primitive_ids", "proposer_ids", "preconditions"):
+            if not isinstance(candidate_values[name], list):
+                raise ValueError("Invalid discovery candidate collection.")
+            candidate_values[name] = tuple(candidate_values[name])
+        evidence = []
+        if not isinstance(candidate_values["evidence"], list):
+            raise ValueError("Invalid candidate evidence collection.")
+        for record in candidate_values["evidence"]:
+            if (
+                not isinstance(record, dict)
+                or set(record) != evidence_fields
+            ):
+                raise ValueError("Invalid candidate evidence structure.")
+            evidence.append(ProblemEvidence(**record))
+        candidate_values["evidence"] = tuple(evidence)
+        for name in ("costs", "effects"):
+            if not isinstance(candidate_values[name], list):
+                raise ValueError("Invalid candidate effect collection.")
+            effects = []
+            for effect in candidate_values[name]:
+                if (
+                    not isinstance(effect, dict)
+                    or set(effect) != effect_fields
+                ):
+                    raise ValueError("Invalid candidate effect structure.")
+                effects.append(BoundedEffect(**effect))
+            candidate_values[name] = tuple(effects)
+        values["candidate"] = DiscoveryCandidate(**candidate_values)
+        if not isinstance(values["validation_errors"], list):
+            raise ValueError("Invalid attempt validation errors.")
+        values["validation_errors"] = tuple(values["validation_errors"])
+        attempts.append(DiscoveryAttempt(**values))
+
     state = AgentDiscoveryState(
         primitive_exposures=tuple(exposures),
         pressures=tuple(pressures),
+        attempts=tuple(attempts),
     )
     validate_agent_discovery_state(state)
     return state

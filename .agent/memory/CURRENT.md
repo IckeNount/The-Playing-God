@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved through its brief and 8B is complete: schema v19 persists bounded first-hand primitive exposure and training-access pressure, while deterministic discovery eligibility creates no attempt or affordance. Phase 8C experimentation is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved through its brief and 8C is complete: eligible agents can pay for a canonical peer-training experiment that is structurally rejected, seeded-failed, or validated into discoverer-only knowledge. Schema v20 preserves resolved attempts, and 8D causal knowledge diffusion is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -93,6 +93,9 @@ Phases 4–7 are complete. Phase 8 is approved through its brief and 8B is compl
 - Phase 8B updates pressure only at the two existing school-denial return paths: off-site and exhausted capacity. Each agent retains at most eight first-hand denial references; the third denial emits one recognition event. A successful admitted training event records one direct exposure to each required peer-learning primitive. Bystanders receive neither state.
 - `World.discovery_eligibility()` is read-only and deterministic. Eligibility requires a recognized unresolved pressure, a later day, living non-dependent adulthood, skill at least `0.35`, energy at least `0.35`, money at least the existing seven-unit training cost, and direct exposure to all three primitives. It consumes no RNG and creates no attempt, candidate, knowledge, affordance, or action.
 - Schema v19 persists per-agent discovery state in `agents.discovery_json`. Schema-v18 worlds load empty discovery state without reconstruction or RNG draws and migrate on save; causal link validation rejects missing/mismatched admission, denial, and recognition events.
+- Phase 8C adds one engine-owned peer-training composition rather than a general invention language. `World.attempt_discovery()` is explicit: ineligible calls are free and consume no RNG; eligible calls immediately spend 7 money, 0.12 energy, and add 0.04 stress before validation. Structural rejection retains the attempted proposal without an RNG draw.
+- A structurally valid attempt combines current skill, discipline, risk tolerance, and pressure severity into a bounded score, then consumes exactly one draw from the existing world RNG. Failure records no knowledge; success creates one canonical world knowledge entry and one direct discoverer record linked to the attempt/validation events. It creates no affordance or executable peer-training action.
+- Schema v20 extends `agents.discovery_json` with resolved attempts, candidate/evidence snapshots, costs, score/roll, outcome, and event indices. Schema-v19 state loads with an empty attempt history without consuming RNG and migrates on save; repeating the same agent/day attempt returns the stored resolution without new cost, events, RNG, or knowledge.
 
 ## Active architectural concern
 
@@ -100,8 +103,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8B failure. The full suite passes 216 tests.
+- No known Phase 8C failure. Focused discovery/civilization/pressure/persistence coverage passes 75 tests. The risk-policy-triggered full suite passes 220 tests because 8C changes world RNG usage and schema.
 
 ## Next logical task
 
-Implement Phase 8C only when instructed: add costly structured discovery attempts and engine-owned validation without diffusion, peer-training execution, or institutional adoption. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8D only when instructed: spread validated knowledge through causal exposure with explicit recipient responses, without peer-training execution or institutional adoption. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.

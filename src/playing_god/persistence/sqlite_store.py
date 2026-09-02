@@ -69,7 +69,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 19
+SCHEMA_VERSION = 20
 
 
 class PersistenceError(RuntimeError):
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS agents (
     culture_json TEXT NOT NULL DEFAULT '{"records": []}',
     knowledge_json TEXT NOT NULL DEFAULT '{"records": []}',
     discovery_json TEXT NOT NULL DEFAULT
-        '{"primitive_exposures": [], "pressures": []}'
+        '{"attempts": [], "primitive_exposures": [], "pressures": []}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -1958,6 +1958,7 @@ def _load_agents(
     require_cultural_state: bool = False,
     require_knowledge_state: bool = False,
     require_discovery_state: bool = False,
+    require_attempt_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -2103,6 +2104,16 @@ def _load_agents(
             discovery_data = json.loads(
                 row["discovery_json"]
             ) if has_discovery_state else None
+            if (
+                discovery_data is not None
+                and not require_attempt_state
+                and isinstance(discovery_data, dict)
+                and "attempts" not in discovery_data
+            ):
+                discovery_data = {
+                    **discovery_data,
+                    "attempts": [],
+                }
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -3032,6 +3043,7 @@ def load_world(
                 16,
                 17,
                 18,
+                19,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -3081,6 +3093,9 @@ def load_world(
             )
             has_discovery_state = (
                 state["schema_version"] >= 19
+            )
+            has_attempt_state = (
+                state["schema_version"] >= 20
             )
 
             if (
@@ -3168,6 +3183,7 @@ def load_world(
                     has_civilization_state
                 ),
                 require_discovery_state=has_discovery_state,
+                require_attempt_state=has_attempt_state,
             )
             if has_family_state:
                 try:

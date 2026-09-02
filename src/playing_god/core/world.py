@@ -14,13 +14,27 @@ from playing_god.core.adaptive import (
 from playing_god.core.agent import Agent, NAMES, SINS, TRAITS
 from playing_god.core.civilization import (
     BASE_PRIMITIVES,
+    EXPERIMENT_ENERGY_COST,
+    EXPERIMENT_MONEY_COST,
+    EXPERIMENT_STRESS_COST,
+    PEER_TRAIN_KNOWLEDGE_ID,
+    TRAINING_ACCESS_PROBLEM_ID,
+    AgentKnowledgeRecord,
+    AgentKnowledgeState,
     BasePrimitive,
     CivilizationState,
+    DiscoveryAttempt,
+    DiscoveryCandidate,
     DiscoveryEligibility,
+    KnowledgeEntry,
     PROBLEM_RECOGNITION_THRESHOLD,
+    compose_peer_training_candidate,
+    discovery_attempt_score,
     discovery_eligibility,
+    knowledge_signature,
     record_primitive_exposure,
     record_training_access_denial,
+    validate_discovery_candidate,
 )
 from playing_god.core.decision import (
     belonging_need,
@@ -355,6 +369,170 @@ class World:
             agent,
             current_day=self.day,
         )
+
+    def attempt_discovery(
+        self,
+        agent_id: str,
+        *,
+        candidate: DiscoveryCandidate | None = None,
+    ) -> DiscoveryAttempt | None:
+        agent = next(
+            (
+                item
+                for item in self.agents
+                if item.id == agent_id
+            ),
+            None,
+        )
+        if agent is None:
+            raise ValueError("Unknown discovery agent")
+        existing = next(
+            (
+                attempt
+                for attempt in agent.discovery.attempts
+                if attempt.day == self.day
+            ),
+            None,
+        )
+        if existing is not None:
+            return existing
+        if not self.discovery_eligibility(agent_id).eligible:
+            return None
+
+        candidate = candidate or compose_peer_training_candidate(agent)
+        agent.money -= EXPERIMENT_MONEY_COST
+        agent.energy -= EXPERIMENT_ENERGY_COST
+        agent.stress += EXPERIMENT_STRESS_COST
+        agent.normalize()
+        attempt_event_index = self.record(
+            agent,
+            "discovery_attempted",
+            (
+                f"Attempted {candidate.action_id} discovery; "
+                f"signature: {candidate.signature}; cost: "
+                f"money {EXPERIMENT_MONEY_COST:.2f}, "
+                f"energy {EXPERIMENT_ENERGY_COST:.2f}, "
+                f"stress {EXPERIMENT_STRESS_COST:.2f}"
+            ),
+            0.65,
+            location=agent.current_location,
+        )
+        validation_errors = validate_discovery_candidate(
+            candidate,
+            agent,
+            self.civilization,
+            current_day=self.day,
+        )
+        score = None
+        roll = None
+        knowledge_id = None
+        if validation_errors:
+            outcome = "structural_rejection"
+            resolution_event_index = self.record(
+                agent,
+                "discovery_rejected",
+                (
+                    "Discovery candidate failed structural validation: "
+                    + ", ".join(validation_errors)
+                ),
+                0.55,
+                location=agent.current_location,
+            )
+        else:
+            pressure = next(
+                item
+                for item in agent.discovery.pressures
+                if item.id == candidate.problem_id
+            )
+            score = discovery_attempt_score(agent, pressure)
+            roll = self.rng.random()
+            if roll >= score:
+                outcome = "failed"
+                resolution_event_index = self.record(
+                    agent,
+                    "discovery_rejected",
+                    (
+                        "Discovery experiment was insufficient; "
+                        f"score: {score:.4f}; roll: {roll:.4f}"
+                    ),
+                    0.58,
+                    location=agent.current_location,
+                )
+            else:
+                outcome = "validated"
+                knowledge_id = PEER_TRAIN_KNOWLEDGE_ID
+                resolution_event_index = self.record(
+                    agent,
+                    "discovery_validated",
+                    (
+                        "Validated peer-training knowledge; "
+                        f"score: {score:.4f}; roll: {roll:.4f}"
+                    ),
+                    0.85,
+                    location=agent.current_location,
+                )
+                entry = KnowledgeEntry(
+                    id=knowledge_id,
+                    signature=knowledge_signature(
+                        candidate.primitive_ids,
+                        candidate.action_id,
+                    ),
+                    origin_agent_id=agent.id,
+                    origin_event_index=attempt_event_index,
+                    discoverer_ids=(agent.id,),
+                    primitive_ids=candidate.primitive_ids,
+                    action_id=candidate.action_id,
+                    creation_day=self.day,
+                )
+                self.civilization = replace(
+                    self.civilization,
+                    knowledge=tuple(sorted(
+                        self.civilization.knowledge + (entry,),
+                        key=lambda item: item.id,
+                    )),
+                )
+                agent.knowledge = AgentKnowledgeState(
+                    records=agent.knowledge.records + (
+                        AgentKnowledgeRecord(
+                            day=self.day,
+                            knowledge_id=knowledge_id,
+                            source_id=agent.id,
+                            route="discovery",
+                            response="accept",
+                            variant_id=None,
+                            causal_parent_agent_id=agent.id,
+                            causal_parent_event_index=(
+                                resolution_event_index
+                            ),
+                        ),
+                    ),
+                )
+
+        attempt = DiscoveryAttempt(
+            id=f"attempt:{agent.id}:{self.day}",
+            day=self.day,
+            candidate=candidate,
+            pressure_recognition_event_index=next(
+                item.recognition_event_index
+                for item in agent.discovery.pressures
+                if item.id == TRAINING_ACCESS_PROBLEM_ID
+            ),
+            attempt_event_index=attempt_event_index,
+            resolution_event_index=resolution_event_index,
+            outcome=outcome,
+            score=score,
+            roll=roll,
+            validation_errors=validation_errors,
+            money_cost=EXPERIMENT_MONEY_COST,
+            energy_cost=EXPERIMENT_ENERGY_COST,
+            stress_cost=EXPERIMENT_STRESS_COST,
+            knowledge_id=knowledge_id,
+        )
+        agent.discovery = replace(
+            agent.discovery,
+            attempts=agent.discovery.attempts + (attempt,),
+        )
+        return attempt
 
     def reproduction_eligibility(
         self,
