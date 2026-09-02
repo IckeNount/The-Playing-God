@@ -1,10 +1,10 @@
 # Current Engineering State
 
-**Updated:** 2026-09-02
+**Updated:** 2026-09-03
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved through its brief and 8F is complete: the existing school adopts peer training only after three causally linked successful uses observed there on distinct days, then exposes the procedure prospectively through annual school access. Phase 8G's controlled counterfactual exit proof is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–8 are complete. Phase 8 closes with a controlled same-seed fork proving that one additional first-hand training denial can cause problem recognition, validated discovery, causal social diffusion, a second adopter, bounded peer training, and a `0.006` later-learner skill difference while the formal-access counterfactual has no discovery chain or affordance. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -109,6 +109,10 @@ Phases 4–7 are complete. Phase 8 is approved through its brief and 8F is compl
 - School adoption is prospective: annual development with actual school access may create a deterministic school-route knowledge response only on or after the adoption day. It does not rewrite earlier denials, development, or knowledge. Rejection remains possible through the existing accept/modify/reject response thresholds, and no RNG draw is added.
 - Schema v22 stores only durable school evidence and adoption in `world_state.school_json`; daily capacity counters remain transient. Schema-v21 and older worlds load empty institutional state without reconstruction or RNG changes and migrate on save. Causal validation checks the successful-use events, adopter knowledge, canonical affordance, adoption event, original discovery identity, and later school-access exposure.
 - Focused 8F and directly affected integration coverage passes 78 tests. The policy-triggered full suite passes 234 tests because shared world/development/event behavior and persistence schema changed.
+- Phase 8G adds `Phase8Metrics` and `Phase8MetricComparison` as read-only derivations over authoritative pressure, attempt, registry, knowledge, event, school, current eligibility, and skill state. Metrics consume no RNG and report both per-agent and total skill deltas plus current opportunity-count delta across matching-agent forks.
+- `snapshot_phase8()` now captures all mutable Phase 8 state: world knowledge/affordances, durable school evidence/adoption, and each agent's pressure/attempt and local knowledge history. Generic counterfactual agent snapshots and trajectory signatures now include discovery and knowledge, so Phase 8 divergence cannot remain invisible.
+- The bounded seed-1 exit fixture forks after day 3 with identical saved history. The discovery branch receives its third denial on day 4, validates on day 5, diffuses through a real day-6 interaction, and peer-trains on day 7; the counterfactual uses ordinary formal school access at the fork and never attempts discovery. Same-seed fresh execution and a save/reload after validation continue exactly.
+- Schema remains v22 because metrics and snapshots are derived. No performance harness exists, so Phase 8G added no benchmark framework. Directly affected coverage passes 99 tests and the required final full suite passes 236 tests.
 
 ## Active architectural concern
 
@@ -116,8 +120,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8F failure. Focused and directly affected coverage passes 78 tests; the risk-policy-triggered full suite passes 234 tests.
+- No known Phase 8 failure. Directly affected Phase 8G coverage passes 99 tests; the required final full suite passes 236 tests.
 
 ## Next logical task
 
-Implement Phase 8G only when instructed: prove the complete Phase 8 chain with a same-seed counterfactual, bounded metrics, persistence, and causal integrity. Do not add a second discovery domain; keep recurrence analysis deferred to Phase 9.
+Begin Phase 9 only when instructed and after confirming its research boundary. Use actual persisted histories for artificial-history analysis; do not revive recurrence detection until real separated adult generations exist.

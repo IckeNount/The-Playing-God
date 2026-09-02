@@ -4,7 +4,11 @@ from dataclasses import dataclass, field, fields
 from typing import Iterable
 
 from playing_god.core.culture import CulturalState
-from playing_god.core.civilization import AgentKnowledgeState
+from playing_god.core.civilization import (
+    AgentDiscoveryState,
+    AgentKnowledgeState,
+    CivilizationState,
+)
 from playing_god.core.events import Event
 from playing_god.core.faith import Attribution
 from playing_god.core.intervention import (
@@ -13,6 +17,10 @@ from playing_god.core.intervention import (
     InterventionResponse,
 )
 from playing_god.core.lifecycle import LifecycleState
+from playing_god.core.institution import (
+    SchoolKnowledgeAdoption,
+    SchoolKnowledgeEvidence,
+)
 from playing_god.core.perception import Belief, Observation
 from playing_god.core.prayer import Prayer
 from playing_god.core.world import World
@@ -92,6 +100,7 @@ class AgentSnapshot:
     lifecycle: LifecycleState
     culture: CulturalState
     knowledge: AgentKnowledgeState
+    discovery: AgentDiscoveryState
     social_ties: tuple[
         tuple[str, tuple[tuple[str, float], ...]],
         ...,
@@ -146,6 +155,22 @@ class CounterfactualComparison:
             difference.agent_id
             for difference in self.agent_differences
         )
+
+
+@dataclass(frozen=True)
+class AgentPhase8Snapshot:
+    agent_id: str
+    discovery: AgentDiscoveryState
+    knowledge: AgentKnowledgeState
+
+
+@dataclass(frozen=True)
+class Phase8StateSnapshot:
+    day: int
+    civilization: CivilizationState
+    school_evidence: tuple[SchoolKnowledgeEvidence, ...]
+    school_adoption: SchoolKnowledgeAdoption | None
+    agents: tuple[AgentPhase8Snapshot, ...]
 
 
 def _event_snapshot(event: Event) -> EventSnapshot:
@@ -223,11 +248,30 @@ def snapshot_agents(world: World) -> tuple[AgentSnapshot, ...]:
                 lifecycle=agent.lifecycle,
                 culture=agent.culture,
                 knowledge=agent.knowledge,
+                discovery=agent.discovery,
                 social_ties=_social_ties(world, agent.id),
             )
         )
 
     return tuple(snapshots)
+
+
+def snapshot_phase8(world: World) -> Phase8StateSnapshot:
+    """Capture all mutable Phase 8 state without consuming RNG."""
+    return Phase8StateSnapshot(
+        day=world.day,
+        civilization=world.civilization,
+        school_evidence=world.school.knowledge_evidence,
+        school_adoption=world.school.knowledge_adoption,
+        agents=tuple(
+            AgentPhase8Snapshot(
+                agent_id=agent.id,
+                discovery=agent.discovery,
+                knowledge=agent.knowledge,
+            )
+            for agent in sorted(world.agents, key=lambda item: item.id)
+        ),
+    )
 
 
 def _today_events(agent, day: int) -> tuple[EventSnapshot, ...]:
@@ -242,37 +286,44 @@ def _today_events(agent, day: int) -> tuple[EventSnapshot, ...]:
 
 def _trajectory_signature(world: World) -> tuple:
     """Compare current causal state without rescanning full histories."""
-    return tuple(
-        (
-            agent.id,
-            agent.age,
-            tuple(sorted(agent.sins.items())),
-            agent.money,
-            agent.employed,
-            agent.salary,
-            agent.job_level,
-            agent.skill,
-            agent.energy,
-            agent.social_energy,
-            agent.stress,
-            agent.reputation,
-            agent.faith,
-            agent.goal,
-            tuple(sorted(agent.relationships.items())),
-            tuple(sorted(agent.actions.items())),
-            tuple(sorted(agent.beliefs.items())),
-            len(agent.observations),
-            len(agent.prayers),
-            len(agent.attributions),
-            len(agent.events),
-            _today_events(agent, world.day),
-            agent.current_location,
-            agent.destination,
-            agent.lifecycle,
-            agent.culture,
-            _social_ties(world, agent.id),
-        )
-        for agent in world.agents
+    return (
+        world.civilization,
+        world.school.knowledge_evidence,
+        world.school.knowledge_adoption,
+        tuple(
+            (
+                agent.id,
+                agent.age,
+                tuple(sorted(agent.sins.items())),
+                agent.money,
+                agent.employed,
+                agent.salary,
+                agent.job_level,
+                agent.skill,
+                agent.energy,
+                agent.social_energy,
+                agent.stress,
+                agent.reputation,
+                agent.faith,
+                agent.goal,
+                tuple(sorted(agent.relationships.items())),
+                tuple(sorted(agent.actions.items())),
+                tuple(sorted(agent.beliefs.items())),
+                len(agent.observations),
+                len(agent.prayers),
+                len(agent.attributions),
+                len(agent.events),
+                _today_events(agent, world.day),
+                agent.current_location,
+                agent.destination,
+                agent.lifecycle,
+                agent.culture,
+                agent.knowledge,
+                agent.discovery,
+                _social_ties(world, agent.id),
+            )
+            for agent in world.agents
+        ),
     )
 
 

@@ -1,10 +1,10 @@
 # Playing God — Current Status
 
-**Updated:** 2026-09-02
+**Updated:** 2026-09-03
 
-**Current phase:** Phase 8 — In Progress
+**Current phase:** Phase 8 — Complete
 
-**Current position:** Phase 8F is complete. Three causally linked peer-training uses observed by the existing school on distinct days now trigger one deterministic institutional adoption. From that day onward, later agents with existing school access may encounter the adopted procedure through annual development. Schema v22 persists the evidence and adoption without changing RNG behavior.
+**Current position:** Phase 8G is complete. A controlled same-seed fork now proves the full problem → discovery → diffusion → adoption → peer-training chain and its absent counterfactual, with compact read-only metrics, complete Phase 8 snapshots, exact save/reload continuation, and schema v22 causal integrity.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | One causal discovery can diffuse, unlock bounded peer training, and become prospective school state after sufficient observed evidence. |
+| 8 — Discovery and open-ended civilization | Complete | A causal problem can produce validated knowledge, bounded action-space expansion, local diffusion, and prospective institutional opportunity with reproducible counterfactual evidence. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8G — Persistence, Counterfactual Proof, Metrics, and Exit Gate:
+Await instruction for Phase 9 — Artificial History and Research Engine:
 
-1. Run the required same-seed discovery/counterfactual chain.
-2. Add only the bounded metrics needed to inspect Phase 8 history.
-3. Close Phase 8 without adding a second discovery domain.
+1. Preserve Phase 8 as the completed causal foundation.
+2. Design Phase 9 research questions against actual persisted histories.
+3. Re-evaluate recurrence only when real multi-adult-generation evidence exists.
 
 ## Phase 7 Progress
 
@@ -73,7 +73,7 @@ Await instruction for Phase 8G — Persistence, Counterfactual Proof, Metrics, a
 | 8D — Knowledge diffusion | Complete | Discoverer-held knowledge moves through successful social contact or annual guardian exposure; deterministic accept/modify/reject history preserves lineage, causality, locality, and restart behavior. |
 | 8E — Affordance expansion | Complete | Adopted knowledge can expose one decision-ranked peer-training action; execution revalidates local relationship, skill, and energy constraints, then applies lower-cost, lower-gain effects through the existing learning system. |
 | 8F — Institutionalization | Complete | Three successful peer-training uses observed at the existing school on distinct days create one evidence-linked adoption; only later school-access checkpoints can expose the procedure institutionally. |
-| 8G — Counterfactual exit gate | Planned | Prove persistence, replay, causal integrity, metrics, and changed later opportunity. |
+| 8G — Counterfactual exit gate | Complete | A saved day-3 fork stays identical before one access change; only the discovery branch recognizes the problem, validates and diffuses knowledge, executes peer training, and changes later skill/opportunity. Read-only metrics and exact replay close the phase. |
 
 ## Documentation Guide
 

@@ -165,7 +165,7 @@ bounded problem pressure and discovery eligibility, canonical candidate
 composition, costly seeded attempts, validated-knowledge identity, per-agent
 knowledge provenance and causal diffusion, knowledge-backed affordance
 definitions, peer-training eligibility/execution, bounded effect validation,
-and cross-record integrity.
+Phase 8 snapshots and research metrics, and cross-record integrity.
 
 **Entry points:**
 
@@ -186,13 +186,18 @@ and cross-record integrity.
   world supplies an eligible affordance utility; learned preferences may rank
   but cannot create availability.
 - `src/playing_god/core/counterfactual.py` — immutable agent snapshots include
-  local knowledge history.
+  local discovery/knowledge history; the Phase 8 snapshot also includes the
+  world registry and durable school adoption state.
+- `src/playing_god/core/civilization_metrics.py` — read-only recognition,
+  attempt, validation, exposure, adoption, first-use, institution, current
+  opportunity, and skill-delta metrics.
 
 **Focused tests:** `tests/test_civilization.py`,
 `tests/test_problem_pressure.py`, `tests/test_discovery.py`,
 `tests/test_knowledge_diffusion.py`, `tests/test_peer_training.py`,
-`tests/test_institutional_adoption.py`, plus persistence, decision,
-adaptive-learning, institution, culture, exposure, and counterfactual coverage.
+`tests/test_institutional_adoption.py`, `tests/test_phase8_exit.py`, plus
+persistence, decision, adaptive-learning, institution, culture, exposure, and
+counterfactual coverage.
 
 **Important boundary:** Schema v18 persists mutable knowledge and affordance
 state but rebuilds the three engine-owned peer-training primitives from code.
@@ -227,6 +232,12 @@ record linked to the evidence events and original discovery attempt. Schema
 v22 persists that state; from the adoption day onward, existing annual school
 access may expose later agents to the procedure. No generic institution or
 policy framework is introduced.
+Phase 8G adds no causal or persistent state. Its bounded seed-1 fixture forks
+after two real training denials: a third denial enables day-5 validation,
+day-6 social exposure creates a second adopter, and day-7 peer training adds
+`0.006` learner skill; the same-prior formal-access branch has none of those
+states or opportunities. Metrics scan authoritative records only on explicit
+request and consume no RNG. No benchmark harness existed, so none was added.
 
 ## `social` — relationships and contact
 
@@ -444,12 +455,12 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8F now provide
-persistent civilization records, causal pressure, costly validated experiments,
-local knowledge diffusion, one bounded knowledge-dependent action, and one
-evidence-gated school adoption route. Phase 8G's controlled counterfactual exit
-proof and metrics remain unimplemented. Phase 7F recurrence detection is
-deferred to Phase 9 because no persisted multi-adult-generation dataset exists;
-no detector or manufactured fixture is part of the current source. External
-code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure
-remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–8 satisfy their roadmap exit conditions. Phase 8 provides persistent
+civilization records, causal pressure, costly validated experiments, local
+knowledge diffusion, one bounded knowledge-dependent action, one
+evidence-gated school adoption route, and a reproducible counterfactual exit
+proof with read-only metrics. Phase 7F recurrence detection remains deferred to
+Phase 9 because no persisted multi-adult-generation dataset exists; no detector
+or manufactured fixture is part of the current source. External code graphs,
+semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain
+deferred until an actual bottleneck or operational requirement exists.
