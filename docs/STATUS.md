@@ -2,9 +2,9 @@
 
 **Updated:** 2026-09-02
 
-**Current phase:** Phase 7 — Complete
+**Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 7F was evaluated and deferred to Phase 9 because no persisted multi-adult-generation dataset exists. Required Phase 7 scope is complete; Phase 8 is planned but not started.
+**Current position:** Phase 8.0 is complete. The approved Phase 8 brief is now authoritative, the schema-v17 and 197-test Phase 7 baseline is unchanged, and no speculative runtime seam was added before 8A has concrete domain models.
 
 ## Phase Progress
 
@@ -17,7 +17,8 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8–11 — Discovery through recursive reality | Planned | Later roadmap phases; Phase 8 requires separate approval before implementation. |
+| 8 — Discovery and open-ended civilization | In Progress | The entry boundary is verified; civilization registries are the next gated milestone. |
+| 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
 
@@ -40,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await approval for Phase 8 — Discovery & Open-Ended Civilization:
+Await instruction for Phase 8A — Civilization Registries and Base Primitives:
 
-1. Do not implement recurrence detection before Phase 9 has a real multi-adult-generation dataset.
-2. Do not begin discovery or dynamic-affordance work without an approved Phase 8 brief.
-3. Preserve the completed Phase 7 causal and reproducibility boundaries.
+1. Introduce only the concrete primitive, validated-knowledge, and bounded-affordance records required by the peer-training slice.
+2. Keep discovery provenance in the civilization domain rather than broadly rewriting the generic event model.
+3. Preserve Phase 7 behavior and keep recurrence detection deferred to Phase 9.
 
 ## Phase 7 Progress
 
@@ -60,6 +61,19 @@ Await approval for Phase 8 — Discovery & Open-Ended Civilization:
 | 7D — Household, inheritance, and lifecycle | Complete | Annual guardian support consumes real resources; retirement, seeded mortality, living-descendant inheritance, and inactive historical death create traceable turnover through schema v16. |
 | 7E — Cultural transmission | Complete | One bounded norm model moves through annual guardian contact, school access, and ordinary social-information encounters; relationship-weighted recipients accept, modify to uncertainty, or reject while raw exposure remains traceable through schema v17. |
 | 7F — Optional recurrence detection | Deferred to Phase 9 | Repository worlds are founder-only legacy snapshots; a bounded seven-year ordinary run produced G1 children but no adult descendants or G2, so recurrence analysis would manufacture its evidence. |
+
+## Phase 8 Progress
+
+| Step | Status | What it means |
+|---|---|---|
+| 8.0 — Entry boundary | Complete | The approved brief, schema-v17 baseline, 197-test suite, subsystem ownership, and behavior-preserving seam were verified; no runtime abstraction or RNG change was introduced. |
+| 8A — Civilization registries | Planned | Represent the minimal engine-owned primitives, validated knowledge, and knowledge-backed affordances. |
+| 8B — Problem pressure | Planned | Derive discovery eligibility from repeated, causally experienced training constraints. |
+| 8C — Experiment and validation | Planned | Resolve costly structured attempts through an engine-owned validator. |
+| 8D — Knowledge diffusion | Planned | Spread validated knowledge only through existing causal exposure routes. |
+| 8E — Affordance expansion | Planned | Let adopted knowledge unlock one bounded peer-training action. |
+| 8F — Institutionalization | Planned | Let the existing school adopt the procedure from sufficient causal evidence. |
+| 8G — Counterfactual exit gate | Planned | Prove persistence, replay, causal integrity, metrics, and changed later opportunity. |
 
 ## Documentation Guide
 

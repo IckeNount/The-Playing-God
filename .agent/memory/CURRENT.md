@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 7F recurrence detection was evaluated and deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset. Phase 8 is planned but not approved or started.
+Phases 4–7 are complete. Phase 8 is approved and 8.0 is complete: the schema-v17, 197-test Phase 7 baseline remains unchanged, subsystem ownership is identified, and 8A is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -86,6 +86,8 @@ Phases 4–7 are complete. Phase 7F recurrence detection was evaluated and defer
 - Counterfactual snapshots and compact trajectory signatures include cultural history, so a changed response remains visible even when later belief state converges.
 - The 7F gate found both repository databases are founder-only schema-v1/v2 worlds. A bounded ordinary seed-1947 probe reached 10 G0 plus 13 G1 after seven years/53.81 seconds, but had no adult descendant or G2 and only two descendants with culture; implementing recurrence now would manufacture the evidence.
 - The controlled same-prior development scenario now runs both descendants through age 18 and directly proves Phase 7's exit: supported adulthood retains 0.237020 skill, 12 school exposures, and learned training value, while constrained adulthood retains zero for all three.
+- Phase 8.0 accepted `docs/phases/phase-08-development-open-ended-civilization.md` as the implementation authority and verified that Phase 7 still passes 197 tests at schema v17. No runtime seam was extracted: 8A should add a focused civilization-domain owner only when its primitive, knowledge, and affordance records are concrete. Existing action availability belongs to `decision.py`, training consequences to `world.py` plus `institution.py`, exposure semantics to `culture.py`/`information.py`, persistence to `sqlite_store.py`, and comparison state to `counterfactual.py`.
+- Generic events currently have no explicit causal-parent field; existing provenance uses domain records, stable evidence identities, or frozen event indices. Keep Phase 8 discovery provenance in its concrete domain records unless a later acceptance test demonstrates that a generic event migration is necessary.
 
 ## Active architectural concern
 
@@ -93,8 +95,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 7 failure. The full suite passes 197 tests.
+- No known Phase 8.0 failure. The full suite passes 197 tests.
 
 ## Next logical task
 
-Await an approved Phase 8 implementation brief. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8A only when instructed: introduce the minimum concrete civilization registries and base primitives without unlocking actions. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
