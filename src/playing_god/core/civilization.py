@@ -7,6 +7,8 @@ import math
 import re
 from typing import TYPE_CHECKING
 
+from playing_god.core.culture import cultural_response
+
 if TYPE_CHECKING:
     from playing_god.core.agent import Agent
 
@@ -15,7 +17,9 @@ _IDENTIFIER = re.compile(r"^[a-z][a-z0-9_.:-]*$")
 
 KNOWLEDGE_STATUS = "validated"
 KNOWLEDGE_RESPONSES = frozenset({"accept", "modify", "reject"})
-KNOWLEDGE_ROUTES = frozenset({"discovery"})
+KNOWLEDGE_ROUTES = frozenset({"discovery", "guardian", "social"})
+KNOWLEDGE_EXPOSURE_ROUTES = frozenset({"guardian", "social"})
+KNOWLEDGE_SOURCE_CONFIDENCE = 0.90
 
 AFFORDANCE_AVAILABILITY = "knowledge_required"
 AFFORDANCE_USERS = "adopters"
@@ -311,6 +315,78 @@ def adopted_knowledge_ids(
         for record in state.records
         if record.response in {"accept", "modify"}
     }))
+
+
+def knowledge_variant_id(
+    knowledge_id: str,
+    agent_id: str,
+) -> str:
+    """Return the one bounded local variant identity for an adopter."""
+    return f"{knowledge_id}:variant:{agent_id}"
+
+
+def select_knowledge_for_exposure(
+    source: Agent,
+    recipient: Agent,
+    civilization: CivilizationState,
+    *,
+    current_day: int,
+    allow_repeat: bool = False,
+) -> KnowledgeEntry | None:
+    """Select one validated item held before the current exposure day."""
+    held = {
+        record.knowledge_id
+        for record in source.knowledge.records
+        if (
+            record.response in {"accept", "modify"}
+            and record.day < current_day
+        )
+    }
+    seen = {
+        (record.source_id, record.knowledge_id)
+        for record in recipient.knowledge.records
+        if record.route != "discovery"
+    }
+    return next(
+        (
+            entry
+            for entry in civilization.knowledge
+            if entry.id in held
+            and (
+                allow_repeat
+                or (source.id, entry.id) not in seen
+            )
+        ),
+        None,
+    )
+
+
+def knowledge_response(
+    recipient: Agent,
+    *,
+    knowledge_id: str,
+    route: str,
+    trust: float,
+    familiarity: float,
+) -> tuple[float, str, str | None]:
+    """Reuse Phase 7's bounded response thresholds for knowledge."""
+    if route not in KNOWLEDGE_EXPOSURE_ROUTES:
+        raise ValueError(f"Unknown knowledge exposure route: {route}")
+    influence, response, _, _ = cultural_response(
+        recipient,
+        subject_id=knowledge_id,
+        source_value="support",
+        source_confidence=KNOWLEDGE_SOURCE_CONFIDENCE,
+        trust=trust,
+        familiarity=familiarity,
+        route=route,
+    )
+    variant_id = (
+        knowledge_variant_id(knowledge_id, recipient.id)
+        if response == "modify"
+        else None
+    )
+    return influence, response, variant_id
 
 
 def record_primitive_exposure(
@@ -809,7 +885,12 @@ def validate_agent_knowledge_state(
             )
             or (
                 record.response == "modify"
-                and record.variant_id is None
+                and (
+                    record.variant_id is None
+                    or not record.variant_id.startswith(
+                        f"{record.knowledge_id}:variant:"
+                    )
+                )
             )
             or (
                 record.response != "modify"
@@ -1298,18 +1379,67 @@ def validate_civilization_links(
                 record.causal_parent_agent_id,
                 record.causal_parent_event_index,
             )
+            if record.route == "discovery":
+                if (
+                    parent.kind != "discovery_validated"
+                    or parent.day != record.day
+                ):
+                    raise ValueError(
+                        "Invalid agent knowledge causal parent."
+                    )
+                if (
+                    record.source_id != agent.id
+                    or agent.id not in entry.discoverer_ids
+                    or record.response != "accept"
+                    or record.day != entry.creation_day
+                ):
+                    raise ValueError(
+                        "Invalid discoverer knowledge record."
+                    )
+                continue
+
+            source = agents_by_id.get(record.source_id)
             if (
-                parent.kind != "discovery_validated"
+                source is None
+                or source.id == agent.id
+                or record.causal_parent_agent_id != agent.id
+                or parent.kind != "knowledge_exposed"
                 or parent.day != record.day
+                or parent.target_id != source.id
+                or not any(
+                    source_record.knowledge_id == record.knowledge_id
+                    and source_record.response in {"accept", "modify"}
+                    and source_record.day < record.day
+                    for source_record in source.knowledge.records
+                )
             ):
-                raise ValueError("Invalid agent knowledge causal parent.")
+                raise ValueError("Invalid knowledge exposure link.")
             if (
-                record.source_id != agent.id
-                or agent.id not in entry.discoverer_ids
-                or record.response != "accept"
-                or record.day != entry.creation_day
+                record.route == "social"
+                and not any(
+                    event.day == record.day
+                    and event.kind == "interaction"
+                    and event.target_id == source.id
+                    for event in agent.events
+                )
             ):
-                raise ValueError("Invalid discoverer knowledge record.")
+                raise ValueError("Invalid social knowledge link.")
+            if (
+                record.route == "guardian"
+                and (
+                    source.id not in agent.family.guardian_ids
+                    or not any(
+                        development.day == record.day
+                        and source.id in development.guardian_ids
+                        for development in agent.development.records
+                    )
+                )
+            ):
+                raise ValueError("Invalid guardian knowledge link.")
+            if record.response == "modify" and record.variant_id != (
+                knowledge_variant_id(record.knowledge_id, agent.id)
+            ):
+                raise ValueError("Invalid knowledge variant lineage.")
 
 
 def civilization_state_from_data(data: object) -> CivilizationState:

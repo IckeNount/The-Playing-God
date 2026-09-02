@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved through its brief and 8C is complete: eligible agents can pay for a canonical peer-training experiment that is structurally rejected, seeded-failed, or validated into discoverer-only knowledge. Schema v20 preserves resolved attempts, and 8D causal knowledge diffusion is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved through its brief and 8D is complete: eligible agents can produce validated peer-training knowledge that begins with the discoverer and diffuses only through successful social contact or permitted annual guardian exposure. Recipient responses are deterministic and local; bounded action expansion in 8E is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -96,6 +96,10 @@ Phases 4–7 are complete. Phase 8 is approved through its brief and 8C is compl
 - Phase 8C adds one engine-owned peer-training composition rather than a general invention language. `World.attempt_discovery()` is explicit: ineligible calls are free and consume no RNG; eligible calls immediately spend 7 money, 0.12 energy, and add 0.04 stress before validation. Structural rejection retains the attempted proposal without an RNG draw.
 - A structurally valid attempt combines current skill, discipline, risk tolerance, and pressure severity into a bounded score, then consumes exactly one draw from the existing world RNG. Failure records no knowledge; success creates one canonical world knowledge entry and one direct discoverer record linked to the attempt/validation events. It creates no affordance or executable peer-training action.
 - Schema v20 extends `agents.discovery_json` with resolved attempts, candidate/evidence snapshots, costs, score/roll, outcome, and event indices. Schema-v19 state loads with an empty attempt history without consuming RNG and migrates on save; repeating the same agent/day attempt returns the stored resolution without new cost, events, RNG, or knowledge.
+- Phase 8D reuses two existing causal checkpoints: successful adult social interactions and annual guardian development. A source can transmit only validated knowledge adopted before the current day; unexposed agents remain unchanged and school knowledge exposure remains blocked until Phase 8F institutional adoption.
+- Knowledge exposure reuses Phase 7's relationship-weighted accept/modify/reject thresholds without RNG. Every response is retained in per-agent knowledge history and linked to a `knowledge_exposed` event plus the underlying interaction or guardian-development record. Only first accept/modify emits `knowledge_adopted`; rejection grants no possession, and repeated social exposure from the same source is suppressed.
+- A modified response retains the original validated knowledge ID and uses the stable local `<knowledge>:variant:<agent>` identity. It cannot create registry entries, affordances, effects, or actions. Counterfactual agent snapshots now include knowledge history.
+- Schema remains v20 because the existing `knowledge_json` record already carries the required route, response, variant, and causal-parent fields. Focused 8D integration coverage passes 87 tests total (5 new plus 82 existing affected tests); the policy-triggered full suite passes 225 tests because shared world/event and counterfactual infrastructure changed.
 
 ## Active architectural concern
 
@@ -103,8 +107,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8C failure. Focused discovery/civilization/pressure/persistence coverage passes 75 tests. The risk-policy-triggered full suite passes 220 tests because 8C changes world RNG usage and schema.
+- No known Phase 8D failure. Focused knowledge-diffusion coverage passes 5 tests and 82 directly affected existing tests pass. The risk-policy-triggered full suite passes 225 tests because 8D changes shared interaction/development/event and counterfactual paths.
 
 ## Next logical task
 
-Implement Phase 8D only when instructed: spread validated knowledge through causal exposure with explicit recipient responses, without peer-training execution or institutional adoption. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8E only when instructed: let adopted knowledge unlock one bounded peer-training action through existing decision and training systems. Do not implement institutional adoption before 8F. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.

@@ -4,6 +4,7 @@ from dataclasses import dataclass, field, fields
 from typing import Iterable
 
 from playing_god.core.culture import CulturalState
+from playing_god.core.civilization import AgentKnowledgeState
 from playing_god.core.events import Event
 from playing_god.core.faith import Attribution
 from playing_god.core.intervention import (
@@ -90,6 +91,7 @@ class AgentSnapshot:
     destination: str | None
     lifecycle: LifecycleState
     culture: CulturalState
+    knowledge: AgentKnowledgeState
     social_ties: tuple[
         tuple[str, tuple[tuple[str, float], ...]],
         ...,
@@ -220,6 +222,7 @@ def snapshot_agents(world: World) -> tuple[AgentSnapshot, ...]:
                 destination=agent.destination,
                 lifecycle=agent.lifecycle,
                 culture=agent.culture,
+                knowledge=agent.knowledge,
                 social_ties=_social_ties(world, agent.id),
             )
         )

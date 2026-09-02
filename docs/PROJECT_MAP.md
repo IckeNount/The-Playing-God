@@ -163,24 +163,28 @@ school norm, not a generic ideology engine. Transmission consumes no world RNG.
 **Owns:** engine-defined base primitives, first-hand primitive exposure,
 bounded problem pressure and discovery eligibility, canonical candidate
 composition, costly seeded attempts, validated-knowledge identity, per-agent
-knowledge provenance, knowledge-backed affordance definitions, bounded effect
-validation, and cross-record integrity.
+knowledge provenance and causal diffusion, knowledge-backed affordance
+definitions, bounded effect validation, and cross-record integrity.
 
 **Entry points:**
 
 - `src/playing_god/core/civilization.py` — immutable primitive definitions,
   structured civilization/discovery state, deterministic pressure and
   eligibility rules, the peer-training candidate/validator, seeded-score
-  construction, lookup/signatures, JSON parsing, and integrity validation.
+  construction, deterministic knowledge responses and selection,
+  lookup/signatures, JSON parsing, and integrity validation.
 - `src/playing_god/core/agent.py` — per-agent knowledge, primitive exposure,
   and problem-pressure state.
 - `src/playing_god/core/world.py` — training-outcome integration, explicit
-  discovery-attempt resolution/costs, mutable civilization state, and read-only
-  eligibility/primitive access.
+  discovery-attempt resolution/costs, social and guardian knowledge exposure,
+  mutable civilization state, and read-only eligibility/primitive access.
+- `src/playing_god/core/counterfactual.py` — immutable agent snapshots include
+  local knowledge history.
 
 **Focused tests:** `tests/test_civilization.py`,
-`tests/test_problem_pressure.py`, `tests/test_discovery.py`, plus persistence
-and reproducibility coverage.
+`tests/test_problem_pressure.py`, `tests/test_discovery.py`,
+`tests/test_knowledge_diffusion.py`, plus persistence, culture, exposure, and
+counterfactual coverage.
 
 **Important boundary:** Schema v18 persists mutable knowledge and affordance
 state but rebuilds the three engine-owned peer-training primitives from code.
@@ -193,7 +197,13 @@ knowledge, affordance, diffusion, action use, or institutional adoption.
 Schema v20 adds resolved per-agent attempts. An explicit eligible call pays the
 experiment cost before validation; only structurally valid candidates consume
 the existing world RNG. Success creates validated world knowledge and a direct
-discoverer record, but no affordance or executable action.
+discoverer record. Phase 8D reuses successful social interactions and annual
+guardian development as the only current diffusion routes. The source must
+have adopted the validated entry on an earlier day; relationship-weighted
+accept/modify/reject responses consume no RNG, rejected exposure grants no
+knowledge, and modified variants retain the original knowledge ID and bounded
+registry effects. School diffusion remains unavailable until institutional
+adoption in 8F. No affordance or executable action exists yet.
 
 ## `social` — relationships and contact
 
@@ -401,4 +411,4 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–7 satisfy their roadmap exit conditions. Phase 8A provides only the persistent civilization representation; problem pressure, experiments, diffusion, new action execution, and institutional adoption remain unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8D now provide persistent civilization records, causal pressure, costly validated experiments, and local knowledge diffusion. Bounded action execution and institutional adoption remain unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.

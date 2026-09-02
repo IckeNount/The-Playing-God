@@ -8,7 +8,7 @@
 
 **Phase:** 8
 
-**Status:** Ready for step-by-step implementation after Phase 7
+**Status:** In progress — Phase 8D complete; Phase 8E is next
 
 **Canonical vision:** V0.2 + V0.2.2 + V0.2.3
 

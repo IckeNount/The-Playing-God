@@ -31,9 +31,11 @@ from playing_god.core.civilization import (
     compose_peer_training_candidate,
     discovery_attempt_score,
     discovery_eligibility,
+    knowledge_response,
     knowledge_signature,
     record_primitive_exposure,
     record_training_access_denial,
+    select_knowledge_for_exposure,
     validate_discovery_candidate,
 )
 from playing_god.core.decision import (
@@ -834,6 +836,13 @@ class World:
             ):
                 if guardian.lifecycle.alive:
                     self._transmit_cultural_claim(
+                        guardian,
+                        child,
+                        route="guardian",
+                        location=child.current_location,
+                        allow_repeat=True,
+                    )
+                    self._transmit_knowledge(
                         guardian,
                         child,
                         route="guardian",
@@ -1787,6 +1796,19 @@ class World:
                 location=interaction.location,
             )
 
+            self._transmit_knowledge(
+                first,
+                second,
+                route="social",
+                location=interaction.location,
+            )
+            self._transmit_knowledge(
+                second,
+                first,
+                route="social",
+                location=interaction.location,
+            )
+
             self._observe_employment(
                 first,
                 second,
@@ -1799,6 +1821,95 @@ class World:
             )
 
         return self.last_interactions
+
+    def _transmit_knowledge(
+        self,
+        source: Agent,
+        recipient: Agent,
+        *,
+        route: str,
+        location: str,
+        allow_repeat: bool = False,
+    ) -> KnowledgeEntry | None:
+        entry = select_knowledge_for_exposure(
+            source,
+            recipient,
+            self.civilization,
+            current_day=self.day,
+            allow_repeat=allow_repeat,
+        )
+        if entry is None:
+            return None
+
+        relationship = self.social.get_relationship(
+            recipient.id,
+            source.id,
+        ) or {}
+        influence, response, variant_id = knowledge_response(
+            recipient,
+            knowledge_id=entry.id,
+            route=route,
+            trust=relationship.get("trust", 0.0),
+            familiarity=relationship.get("familiarity", 0.0),
+        )
+        already_adopted = entry.id in {
+            record.knowledge_id
+            for record in recipient.knowledge.records
+            if record.response in {"accept", "modify"}
+        }
+        response_label = {
+            "accept": "Accepted",
+            "modify": "Modified",
+            "reject": "Rejected",
+        }[response]
+        exposure_event_index = self.record(
+            recipient,
+            "knowledge_exposed",
+            (
+                f"{response_label} {entry.id} from "
+                f"{source.name} via {route}; influence: "
+                f"{influence:.6f}"
+            ),
+            influence,
+            target_id=source.id,
+            location=location,
+        )
+        record = AgentKnowledgeRecord(
+            day=self.day,
+            knowledge_id=entry.id,
+            source_id=source.id,
+            route=route,
+            response=response,
+            variant_id=variant_id,
+            causal_parent_agent_id=recipient.id,
+            causal_parent_event_index=exposure_event_index,
+        )
+        recipient.knowledge = AgentKnowledgeState(records=tuple(sorted(
+            recipient.knowledge.records + (record,),
+            key=lambda item: (
+                item.day,
+                item.knowledge_id,
+                item.source_id,
+                item.route,
+            ),
+        )))
+        if response in {"accept", "modify"} and not already_adopted:
+            self.record(
+                recipient,
+                "knowledge_adopted",
+                (
+                    f"Adopted {entry.id} via {route}"
+                    + (
+                        f" as {variant_id}"
+                        if variant_id is not None
+                        else ""
+                    )
+                ),
+                influence,
+                target_id=source.id,
+                location=location,
+            )
+        return entry
 
     def _transmit_cultural_claim(
         self,

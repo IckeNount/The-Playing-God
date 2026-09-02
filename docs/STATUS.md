@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 8C is complete. An eligible agent can pay a visible experiment cost for the canonical peer-training candidate; deterministic validation rejects malformed candidates before RNG, while valid attempts use the world RNG and either fail or create discoverer-only validated knowledge. Schema v20 preserves resolved attempts; no affordance or peer-training action is available yet.
+**Current position:** Phase 8D is complete. Validated knowledge starts with its discoverer, then moves only through successful social contact or a permitted guardian-development checkpoint. Recipients deterministically accept, modify, or reject each exposure; rejection grants nothing, and no affordance or peer-training action is available yet.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | Causal pressure can now produce costly, validated or rejected discovery attempts; knowledge diffusion is the next gated milestone. |
+| 8 — Discovery and open-ended civilization | In Progress | Causal pressure can produce costly discoveries whose validated knowledge remains local and diffuses only through explicit social or guardian exposure. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8D — Knowledge Possession, Exposure, and Diffusion:
+Await instruction for Phase 8E — Bounded Action-Space Expansion:
 
-1. Spread validated knowledge only through existing causal exposure routes.
-2. Preserve explicit accept, modify, and reject outcomes without copying knowledge globally.
-3. Do not implement peer-training execution or institutional adoption early.
+1. Make the peer-training action available only to valid adopters with satisfied execution preconditions.
+2. Apply bounded teacher/learner costs and existing skill progression.
+3. Keep institutional adoption deferred to Phase 8F.
 
 ## Phase 7 Progress
 
@@ -70,7 +70,7 @@ Await instruction for Phase 8D — Knowledge Possession, Exposure, and Diffusion
 | 8A — Civilization registries | Complete | Three engine-owned learning primitives remain separate from schema-v18 world knowledge, per-agent knowledge records, and knowledge-backed affordances; strict validation prevents unknown effects, broken provenance, duplicates, and implicit action availability. |
 | 8B — Problem pressure | Complete | Exactly three first-hand school denials recognize bounded training-access pressure; only directly exposed, capable, resourced adults become eligible on a later day, without consuming RNG. |
 | 8C — Experiment and validation | Complete | Eligible agents pay existing money, energy, and stress costs before pure candidate validation; valid attempts resolve through the seeded world RNG into failure or discoverer-only knowledge, with no affordance created. |
-| 8D — Knowledge diffusion | Planned | Spread validated knowledge only through existing causal exposure routes. |
+| 8D — Knowledge diffusion | Complete | Discoverer-held knowledge moves through successful social contact or annual guardian exposure; deterministic accept/modify/reject history preserves lineage, causality, locality, and restart behavior. |
 | 8E — Affordance expansion | Planned | Let adopted knowledge unlock one bounded peer-training action. |
 | 8F — Institutionalization | Planned | Let the existing school adopt the procedure from sufficient causal evidence. |
 | 8G — Counterfactual exit gate | Planned | Prove persistence, replay, causal integrity, metrics, and changed later opportunity. |
