@@ -29,7 +29,7 @@ user approves / says proceed
 → inspect only the relevant current code
 → implement the current subphase
 → run focused tests
-→ run the full suite at milestone boundaries
+→ run the full suite only when the Section 9 override requires it
 → commit the completed subphase
 → report outcome, evidence, and next subphase
 ```
@@ -383,7 +383,7 @@ Prepare the smallest architecture boundary required for Phase 8 without changing
 
 ## Required work
 
-1. Verify the current clean baseline, schema version, and full suite.
+1. Verify the current clean baseline, schema version, and directly affected baseline tests.
 2. Locate current ownership of:
    - action availability and execution;
    - skill improvement and training costs;
@@ -409,7 +409,7 @@ Prepare the smallest architecture boundary required for Phase 8 without changing
 - Existing deterministic replay fixture remains identical.
 - Existing save/reload equivalence remains identical.
 - Existing counterfactual snapshot behavior remains identical.
-- Full pre-Phase-8 suite passes.
+- Directly affected pre-Phase-8 tests pass.
 
 ## Exit criteria
 
@@ -418,7 +418,7 @@ Prepare the smallest architecture boundary required for Phase 8 without changing
 ✓ Phase 8 domain owner identified
 ✓ world.py remains orchestration-focused for the new feature
 ✓ no speculative framework added
-✓ full suite green
+✓ directly affected baseline tests green
 ```
 
 ---
@@ -889,16 +889,34 @@ Metrics must be derived from authoritative state/events where practical. Do not 
 
 Tests must prove causal behavior, not maximize count.
 
-For each subphase, prefer the smallest set covering:
+### Phase 8 testing policy override
 
-```text
-one successful path
-one blocked or rejected path
-one determinism/persistence invariant where state changes
-one causal-integrity assertion where events are added
-```
+During each subphase:
 
-Use focused tests during implementation. Run the full suite at the end of every committed subphase or whenever shared core behavior changes.
+- Run only the directly affected test files.
+- Add the minimum tests proving:
+  1. one successful path;
+  2. one blocked or rejected path;
+  3. causal integrity;
+  4. persistence/determinism only when affected.
+- Do not duplicate invariants already covered elsewhere.
+- Do not run the full repository suite automatically.
+
+Run the full suite only when:
+
+- RNG or deterministic ordering changes;
+- shared world/action/event infrastructure changes;
+- persistence or schema changes;
+- a regression suggests wider impact;
+- Phase 8 reaches its final 8G exit gate.
+
+For isolated Phase 8 domain work, focused tests are sufficient. Do not optimize
+for test count.
+
+The focused-test lists under each subphase identify the behaviors that need
+evidence. They do not require separate or duplicate test cases when one focused
+scenario already proves multiple listed invariants or an invariant is already
+covered by an affected existing test.
 
 Do not add:
 
@@ -1004,7 +1022,7 @@ Phase 8X is complete.
 - Implemented: <compact behavior summary>
 - Causal proof: <what controlled test demonstrates>
 - Persistence/schema: <change or no change>
-- Tests: <focused and full-suite result>
+- Tests: <focused result; full-suite result only when the Section 9 override required it>
 - Scope guard: <important deferred/non-goal preserved>
 - Worktree: <clean or explain remaining user changes>
 - Next: <next named subphase; awaits user instruction>
