@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–8 are complete. Phase 8 closes with a controlled same-seed fork proving that one additional first-hand training denial can cause problem recognition, validated discovery, causal social diffusion, a second adopter, bounded peer training, and a `0.006` later-learner skill difference while the formal-access counterfactual has no discovery chain or affordance. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–8 and Phase 9A are complete. Existing per-agent event histories now project into deterministic bounded episodes without changing simulation state or RNG position. Phase 7F recurrence detection remains deferred because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -113,6 +113,9 @@ Phases 4–8 are complete. Phase 8 closes with a controlled same-seed fork provi
 - `snapshot_phase8()` now captures all mutable Phase 8 state: world knowledge/affordances, durable school evidence/adoption, and each agent's pressure/attempt and local knowledge history. Generic counterfactual agent snapshots and trajectory signatures now include discovery and knowledge, so Phase 8 divergence cannot remain invisible.
 - The bounded seed-1 exit fixture forks after day 3 with identical saved history. The discovery branch receives its third denial on day 4, validates on day 5, diffuses through a real day-6 interaction, and peer-trains on day 7; the counterfactual uses ordinary formal school access at the fork and never attempts discovery. Same-seed fresh execution and a save/reload after validation continue exactly.
 - Schema remains v22 because metrics and snapshots are derived. No performance harness exists, so Phase 8G added no benchmark framework. Directly affected coverage passes 99 tests and the required final full suite passes 236 tests.
+- Phase 9.0 freezes history as an offline, read-only projection over authoritative events and existing structured causal references. Phase 8 snapshots, metrics and trajectory signatures remain unchanged; history has no import path back into world execution.
+- Phase 9A adds frozen `HistoricalEpisode`, `HistoricalEventReference` and `ExplicitCausalReference` values. `episode-v1` groups only bounded explicit-link or shared-participant continuity in canonical `(day, agent_id, event_index)` order, with a three-day gap, seven-day duration and twelve-event cap. IDs are SHA-256 hashes of analysis version plus canonical source references; magnitude is the maximum stored event significance.
+- The A–B–C/D proof keeps a nearby unrelated event separate, real Phase 8 discovery indices remain distinguishable causal links, and repeated, fresh same-seed and save/reload extraction are identical without RNG or snapshot mutation. Focused tests pass 7, affected tests pass 32, the Phase 9A exit suite passes 243, and schema remains v22.
 
 ## Active architectural concern
 
@@ -120,8 +123,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8 failure. Directly affected Phase 8G coverage passes 99 tests; the required final full suite passes 236 tests.
+- No known Phase 9A failure. Focused coverage passes 7 tests, directly affected coverage passes 32 tests, and the required Phase 9A exit suite passes 243 tests.
 
 ## Next logical task
 
-Begin Phase 9 only when instructed and after confirming its research boundary. Use actual persisted histories for artificial-history analysis; do not revive recurrence detection until real separated adult generations exist.
+Await instruction for Phase 9B explicit causal tracing. Do not begin trajectory comparison or revive recurrence detection until their subphases are authorized and the evidence gate is met.

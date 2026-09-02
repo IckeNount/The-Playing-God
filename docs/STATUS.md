@@ -2,9 +2,9 @@
 
 **Updated:** 2026-09-03
 
-**Current phase:** Phase 8 — Complete
+**Current phase:** Phase 9 — Artificial History and Research Engine
 
-**Current position:** Phase 8G is complete. A controlled same-seed fork now proves the full problem → discovery → diffusion → adoption → peer-training chain and its absent counterfactual, with compact read-only metrics, complete Phase 8 snapshots, exact save/reload continuation, and schema v22 causal integrity.
+**Current position:** Phase 9A is complete. Existing per-agent events now project into deterministic, bounded historical episodes with stable source references, explicit discovery-causal references, participant continuity, and no simulation mutation or RNG use. Schema remains v22.
 
 ## Phase Progress
 
@@ -18,7 +18,8 @@
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
 | 8 — Discovery and open-ended civilization | Complete | A causal problem can produce validated knowledge, bounded action-space expansion, local diffusion, and prospective institutional opportunity with reproducible counterfactual evidence. |
-| 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
+| 9 — Artificial history and research | In progress | Phase 9A derives bounded historical episodes from authoritative events without changing the world. |
+| 10–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains evidence-gated and Phase 10 consciousness work remains out of scope. |
 
 ## Phase 5 Progress
 
@@ -41,11 +42,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 9 — Artificial History and Research Engine:
+Await instruction for Phase 9B — Explicit Causal History Trace:
 
-1. Preserve Phase 8 as the completed causal foundation.
-2. Design Phase 9 research questions against actual persisted histories.
-3. Re-evaluate recurrence only when real multi-adult-generation evidence exists.
+1. Preserve Phase 9A episodes as read-only association projections.
+2. Trace only explicit causal evidence already present in structured history.
+3. Do not begin trajectory comparison or recurrence detection without later authorization.
 
 ## Phase 7 Progress
 
@@ -74,6 +75,14 @@ Await instruction for Phase 9 — Artificial History and Research Engine:
 | 8E — Affordance expansion | Complete | Adopted knowledge can expose one decision-ranked peer-training action; execution revalidates local relationship, skill, and energy constraints, then applies lower-cost, lower-gain effects through the existing learning system. |
 | 8F — Institutionalization | Complete | Three successful peer-training uses observed at the existing school on distinct days create one evidence-linked adoption; only later school-access checkpoints can expose the procedure institutionally. |
 | 8G — Counterfactual exit gate | Complete | A saved day-3 fork stays identical before one access change; only the discovery branch recognizes the problem, validates and diffuses knowledge, executes peer training, and changes later skill/opportunity. Read-only metrics and exact replay close the phase. |
+
+## Phase 9 Progress
+
+| Step | Status | What it means |
+|---|---|---|
+| 9.0 — Research contract | Complete | History is a deterministic, offline, read-only projection over authoritative events and existing causal records; Phase 8 research structures remain unchanged. |
+| 9A — Historical episodes | Complete | Stable `(agent_id, event_index)` references form bounded participant/explicit-causal episodes; nearby unrelated events remain separate, and same-seed/save-reload extraction is exact. The focused suite passes 7 tests, affected coverage passes 32, the full exit suite passes 243, and schema remains v22. |
+| 9B — Explicit causal history trace | Awaiting authorization | No Phase 9B implementation has begun. |
 
 ## Documentation Guide
 

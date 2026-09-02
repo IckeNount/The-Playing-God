@@ -239,6 +239,28 @@ day-6 social exposure creates a second adopter, and day-7 peer training adds
 states or opportunities. Metrics scan authoritative records only on explicit
 request and consume no RNG. No benchmark harness existed, so none was added.
 
+## `artificial-history` — deterministic historical episodes
+
+**Owns:** read-only flattening of authoritative per-agent events, stable source
+references, bounded participant/causal association, deterministic episode
+identity and ordering, transparent magnitude, and preservation of existing
+discovery-causal references.
+
+**Entry points:**
+
+- `src/playing_god/core/history.py` — `HistoricalEpisode`, source and causal
+  references, source resolution, and bounded episode extraction.
+
+**Focused tests:** `tests/test_history.py`, plus the Phase 8 discovery and
+persistence proofs used by its explicit-reference and reload coverage.
+
+**Important boundary:** Episodes are query-time projections, not events or
+world state. The module is not imported by simulation execution, consumes no
+RNG, stores no duplicate event payload, and does not infer causality from
+participant overlap or chronology. `episode-v1` limits association to a
+three-day adjacent gap, seven-day total duration and twelve events. Schema
+remains v22.
+
 ## `social` — relationships and contact
 
 **Owns:** directed multidimensional relationships, social-event effects, co-location exposure detection, and probabilistic interaction resolution.
