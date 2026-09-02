@@ -218,7 +218,7 @@ class DiscoveryPersistenceTests(unittest.TestCase):
             version = conn.execute(
                 "SELECT schema_version FROM world_state WHERE id = 1"
             ).fetchone()[0]
-        self.assertEqual(version, 21)
+        self.assertEqual(version, 22)
 
 
 if __name__ == "__main__":

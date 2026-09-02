@@ -178,9 +178,10 @@ and cross-record integrity.
 - `src/playing_god/core/agent.py` — per-agent knowledge, primitive exposure,
   and problem-pressure state.
 - `src/playing_god/core/world.py` — training-outcome integration, explicit
-  discovery-attempt resolution/costs, social and guardian knowledge exposure,
-  peer-training target selection and action-time execution, mutable
-  civilization state, and read-only eligibility/primitive access.
+  discovery-attempt resolution/costs, social, guardian, and adopted-school
+  knowledge exposure, peer-training target selection and action-time
+  execution, school-observed evidence, mutable civilization state, and
+  read-only eligibility/primitive access.
 - `src/playing_god/core/decision.py` — includes peer training only when the
   world supplies an eligible affordance utility; learned preferences may rank
   but cannot create availability.
@@ -189,9 +190,9 @@ and cross-record integrity.
 
 **Focused tests:** `tests/test_civilization.py`,
 `tests/test_problem_pressure.py`, `tests/test_discovery.py`,
-`tests/test_knowledge_diffusion.py`, `tests/test_peer_training.py`, plus
-persistence, decision, adaptive-learning, institution, culture, exposure, and
-counterfactual coverage.
+`tests/test_knowledge_diffusion.py`, `tests/test_peer_training.py`,
+`tests/test_institutional_adoption.py`, plus persistence, decision,
+adaptive-learning, institution, culture, exposure, and counterfactual coverage.
 
 **Important boundary:** Schema v18 persists mutable knowledge and affordance
 state but rebuilds the three engine-owned peer-training primitives from code.
@@ -210,7 +211,7 @@ guardian development as the only current diffusion routes. The source must
 have adopted the validated entry on an earlier day; relationship-weighted
 accept/modify/reject responses consume no RNG, rejected exposure grants no
 knowledge, and modified variants retain the original knowledge ID and bounded
-registry effects. School diffusion remains unavailable until institutional
+registry effects. School diffusion was unavailable before institutional
 adoption in 8F.
 Phase 8E materializes exactly one canonical affordance when peer-training
 knowledge validates. An adopter can offer it only to a co-located, mutually
@@ -220,7 +221,12 @@ precondition, gives the learner a fixed `0.006` skill gain versus formal
 training's minimum `0.009`, consumes no money or school capacity, and records
 the teacher's exact knowledge-parent reference. Schema v21 upgrades prior
 schema-v20 peer-training knowledge with this derivable canonical affordance.
-Institutional adoption remains unavailable until 8F.
+Phase 8F adds one school-only institutionalization route. Three successful
+peer-training uses observed at school on distinct days create one adoption
+record linked to the evidence events and original discovery attempt. Schema
+v22 persists that state; from the adoption day onward, existing annual school
+access may expose later agents to the procedure. No generic institution or
+policy framework is introduced.
 
 ## `social` — relationships and contact
 
@@ -252,16 +258,26 @@ Institutional adoption remains unavailable until 8F.
 
 ## `school-institution` — capacity-limited training access
 
-**Owns:** the fixed school location/rule, one daily training slot, seeded first-attempt admission, daily reset, admission/denial traces, and read-only rule inspection.
+**Owns:** the fixed school location/rule, one daily training slot, seeded
+first-attempt admission, daily reset, admission/denial traces, read-only rule
+inspection, and one evidence-gated peer-training adoption.
 
 **Entry points:**
 
-- `src/playing_god/core/institution.py` — `SchoolState` and `SchoolSnapshot`.
-- `src/playing_god/core/world.py` — school-location eligibility, capacity checks, and `school_snapshot()`.
+- `src/playing_god/core/institution.py` — `SchoolState`, its read-only snapshot,
+  bounded adoption evidence/state, serialization, and causal validation.
+- `src/playing_god/core/world.py` — school-location eligibility, capacity
+  checks, adoption transition, annual institutional exposure, and
+  `school_snapshot()`.
 
-**Focused tests:** `tests/test_institution.py`, plus split/restart coverage in `tests/test_persistence.py`.
+**Focused tests:** `tests/test_institution.py`,
+`tests/test_institutional_adoption.py`, plus split/restart coverage in
+`tests/test_persistence.py`.
 
-**Important boundary:** School capacity is a fixed model rule; same-day usage is transient and resets at the next simulated day. Durable outcomes live in ordinary events, so the school itself required no schema change and no generic institution framework exists.
+**Important boundary:** School capacity remains a fixed model rule; same-day
+usage is transient and resets at the next simulated day. Schema v22 stores only
+the school's durable peer-training evidence and adoption. Adoption changes no
+past denial or development record and creates no generic institution framework.
 
 ## `information-diffusion` — contact-bound structured testimony
 
@@ -428,4 +444,12 @@ Fixtures are contracts, not generated output to refresh casually. Determine whet
 
 ## Planned but not implemented
 
-Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8E now provide persistent civilization records, causal pressure, costly validated experiments, local knowledge diffusion, and one bounded knowledge-dependent action. Institutional adoption remains unimplemented. Phase 7F recurrence detection is deferred to Phase 9 because no persisted multi-adult-generation dataset exists; no detector or manufactured fixture is part of the current source. External code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure remain deferred until an actual bottleneck or operational requirement exists.
+Phases 4–7 satisfy their roadmap exit conditions. Phase 8A–8F now provide
+persistent civilization records, causal pressure, costly validated experiments,
+local knowledge diffusion, one bounded knowledge-dependent action, and one
+evidence-gated school adoption route. Phase 8G's controlled counterfactual exit
+proof and metrics remain unimplemented. Phase 7F recurrence detection is
+deferred to Phase 9 because no persisted multi-adult-generation dataset exists;
+no detector or manufactured fixture is part of the current source. External
+code graphs, semantic memory, CI/CD, MLOps, containers, and cloud infrastructure
+remain deferred until an actual bottleneck or operational requirement exists.

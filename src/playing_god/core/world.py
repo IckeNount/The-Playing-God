@@ -18,6 +18,7 @@ from playing_god.core.civilization import (
     EXPERIMENT_MONEY_COST,
     EXPERIMENT_STRESS_COST,
     PEER_TRAIN_ACTION_ID,
+    PEER_TRAIN_AFFORDANCE,
     PEER_TRAIN_KNOWLEDGE_ID,
     TRAINING_ACCESS_PROBLEM_ID,
     AgentKnowledgeRecord,
@@ -35,6 +36,7 @@ from playing_god.core.civilization import (
     compose_peer_training_candidate,
     discovery_attempt_score,
     discovery_eligibility,
+    knowledge_entry,
     knowledge_response,
     knowledge_signature,
     peer_training_eligibility as evaluate_peer_training_eligibility,
@@ -109,7 +111,13 @@ from playing_god.core.intervention import (
     intervention_attention,
     intervention_confidence,
 )
-from playing_god.core.institution import SchoolSnapshot, SchoolState
+from playing_god.core.institution import (
+    SCHOOL_KNOWLEDGE_EVIDENCE_THRESHOLD,
+    SchoolKnowledgeAdoption,
+    SchoolKnowledgeEvidence,
+    SchoolSnapshot,
+    SchoolState,
+)
 from playing_god.core.lifecycle import (
     ANNUAL_DEPENDENT_SUPPORT,
     MIN_MORTALITY_AGE,
@@ -952,6 +960,7 @@ class World:
                         allow_repeat=True,
                     )
             self._transmit_school_culture(child)
+            self._transmit_school_knowledge(child)
 
             description = (
                 f"Reached age {age}: {record.stage}; "
@@ -2194,6 +2203,151 @@ class World:
             location=self.school.location,
         )
 
+    def _transmit_school_knowledge(
+        self,
+        child: Agent,
+    ) -> KnowledgeEntry | None:
+        development = child.development.records[-1]
+        adoption = self.school.knowledge_adoption
+        if (
+            not development.school_access
+            or adoption is None
+            or self.day < adoption.day
+        ):
+            return None
+        entry = knowledge_entry(
+            self.civilization,
+            adoption.knowledge_id,
+        )
+        if entry is None:
+            return None
+
+        school_years = sum(
+            item.school_access
+            for item in child.development.records
+        )
+        influence, response, variant_id = knowledge_response(
+            child,
+            knowledge_id=entry.id,
+            route="school",
+            trust=development.relationship_support,
+            familiarity=min(1.0, school_years / 4),
+        )
+        already_adopted = entry.id in {
+            record.knowledge_id
+            for record in child.knowledge.records
+            if record.response in {"accept", "modify"}
+        }
+        response_label = {
+            "accept": "Accepted",
+            "modify": "Modified",
+            "reject": "Rejected",
+        }[response]
+        exposure_event_index = self.record(
+            child,
+            "knowledge_exposed",
+            (
+                f"{response_label} {entry.id} from school; "
+                f"institutional adoption day: {adoption.day}; "
+                f"influence: {influence:.6f}"
+            ),
+            influence,
+            target_id=SCHOOL_SOURCE_ID,
+            location=self.school.location,
+        )
+        record = AgentKnowledgeRecord(
+            day=self.day,
+            knowledge_id=entry.id,
+            source_id=SCHOOL_SOURCE_ID,
+            route="school",
+            response=response,
+            variant_id=variant_id,
+            causal_parent_agent_id=child.id,
+            causal_parent_event_index=exposure_event_index,
+        )
+        child.knowledge = AgentKnowledgeState(records=tuple(sorted(
+            child.knowledge.records + (record,),
+            key=lambda item: (
+                item.day,
+                item.knowledge_id,
+                item.source_id,
+                item.route,
+            ),
+        )))
+        if response in {"accept", "modify"} and not already_adopted:
+            self.record(
+                child,
+                "knowledge_adopted",
+                (
+                    f"Adopted {entry.id} via school"
+                    + (
+                        f" as {variant_id}"
+                        if variant_id is not None
+                        else ""
+                    )
+                ),
+                influence,
+                target_id=SCHOOL_SOURCE_ID,
+                location=self.school.location,
+            )
+        return entry
+
+    def _observe_school_peer_training(
+        self,
+        teacher: Agent,
+        learner: Agent,
+        *,
+        knowledge_id: str,
+        teacher_event_index: int,
+    ) -> None:
+        if teacher.current_location != self.school.location:
+            return
+        entry = knowledge_entry(self.civilization, knowledge_id)
+        if (
+            entry is None
+            or entry.action_id != PEER_TRAIN_ACTION_ID
+            or affordance_definition(
+                self.civilization,
+                PEER_TRAIN_ACTION_ID,
+            ) != PEER_TRAIN_AFFORDANCE
+        ):
+            return
+        ready = self.school.observe_peer_training(
+            SchoolKnowledgeEvidence(
+                day=self.day,
+                knowledge_id=knowledge_id,
+                teacher_id=teacher.id,
+                learner_id=learner.id,
+                teacher_event_index=teacher_event_index,
+            )
+        )
+        if not ready:
+            return
+
+        origin = f"{entry.origin_agent_id}:{entry.origin_event_index}"
+        adoption_event_index = self.record(
+            teacher,
+            "institution_adoption",
+            (
+                f"School adopted {knowledge_id} after "
+                f"{SCHOOL_KNOWLEDGE_EVIDENCE_THRESHOLD} "
+                f"successful-use observations; origin: {origin}"
+            ),
+            0.85,
+            target_id=SCHOOL_SOURCE_ID,
+            location=self.school.location,
+        )
+        self.school.knowledge_adoption = SchoolKnowledgeAdoption(
+            day=self.day,
+            knowledge_id=knowledge_id,
+            action_id=entry.action_id,
+            origin_agent_id=entry.origin_agent_id,
+            origin_event_index=entry.origin_event_index,
+            evidence_count=len(self.school.knowledge_evidence),
+            adoption_agent_id=teacher.id,
+            adoption_event_index=adoption_event_index,
+        )
+
     def _observe_participation(
         self,
         observer: Agent,
@@ -2799,7 +2953,7 @@ class World:
                 f"{peer_training.knowledge_parent_event_index}"
             )
             variant = peer_training.variant_id or "original"
-            self.record(
+            teacher_event_index = self.record(
                 a,
                 "peer_training",
                 (
@@ -2822,6 +2976,12 @@ class World:
                 0.60,
                 target_id=a.id,
                 location=peer_learner.current_location,
+            )
+            self._observe_school_peer_training(
+                a,
+                peer_learner,
+                knowledge_id=peer_training.knowledge_id,
+                teacher_event_index=teacher_event_index,
             )
             if self.adaptive_cognition:
                 learn(

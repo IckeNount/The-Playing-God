@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 8E is complete. Validated peer-training knowledge now materializes one bounded affordance; only an adopter with sufficient skill, energy, co-location, and a mutually familiar lower-skill learner can select and execute it. Schema v21 migrates Phase 8C-era knowledge into the canonical affordance without changing RNG state.
+**Current position:** Phase 8F is complete. Three causally linked peer-training uses observed by the existing school on distinct days now trigger one deterministic institutional adoption. From that day onward, later agents with existing school access may encounter the adopted procedure through annual development. Schema v22 persists the evidence and adoption without changing RNG behavior.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | Causal discoveries remain local, diffuse through explicit exposure, and can now unlock one bounded knowledge-dependent action. |
+| 8 — Discovery and open-ended civilization | In Progress | One causal discovery can diffuse, unlock bounded peer training, and become prospective school state after sufficient observed evidence. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8F — Institutional Adoption and Inherited Opportunity:
+Await instruction for Phase 8G — Persistence, Counterfactual Proof, Metrics, and Exit Gate:
 
-1. Let the existing school adopt peer training only from sufficient causal evidence.
-2. Preserve explicit non-adoption and bounded institutional effects.
-3. Keep Phase 8G counterfactual closure deferred.
+1. Run the required same-seed discovery/counterfactual chain.
+2. Add only the bounded metrics needed to inspect Phase 8 history.
+3. Close Phase 8 without adding a second discovery domain.
 
 ## Phase 7 Progress
 
@@ -72,7 +72,7 @@ Await instruction for Phase 8F — Institutional Adoption and Inherited Opportun
 | 8C — Experiment and validation | Complete | Eligible agents pay existing money, energy, and stress costs before pure candidate validation; valid attempts resolve through the seeded world RNG into failure or discoverer-only knowledge, with no affordance created. |
 | 8D — Knowledge diffusion | Complete | Discoverer-held knowledge moves through successful social contact or annual guardian exposure; deterministic accept/modify/reject history preserves lineage, causality, locality, and restart behavior. |
 | 8E — Affordance expansion | Complete | Adopted knowledge can expose one decision-ranked peer-training action; execution revalidates local relationship, skill, and energy constraints, then applies lower-cost, lower-gain effects through the existing learning system. |
-| 8F — Institutionalization | Planned | Let the existing school adopt the procedure from sufficient causal evidence. |
+| 8F — Institutionalization | Complete | Three successful peer-training uses observed at the existing school on distinct days create one evidence-linked adoption; only later school-access checkpoints can expose the procedure institutionally. |
 | 8G — Counterfactual exit gate | Planned | Prove persistence, replay, causal integrity, metrics, and changed later opportunity. |
 
 ## Documentation Guide

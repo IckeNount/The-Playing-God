@@ -8,7 +8,7 @@
 
 **Phase:** 8
 
-**Status:** In progress — Phase 8E complete; Phase 8F is next
+**Status:** In progress — Phase 8F complete; Phase 8G is next
 
 **Canonical vision:** V0.2 + V0.2.2 + V0.2.3
 

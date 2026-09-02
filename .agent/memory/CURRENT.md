@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved through its brief and 8E is complete: adopted peer-training knowledge can now expose one bounded action through the ordinary decision engine, with deterministic target selection and action-time revalidation of knowledge, relationship, co-location, skill, and energy. Institutional adoption in 8F is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved through its brief and 8F is complete: the existing school adopts peer training only after three causally linked successful uses observed there on distinct days, then exposes the procedure prospectively through annual school access. Phase 8G's controlled counterfactual exit proof is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -105,6 +105,10 @@ Phases 4–7 are complete. Phase 8 is approved through its brief and 8E is compl
 - `peer_train` enters the ordinary weighted chooser only when a valid target exists. Learned preferences can rank it but cannot make it available. Execution rechecks eligibility, stays at the causal shared location, spends teacher/learner energy, grants the learner a fixed `0.006` skill gain, consumes no money or school capacity, and records the source knowledge plus exact teacher adoption-parent reference on both participants.
 - Adaptive worlds feed the learner's outcome into the existing `improve_skill/train` consequence signal; the acting teacher remains subject to the ordinary contextual action-learning wrapper. No second skill or feedback system was added.
 - Focused 8E and directly affected integration coverage passes 82 tests. The policy-triggered full suite passes 230 tests because action availability, deterministic choice ordering, shared world execution, adaptive persistence, and schema changed.
+- Phase 8F reuses the existing school rather than adding an institution framework. Only successful `peer_train` events at school count, at most once per simulated day; three distinct evidence days deterministically create one adoption linked both to those events and the validated knowledge's original discovery attempt. Uses elsewhere and fewer than three evidence days preserve explicit non-adoption.
+- School adoption is prospective: annual development with actual school access may create a deterministic school-route knowledge response only on or after the adoption day. It does not rewrite earlier denials, development, or knowledge. Rejection remains possible through the existing accept/modify/reject response thresholds, and no RNG draw is added.
+- Schema v22 stores only durable school evidence and adoption in `world_state.school_json`; daily capacity counters remain transient. Schema-v21 and older worlds load empty institutional state without reconstruction or RNG changes and migrate on save. Causal validation checks the successful-use events, adopter knowledge, canonical affordance, adoption event, original discovery identity, and later school-access exposure.
+- Focused 8F and directly affected integration coverage passes 78 tests. The policy-triggered full suite passes 234 tests because shared world/development/event behavior and persistence schema changed.
 
 ## Active architectural concern
 
@@ -112,8 +116,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8E failure. Focused and directly affected coverage passes 82 tests; the risk-policy-triggered full suite passes 230 tests.
+- No known Phase 8F failure. Focused and directly affected coverage passes 78 tests; the risk-policy-triggered full suite passes 234 tests.
 
 ## Next logical task
 
-Implement Phase 8F only when instructed: allow the existing school to adopt peer training from sufficient causal evidence, with explicit non-adoption and bounded opportunity changes. Keep Phase 8G counterfactual closure and recurrence analysis deferred until their gates.
+Implement Phase 8G only when instructed: prove the complete Phase 8 chain with a same-seed counterfactual, bounded metrics, persistence, and causal integrity. Do not add a second discovery domain; keep recurrence analysis deferred to Phase 9.

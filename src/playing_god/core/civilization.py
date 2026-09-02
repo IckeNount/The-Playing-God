@@ -7,7 +7,7 @@ import math
 import re
 from typing import TYPE_CHECKING
 
-from playing_god.core.culture import cultural_response
+from playing_god.core.culture import SCHOOL_SOURCE_ID, cultural_response
 
 if TYPE_CHECKING:
     from playing_god.core.agent import Agent
@@ -17,8 +17,12 @@ _IDENTIFIER = re.compile(r"^[a-z][a-z0-9_.:-]*$")
 
 KNOWLEDGE_STATUS = "validated"
 KNOWLEDGE_RESPONSES = frozenset({"accept", "modify", "reject"})
-KNOWLEDGE_ROUTES = frozenset({"discovery", "guardian", "social"})
-KNOWLEDGE_EXPOSURE_ROUTES = frozenset({"guardian", "social"})
+KNOWLEDGE_ROUTES = frozenset(
+    {"discovery", "guardian", "school", "social"}
+)
+KNOWLEDGE_EXPOSURE_ROUTES = frozenset(
+    {"guardian", "school", "social"}
+)
 KNOWLEDGE_SOURCE_CONFIDENCE = 0.90
 
 AFFORDANCE_AVAILABILITY = "knowledge_required"
@@ -1446,6 +1450,7 @@ def validate_civilization_links(
     agents: list[Agent],
     *,
     current_day: int,
+    school=None,
 ) -> None:
     validate_civilization_state(state)
     agents_by_id = {agent.id: agent for agent in agents}
@@ -1523,6 +1528,40 @@ def validate_civilization_links(
                 ):
                     raise ValueError(
                         "Invalid discoverer knowledge record."
+                    )
+                continue
+
+            if record.route == "school":
+                adoption = (
+                    school.knowledge_adoption
+                    if school is not None
+                    else None
+                )
+                if (
+                    adoption is None
+                    or adoption.knowledge_id != record.knowledge_id
+                    or record.day < adoption.day
+                    or record.source_id != SCHOOL_SOURCE_ID
+                    or record.causal_parent_agent_id != agent.id
+                    or parent.kind != "knowledge_exposed"
+                    or parent.day != record.day
+                    or parent.target_id != SCHOOL_SOURCE_ID
+                    or not any(
+                        development.day == record.day
+                        and development.school_access
+                        for development in agent.development.records
+                    )
+                ):
+                    raise ValueError("Invalid school knowledge link.")
+                if (
+                    record.response == "modify"
+                    and record.variant_id != knowledge_variant_id(
+                        record.knowledge_id,
+                        agent.id,
+                    )
+                ):
+                    raise ValueError(
+                        "Invalid knowledge variant lineage."
                     )
                 continue
 

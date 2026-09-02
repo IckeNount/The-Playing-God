@@ -296,7 +296,7 @@ class PeerTrainingTests(unittest.TestCase):
                     "SELECT schema_version FROM world_state WHERE id = 1"
                 ).fetchone()[0]
 
-        self.assertEqual(version, 21)
+        self.assertEqual(version, 22)
         self.assertEqual(
             reloaded.civilization.affordances,
             (PEER_TRAIN_AFFORDANCE,),

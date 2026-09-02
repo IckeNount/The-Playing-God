@@ -47,7 +47,13 @@ from playing_god.core.intervention import (
     Intervention,
     InterventionResponse,
 )
-from playing_god.core.institution import SchoolState
+from playing_god.core.institution import (
+    SchoolState,
+    school_state_from_data,
+    school_state_to_data,
+    validate_school_links,
+    validate_school_state,
+)
 from playing_god.core.lifecycle import (
     lifecycle_state_from_data,
     validate_lifecycle_links,
@@ -70,7 +76,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 21
+SCHEMA_VERSION = 22
 
 
 class PersistenceError(RuntimeError):
@@ -95,7 +101,9 @@ CREATE TABLE IF NOT EXISTS world_state (
     lifecycle_enabled INTEGER NOT NULL DEFAULT 0
         CHECK (lifecycle_enabled IN (0, 1)),
     civilization_json TEXT NOT NULL DEFAULT
-        '{"knowledge": [], "affordances": []}'
+        '{"knowledge": [], "affordances": []}',
+    school_json TEXT NOT NULL DEFAULT
+        '{"knowledge_evidence": [], "knowledge_adoption": null}'
 );
 
 CREATE TABLE IF NOT EXISTS economy_state (
@@ -663,6 +671,24 @@ def _migrate_discovery_state_to_v19(
         )
 
 
+def _migrate_school_state_to_v22(
+    conn: sqlite3.Connection,
+) -> None:
+    world_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(world_state)"
+        ).fetchall()
+    }
+    if "school_json" not in world_columns:
+        conn.execute(
+            "ALTER TABLE world_state ADD COLUMN "
+            "school_json TEXT NOT NULL DEFAULT "
+            "'{\"knowledge_evidence\": [], "
+            "\"knowledge_adoption\": null}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -818,6 +844,10 @@ def _save_world_state(
         raise PersistenceError(
             "Invalid civilization state."
         ) from exc
+    try:
+        validate_school_state(world.school)
+    except ValueError as exc:
+        raise PersistenceError("Invalid school state.") from exc
 
     existing = conn.execute(
         """
@@ -848,9 +878,10 @@ def _save_world_state(
             adaptive_cognition,
             reproduction_enabled,
             lifecycle_enabled,
-            civilization_json
+            civilization_json,
+            school_json
         )
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
         ON CONFLICT(id)
         DO UPDATE SET
@@ -861,7 +892,8 @@ def _save_world_state(
             adaptive_cognition = excluded.adaptive_cognition,
             reproduction_enabled = excluded.reproduction_enabled,
             lifecycle_enabled = excluded.lifecycle_enabled,
-            civilization_json = excluded.civilization_json
+            civilization_json = excluded.civilization_json,
+            school_json = excluded.school_json
         """,
         (
             SCHEMA_VERSION,
@@ -872,6 +904,7 @@ def _save_world_state(
             int(world.reproduction_enabled),
             int(world.lifecycle_enabled),
             json.dumps(asdict(world.civilization), sort_keys=True),
+            json.dumps(school_state_to_data(world.school), sort_keys=True),
         ),
     )
     _migrate_relationships_to_v2(conn)
@@ -914,11 +947,22 @@ def _save_agents(
             world.civilization,
             world.agents,
             current_day=world.day,
+            school=world.school,
         )
     except ValueError as exc:
         raise PersistenceError(
             "Invalid civilization links."
         ) from exc
+
+    try:
+        validate_school_links(
+            world.school,
+            world.civilization,
+            world.agents,
+            current_day=world.day,
+        )
+    except ValueError as exc:
+        raise PersistenceError("Invalid school links.") from exc
 
     try:
         validate_discovery_links(
@@ -1804,6 +1848,7 @@ def save_world(
             _migrate_cultural_state_to_v17(conn)
             _migrate_civilization_state_to_v18(conn)
             _migrate_discovery_state_to_v19(conn)
+            _migrate_school_state_to_v22(conn)
 
             _save_world_state(
                 conn,
@@ -3049,6 +3094,7 @@ def load_world(
                 18,
                 19,
                 20,
+                21,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -3102,6 +3148,9 @@ def load_world(
             has_attempt_state = (
                 state["schema_version"] >= 20
             )
+            has_school_state = (
+                state["schema_version"] >= 22
+            )
 
             if (
                 has_adaptive_state
@@ -3144,6 +3193,11 @@ def load_world(
                     "Civilization schema is missing world state."
                 )
 
+            if has_school_state and "school_json" not in state.keys():
+                raise WorldLoadError(
+                    "School schema is missing world state."
+                )
+
             civilization = CivilizationState()
             if has_civilization_state:
                 try:
@@ -3163,6 +3217,21 @@ def load_world(
                 ) as exc:
                     raise WorldLoadError(
                         "Invalid civilization state."
+                    ) from exc
+
+            school = SchoolState()
+            if has_school_state:
+                try:
+                    school = school_state_from_data(
+                        json.loads(state["school_json"])
+                    )
+                except (
+                    json.JSONDecodeError,
+                    TypeError,
+                    ValueError,
+                ) as exc:
+                    raise WorldLoadError(
+                        "Invalid school state."
                     ) from exc
 
             if has_perception_state:
@@ -3250,10 +3319,24 @@ def load_world(
                         civilization,
                         agents,
                         current_day=state["day"],
+                        school=school,
                     )
                 except ValueError as exc:
                     raise WorldLoadError(
                         "Invalid civilization links."
+                    ) from exc
+
+            if has_school_state:
+                try:
+                    validate_school_links(
+                        school,
+                        civilization,
+                        agents,
+                        current_day=state["day"],
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid school links."
                     ) from exc
 
             if has_discovery_state:
@@ -3350,7 +3433,7 @@ def load_world(
             )
             world.agents = agents
             world.economy = economy
-            world.school = SchoolState()
+            world.school = school
             world.interventions = interventions
             world.intervention_responses = intervention_responses
             world.information_items = []

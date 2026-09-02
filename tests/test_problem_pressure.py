@@ -270,7 +270,7 @@ class ProblemPressurePersistenceTests(unittest.TestCase):
                 for row in conn.execute("PRAGMA table_info(agents)")
             }
 
-        self.assertEqual(schema_version, 21)
+        self.assertEqual(schema_version, 22)
         self.assertIn("discovery_json", columns)
 
 
