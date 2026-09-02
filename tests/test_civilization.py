@@ -235,7 +235,7 @@ class CivilizationPersistenceTests(unittest.TestCase):
         self.assertEqual(loaded.base_primitives, BASE_PRIMITIVES)
         self.assertEqual(loaded.rng.getstate(), expected_rng_state)
 
-    def test_schema17_loads_empty_state_and_migrates_to_18(self):
+    def test_schema17_loads_empty_state_and_migrates_to_current(self):
         world = World(seed=31, population=2)
         save_world(world, self.db_path)
         expected_rng_state = world.rng.getstate()
@@ -281,7 +281,7 @@ class CivilizationPersistenceTests(unittest.TestCase):
                 )
             }
 
-        self.assertEqual(schema_version, 18)
+        self.assertEqual(schema_version, 19)
         self.assertIn("civilization_json", world_columns)
         self.assertIn("knowledge_json", agent_columns)
 

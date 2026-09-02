@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–7 are complete. Phase 8 is approved and 8A is complete: schema v18 persists the bounded civilization representation, and 8B causal problem pressure is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
+Phases 4–7 are complete. Phase 8 is approved through its brief and 8B is complete: schema v19 persists bounded first-hand primitive exposure and training-access pressure, while deterministic discovery eligibility creates no attempt or affordance. Phase 8C experimentation is the next gated milestone. Phase 7F recurrence detection remains deferred to Phase 9 because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -90,6 +90,9 @@ Phases 4–7 are complete. Phase 8 is approved and 8A is complete: schema v18 pe
 - Generic events currently have no explicit causal-parent field; existing provenance uses domain records, stable evidence identities, or frozen event indices. Keep Phase 8 discovery provenance in its concrete domain records unless a later acceptance test demonstrates that a generic event migration is necessary.
 - Phase 8A added `core/civilization.py` with exactly three immutable learning primitives (`demonstration`, `feedback`, `shared_practice`), canonical SHA-256 discovery signatures, checked validated-knowledge and knowledge-backed-affordance records, a small numeric effect whitelist, and per-agent knowledge provenance. New worlds start with empty mutable civilization/agent knowledge state, and no decision or action path consumes the registry.
 - Schema v18 stores mutable world civilization state in `world_state.civilization_json` and agent knowledge in `agents.knowledge_json`; engine primitive definitions are rebuilt from code. Schema-v17 worlds load honest empty defaults without RNG draws and migrate on the next save. Knowledge origins reuse stable persisted `(agent_id, event_index)` references to `discovery_attempted` events rather than changing the generic event schema.
+- Phase 8B updates pressure only at the two existing school-denial return paths: off-site and exhausted capacity. Each agent retains at most eight first-hand denial references; the third denial emits one recognition event. A successful admitted training event records one direct exposure to each required peer-learning primitive. Bystanders receive neither state.
+- `World.discovery_eligibility()` is read-only and deterministic. Eligibility requires a recognized unresolved pressure, a later day, living non-dependent adulthood, skill at least `0.35`, energy at least `0.35`, money at least the existing seven-unit training cost, and direct exposure to all three primitives. It consumes no RNG and creates no attempt, candidate, knowledge, affordance, or action.
+- Schema v19 persists per-agent discovery state in `agents.discovery_json`. Schema-v18 worlds load empty discovery state without reconstruction or RNG draws and migrate on save; causal link validation rejects missing/mismatched admission, denial, and recognition events.
 
 ## Active architectural concern
 
@@ -97,8 +100,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 8A failure. The full suite passes 205 tests.
+- No known Phase 8B failure. The full suite passes 216 tests.
 
 ## Next logical task
 
-Implement Phase 8B only when instructed: derive bounded problem pressure from experienced training-access evidence without creating attempts or affordances early. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.
+Implement Phase 8C only when instructed: add costly structured discovery attempts and engine-owned validation without diffusion, peer-training execution, or institutional adoption. Keep recurrence analysis deferred to Phase 9 until real persisted histories contain multiple adult generations.

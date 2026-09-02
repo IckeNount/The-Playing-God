@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 8 — In Progress
 
-**Current position:** Phase 8A is complete. Schema v18 now preserves a minimal controlled civilization layer: three engine-owned peer-training primitives, world-level validated knowledge and affordances, and per-agent knowledge records. No discovery mechanics or new action behavior exists yet.
+**Current position:** Phase 8B is complete. Repeated first-hand school denials now create bounded per-agent training-access pressure, and deterministic eligibility requires recognized unresolved pressure, direct primitive exposure, adult status, skill, resources, and a later day. Schema v19 preserves this state; no discovery attempt or new affordance exists yet.
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@
 | 5 — Belief, intervention, and counterfactual fate | Complete | Same-seed baseline and intervention timelines produce traceable, reproducible trajectory comparisons. |
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
-| 8 — Discovery and open-ended civilization | In Progress | The minimal civilization registries persist safely; causal problem pressure is the next gated milestone. |
+| 8 — Discovery and open-ended civilization | In Progress | Minimal civilization registries and causal discovery eligibility persist safely; experimentation is the next gated milestone. |
 | 9–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains deferred until Phase 9 has real multi-adult-generation evidence. |
 
 ## Phase 5 Progress
@@ -41,11 +41,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 8B — Causal Problem Pressure and Discovery Eligibility:
+Await instruction for Phase 8C — Experimentation, Candidate Composition, and Validation:
 
-1. Derive bounded training-access pressure only from evidence experienced by the affected agent.
-2. Do not create discovery attempts, diffusion, peer-training execution, or institutional adoption early.
-3. Preserve the schema-v18 registry integrity and the completed Phase 7 behavior.
+1. Let an eligible proposer pay a visible cost for one structured attempt that can fail or succeed under seeded resolution.
+2. Keep candidate composition tiny and engine-owned; success may create discoverer knowledge but must not unlock global action use.
+3. Do not implement diffusion, peer-training execution, or institutional adoption early.
 
 ## Phase 7 Progress
 
@@ -68,7 +68,7 @@ Await instruction for Phase 8B — Causal Problem Pressure and Discovery Eligibi
 |---|---|---|
 | 8.0 — Entry boundary | Complete | The approved brief, schema-v17 baseline, 197-test suite, subsystem ownership, and behavior-preserving seam were verified; no runtime abstraction or RNG change was introduced. |
 | 8A — Civilization registries | Complete | Three engine-owned learning primitives remain separate from schema-v18 world knowledge, per-agent knowledge records, and knowledge-backed affordances; strict validation prevents unknown effects, broken provenance, duplicates, and implicit action availability. |
-| 8B — Problem pressure | Planned | Derive discovery eligibility from repeated, causally experienced training constraints. |
+| 8B — Problem pressure | Complete | Exactly three first-hand school denials recognize bounded training-access pressure; only directly exposed, capable, resourced adults become eligible on a later day, without consuming RNG. |
 | 8C — Experiment and validation | Planned | Resolve costly structured attempts through an engine-owned validator. |
 | 8D — Knowledge diffusion | Planned | Spread validated knowledge only through existing causal exposure routes. |
 | 8E — Affordance expansion | Planned | Let adopted knowledge unlock one bounded peer-training action. |

@@ -17,10 +17,12 @@ from playing_god.core.adaptive import (
 from playing_god.core.agent import Agent
 from playing_god.core.civilization import (
     CivilizationState,
+    agent_discovery_state_from_data,
     agent_knowledge_state_from_data,
     civilization_state_from_data,
     validate_civilization_links,
     validate_civilization_state,
+    validate_discovery_links,
 )
 from playing_god.core.culture import (
     cultural_state_from_data,
@@ -67,7 +69,7 @@ from playing_god.core.rng import (
 from playing_god.core.world import World
 
 
-SCHEMA_VERSION = 18
+SCHEMA_VERSION = 19
 
 
 class PersistenceError(RuntimeError):
@@ -131,7 +133,9 @@ CREATE TABLE IF NOT EXISTS agents (
     development_json TEXT NOT NULL DEFAULT '{"records": []}',
     lifecycle_json TEXT NOT NULL DEFAULT '{}',
     culture_json TEXT NOT NULL DEFAULT '{"records": []}',
-    knowledge_json TEXT NOT NULL DEFAULT '{"records": []}'
+    knowledge_json TEXT NOT NULL DEFAULT '{"records": []}',
+    discovery_json TEXT NOT NULL DEFAULT
+        '{"primitive_exposures": [], "pressures": []}'
 );
 
 CREATE TABLE IF NOT EXISTS relationships (
@@ -640,6 +644,24 @@ def _migrate_civilization_state_to_v18(
         )
 
 
+def _migrate_discovery_state_to_v19(
+    conn: sqlite3.Connection,
+) -> None:
+    agent_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(agents)"
+        ).fetchall()
+    }
+    if "discovery_json" not in agent_columns:
+        conn.execute(
+            "ALTER TABLE agents ADD COLUMN "
+            "discovery_json TEXT NOT NULL "
+            "DEFAULT '{\"primitive_exposures\": [], "
+            "\"pressures\": []}'"
+        )
+
+
 def _validate_tables(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """
@@ -898,6 +920,16 @@ def _save_agents(
         ) from exc
 
     try:
+        validate_discovery_links(
+            world.agents,
+            current_day=world.day,
+        )
+    except ValueError as exc:
+        raise PersistenceError(
+            "Invalid discovery links."
+        ) from exc
+
+    try:
         validate_family_links(
             world.agents,
             current_day=world.day,
@@ -968,10 +1000,11 @@ def _save_agents(
                 development_json,
                 lifecycle_json,
                 culture_json,
-                knowledge_json
+                knowledge_json,
+                discovery_json
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(id)
@@ -1000,7 +1033,8 @@ def _save_agents(
                 development_json = excluded.development_json,
                 lifecycle_json = excluded.lifecycle_json,
                 culture_json = excluded.culture_json,
-                knowledge_json = excluded.knowledge_json
+                knowledge_json = excluded.knowledge_json,
+                discovery_json = excluded.discovery_json
             """,
             (
                 agent.id,
@@ -1045,6 +1079,7 @@ def _save_agents(
                 json.dumps(asdict(agent.lifecycle), sort_keys=True),
                 json.dumps(asdict(agent.culture), sort_keys=True),
                 json.dumps(asdict(agent.knowledge), sort_keys=True),
+                json.dumps(asdict(agent.discovery), sort_keys=True),
             ),
         )
 
@@ -1767,6 +1802,7 @@ def save_world(
             _migrate_lifecycle_state_to_v16(conn)
             _migrate_cultural_state_to_v17(conn)
             _migrate_civilization_state_to_v18(conn)
+            _migrate_discovery_state_to_v19(conn)
 
             _save_world_state(
                 conn,
@@ -1921,6 +1957,7 @@ def _load_agents(
     require_lifecycle_state: bool = False,
     require_cultural_state: bool = False,
     require_knowledge_state: bool = False,
+    require_discovery_state: bool = False,
 ) -> list[Agent]:
     columns = {
         row["name"]
@@ -1994,6 +2031,15 @@ def _load_agents(
         require_knowledge_state
         and has_knowledge_column
     )
+    has_discovery_column = "discovery_json" in columns
+    if require_discovery_state and not has_discovery_column:
+        raise WorldLoadError(
+            "Discovery schema is missing agent state."
+        )
+    has_discovery_state = (
+        require_discovery_state
+        and has_discovery_column
+    )
 
     rows = conn.execute(
         """
@@ -2053,6 +2099,10 @@ def _load_agents(
             knowledge_data = json.loads(
                 row["knowledge_json"]
             ) if has_knowledge_state else None
+
+            discovery_data = json.loads(
+                row["discovery_json"]
+            ) if has_discovery_state else None
 
         except (json.JSONDecodeError, TypeError) as exc:
             raise WorldLoadError(
@@ -2150,6 +2200,16 @@ def _load_agents(
             except (TypeError, ValueError) as exc:
                 raise WorldLoadError(
                     "Invalid knowledge state for agent "
+                    f"{agent.id}."
+                ) from exc
+        if discovery_data is not None:
+            try:
+                agent.discovery = agent_discovery_state_from_data(
+                    discovery_data
+                )
+            except (TypeError, ValueError) as exc:
+                raise WorldLoadError(
+                    "Invalid discovery state for agent "
                     f"{agent.id}."
                 ) from exc
         if culture_data is not None:
@@ -2971,6 +3031,7 @@ def load_world(
                 15,
                 16,
                 17,
+                18,
                 SCHEMA_VERSION,
             ):
                 raise WorldLoadError(
@@ -3017,6 +3078,9 @@ def load_world(
             )
             has_civilization_state = (
                 state["schema_version"] >= 18
+            )
+            has_discovery_state = (
+                state["schema_version"] >= 19
             )
 
             if (
@@ -3103,6 +3167,7 @@ def load_world(
                 require_knowledge_state=(
                     has_civilization_state
                 ),
+                require_discovery_state=has_discovery_state,
             )
             if has_family_state:
                 try:
@@ -3162,6 +3227,17 @@ def load_world(
                 except ValueError as exc:
                     raise WorldLoadError(
                         "Invalid civilization links."
+                    ) from exc
+
+            if has_discovery_state:
+                try:
+                    validate_discovery_links(
+                        agents,
+                        current_day=state["day"],
+                    )
+                except ValueError as exc:
+                    raise WorldLoadError(
+                        "Invalid discovery links."
                     ) from exc
 
             if has_perception_state:

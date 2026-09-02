@@ -16,6 +16,11 @@ from playing_god.core.civilization import (
     BASE_PRIMITIVES,
     BasePrimitive,
     CivilizationState,
+    DiscoveryEligibility,
+    PROBLEM_RECOGNITION_THRESHOLD,
+    discovery_eligibility,
+    record_primitive_exposure,
+    record_training_access_denial,
 )
 from playing_god.core.decision import (
     belonging_need,
@@ -331,6 +336,25 @@ class World:
 
     def collective_snapshot(self) -> CollectiveSnapshot:
         return build_collective_snapshot(self.living_agents())
+
+    def discovery_eligibility(
+        self,
+        agent_id: str,
+    ) -> DiscoveryEligibility:
+        agent = next(
+            (
+                item
+                for item in self.agents
+                if item.id == agent_id
+            ),
+            None,
+        )
+        if agent is None:
+            raise ValueError("Unknown discovery agent")
+        return discovery_eligibility(
+            agent,
+            current_day=self.day,
+        )
 
     def reproduction_eligibility(
         self,
@@ -1323,7 +1347,8 @@ class World:
         *,
         target_id: str | None = None,
         location: str | None = None,
-    ) -> None:
+    ) -> int:
+        event_index = len(a.events)
         a.events.append(
             Event(
                 day=self.day,
@@ -1334,6 +1359,45 @@ class World:
                 location=location,
             )
         )
+        return event_index
+
+    def _record_training_denial(
+        self,
+        a: Agent,
+        description: str,
+        significance: float,
+        *,
+        reason: str,
+        location: str,
+    ) -> None:
+        event_index = self.record(
+            a,
+            "institution",
+            description,
+            significance,
+            location=location,
+        )
+        a.discovery, newly_recognized = (
+            record_training_access_denial(
+                a.discovery,
+                agent_id=a.id,
+                day=self.day,
+                event_index=event_index,
+                reason=reason,
+                recognition_event_index=len(a.events),
+            )
+        )
+        if newly_recognized:
+            self.record(
+                a,
+                "problem_pressure_recognized",
+                (
+                    "Recognized repeated training-access pressure "
+                    f"after {PROBLEM_RECOGNITION_THRESHOLD} denials"
+                ),
+                0.60,
+                location=location,
+            )
 
     def update_goal(self, a: Agent) -> None:
         if a.lifecycle.retired:
@@ -2214,15 +2278,15 @@ class World:
 
         elif action == "train":
             if a.current_location != self.school.location:
-                self.record(
+                self._record_training_denial(
                     a,
-                    "institution",
                     (
                         "School denied training: agent is "
                         f"not at school; current location: "
                         f"{a.current_location}"
                     ),
                     0.25,
+                    reason="not_at_school",
                     location=a.current_location,
                 )
                 a.normalize()
@@ -2230,21 +2294,21 @@ class World:
 
             admission_slot = self.school.admit_training(self.day)
             if admission_slot is None:
-                self.record(
+                self._record_training_denial(
                     a,
-                    "institution",
                     (
                         "School denied training: daily capacity "
                         f"{self.school.daily_training_capacity} "
                         "exhausted"
                     ),
                     0.35,
+                    reason="capacity_exhausted",
                     location=self.school.location,
                 )
                 a.normalize()
                 return
 
-            self.record(
+            admission_event_index = self.record(
                 a,
                 "institution",
                 (
@@ -2253,6 +2317,12 @@ class World:
                 ),
                 0.30,
                 location=self.school.location,
+            )
+            a.discovery = record_primitive_exposure(
+                a.discovery,
+                agent_id=a.id,
+                day=self.day,
+                event_index=admission_event_index,
             )
             before = a.skill
 
