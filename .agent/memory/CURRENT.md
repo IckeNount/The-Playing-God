@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–8 and Phase 9A are complete. Existing per-agent event histories now project into deterministic bounded episodes without changing simulation state or RNG position. Phase 7F recurrence detection remains deferred because the repository has no persisted multi-adult-generation dataset.
+Phases 4–8 and Phase 9A–9B are complete. Existing event histories now project into deterministic bounded episodes and explicit bidirectional causal traces without changing simulation state or RNG position. Phase 7F recurrence detection remains deferred because the repository has no persisted multi-adult-generation dataset.
 
 ## Recent completed work
 
@@ -116,6 +116,9 @@ Phases 4–8 and Phase 9A are complete. Existing per-agent event histories now p
 - Phase 9.0 freezes history as an offline, read-only projection over authoritative events and existing structured causal references. Phase 8 snapshots, metrics and trajectory signatures remain unchanged; history has no import path back into world execution.
 - Phase 9A adds frozen `HistoricalEpisode`, `HistoricalEventReference` and `ExplicitCausalReference` values. `episode-v1` groups only bounded explicit-link or shared-participant continuity in canonical `(day, agent_id, event_index)` order, with a three-day gap, seven-day duration and twelve-event cap. IDs are SHA-256 hashes of analysis version plus canonical source references; magnitude is the maximum stored event significance.
 - The A–B–C/D proof keeps a nearby unrelated event separate, real Phase 8 discovery indices remain distinguishable causal links, and repeated, fresh same-seed and save/reload extraction are identical without RNG or snapshot mutation. Focused tests pass 7, affected tests pass 32, the Phase 9A exit suite passes 243, and schema remains v22.
+- Phase 9B adds immutable `CausalTrace` results over query-time forward/reverse indexes. Breadth-first nodes retain depth and typed edges; downstream forks stay branches. Graph-only metrics report depth, reachable count, explicit edge count and branch count without claiming causal strength.
+- Explicit Phase 8 references now connect denial evidence, recognition, discovery attempt/resolution, uniquely supported knowledge provenance, required social interaction, peer-training knowledge parents, and school evidence/adoption. Missing or ambiguous event identities are reported as unresolved rather than selected by chronology or participant overlap.
+- Traversal defaults to depth 32 and 256 nodes, reports limit boundaries, and uses bounded iterative directed-cycle detection. The real Phase 8 chain is traversable backward and forward; repeated, fresh same-seed and save/reload traces match without RNG or snapshot mutation. Focused 9B tests pass 8, affected tests pass 54, the exit suite passes 251, and schema remains v22.
 
 ## Active architectural concern
 
@@ -123,8 +126,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- No known Phase 9A failure. Focused coverage passes 7 tests, directly affected coverage passes 32 tests, and the required Phase 9A exit suite passes 243 tests.
+- No known Phase 9B failure. Focused coverage passes 8 tests, directly affected coverage passes 54 tests, and the required Phase 9B exit suite passes 251 tests.
 
 ## Next logical task
 
-Await instruction for Phase 9B explicit causal tracing. Do not begin trajectory comparison or revive recurrence detection until their subphases are authorized and the evidence gate is met.
+Await instruction for Phase 9C historical trajectory comparison. Do not begin recurrence detection or later Phase 9 work until its subphase is authorized and the evidence gate is met.

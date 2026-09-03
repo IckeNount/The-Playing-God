@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.1
+**Document revision:** v1.0.2
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9A complete; awaiting authorization for Phase 9B
+**Status:** ACTIVE — Phase 9B complete; awaiting authorization for Phase 9C
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -1005,6 +1005,45 @@ Do not add:
 ## Exit condition
 
 The research layer can reconstruct bounded explicit causal ancestry and consequences from the evidence the simulation actually recorded.
+
+### Phase 9B implementation record
+
+`CausalTrace` is an immutable research result containing the root event,
+ancestor or descendant direction, breadth-first ordered nodes with depths,
+typed explicit edges, unresolved references, cycle edges, configured-limit
+boundaries and analysis provenance. It exposes only graph measurements: causal
+depth, reachable event count, explicit edge count and downstream branch count.
+
+`causal-trace-v1` derives its forward and reverse indexes at query time from
+authoritative `(agent_id, event_index)` references. Current supported evidence
+includes problem evidence to recognition, recognition to attempt, attempt to
+resolution, uniquely identified knowledge provenance, required social-contact
+evidence, recorded peer-training knowledge parents, and existing school
+evidence/adoption references. Ambiguous or unavailable event identities become
+`UnresolvedCausalReference` values rather than guessed edges.
+
+Traversal uses deterministic breadth-first ordering with default limits of 32
+causal hops and 256 nodes. Reaching either limit adds an explicit boundary.
+A bounded iterative directed-cycle check marks corruption without repairing the
+history or risking an infinite loop. Reverse traversal is derived in memory and
+is never persisted.
+
+The Phase 8 proof traces peer training backward through knowledge exposure,
+validation, attempt, recognition and the three denial events. Forward tracing
+from one denial reaches both peer-training event records as sibling effects of
+the same adoption parent; it does not flatten them into a sequence. Nearby
+travel, participant overlap, episode membership and the unreferenced
+`knowledge_adopted` event create no edges. Legacy missing parents and corrupt
+event indices remain visible gaps, while malformed self-causation is explicitly
+marked as a cycle.
+
+Verification at the exit gate:
+
+- focused Phase 9B tests: 8 passed;
+- combined Phase 9 history tests: 15 passed;
+- Phase 9B plus directly affected history/discovery/research tests: 54 passed;
+- complete repository suite: 251 passed;
+- SQLite schema remains v22.
 
 ---
 

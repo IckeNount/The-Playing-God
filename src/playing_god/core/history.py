@@ -4,6 +4,11 @@ from dataclasses import dataclass
 import hashlib
 from typing import TYPE_CHECKING
 
+from playing_god.core.causal_history import (
+    ExplicitCausalReference,
+    HistoricalEventReference,
+    explicit_causal_references,
+)
 from playing_god.core.events import Event
 
 if TYPE_CHECKING:
@@ -14,23 +19,11 @@ HISTORY_ANALYSIS_VERSION = "episode-v1"
 DEFAULT_MAX_DAY_GAP = 3
 DEFAULT_MAX_EPISODE_DURATION = 7
 DEFAULT_MAX_EPISODE_EVENTS = 12
-
-
-@dataclass(frozen=True, order=True)
-class HistoricalEventReference:
-    """Stable reference to one authoritative per-agent event."""
-
-    agent_id: str
-    event_index: int
-
-
-@dataclass(frozen=True, order=True)
-class ExplicitCausalReference:
-    """One existing structured causal relation between source events."""
-
-    cause: HistoricalEventReference
-    effect: HistoricalEventReference
-    relation: str
+EPISODE_CAUSAL_RELATIONS = frozenset({
+    "problem_evidence_to_recognition",
+    "recognition_to_discovery_attempt",
+    "discovery_attempt_to_resolution",
+})
 
 
 @dataclass(frozen=True)
@@ -106,53 +99,6 @@ def _flatten_events(world: World) -> tuple[_HistoricalEvent, ...]:
     ))
 
 
-def _explicit_discovery_links(
-    world: World,
-    valid_references: frozenset[HistoricalEventReference],
-) -> tuple[ExplicitCausalReference, ...]:
-    links = set()
-
-    def add(
-        agent_id: str,
-        cause_index: int,
-        effect_index: int,
-        relation: str,
-    ) -> None:
-        cause = HistoricalEventReference(agent_id, cause_index)
-        effect = HistoricalEventReference(agent_id, effect_index)
-        if cause in valid_references and effect in valid_references:
-            links.add(ExplicitCausalReference(cause, effect, relation))
-
-    for agent in world.agents:
-        for pressure in agent.discovery.pressures:
-            recognition_index = pressure.recognition_event_index
-            if recognition_index is None:
-                continue
-            for evidence in pressure.evidence:
-                add(
-                    agent.id,
-                    evidence.event_index,
-                    recognition_index,
-                    "problem_evidence_to_recognition",
-                )
-
-        for attempt in agent.discovery.attempts:
-            add(
-                agent.id,
-                attempt.pressure_recognition_event_index,
-                attempt.attempt_event_index,
-                "recognition_to_discovery_attempt",
-            )
-            add(
-                agent.id,
-                attempt.attempt_event_index,
-                attempt.resolution_event_index,
-                "discovery_attempt_to_resolution",
-            )
-
-    return tuple(sorted(links))
-
-
 def _episode_id(
     references: tuple[HistoricalEventReference, ...],
 ) -> str:
@@ -192,13 +138,10 @@ def extract_historical_episodes(
     """Derive deterministic bounded episodes without mutating the world."""
     _validate_bounds(max_day_gap, max_duration, max_events)
     source_events = _flatten_events(world)
-    valid_references = frozenset(
-        item.reference
-        for item in source_events
-    )
-    causal_references = _explicit_discovery_links(
-        world,
-        valid_references,
+    causal_references = tuple(
+        item
+        for item in explicit_causal_references(world)
+        if item.relation in EPISODE_CAUSAL_RELATIONS
     )
     causal_neighbors: dict[
         HistoricalEventReference,
