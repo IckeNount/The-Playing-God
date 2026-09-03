@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 9 — Artificial History and Research Engine
 
-**Current position:** Phase 9C is complete. Existing Phase 8G trajectory signatures now have deterministic, window-qualified and component-level comparison with bounded normalization and explicit missing-data semantics. Schema remains v22.
+**Current position:** Phase 9D is complete through its approved insufficient-data outcome. The two persisted repository worlds contain only G0 adults and no family, development, culture, or knowledge histories, so recurrence detection remains evidence-deferred rather than manufactured. Schema remains v22.
 
 ## Phase Progress
 
@@ -18,7 +18,7 @@
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
 | 8 — Discovery and open-ended civilization | Complete | A causal problem can produce validated knowledge, bounded action-space expansion, local diffusion, and prospective institutional opportunity with reproducible counterfactual evidence. |
-| 9 — Artificial history and research | In progress | Phase 9A derives bounded episodes, Phase 9B traces only explicit causal evidence, and Phase 9C compares declared trajectory windows without changing the world. |
+| 9 — Artificial history and research | In progress | Phase 9A derives bounded episodes, Phase 9B traces explicit causal evidence, Phase 9C compares declared trajectory windows, and Phase 9D records that recurrence remains data-blocked. |
 | 10–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains evidence-gated and Phase 10 consciousness work remains out of scope. |
 
 ## Phase 5 Progress
@@ -42,11 +42,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 9D — Ouroboros Recurrence Gate:
+Await instruction for Phase 9E — Counterfactual Historical Divergence:
 
-1. Apply the documented data-readiness gate before any recurrence claim.
-2. Do not manufacture cross-generational evidence from the controlled fixtures.
-3. Do not begin recurrence detection or later research work without authorization.
+1. Reuse the existing Phase 8 fork, Phase 9 episodes/traces and Phase 9C comparison.
+2. Preserve pre-fork equivalence and explicit-causality boundaries.
+3. Do not begin Phase 9E or later research work without authorization.
 
 ## Phase 7 Progress
 
@@ -61,7 +61,7 @@ Await instruction for Phase 9D — Ouroboros Recurrence Gate:
 | 7C — Child development | Complete | Exact birth-anniversary checkpoints turn inherited aptitude plus family resources, relationships, school access, practice, and feedback into persisted skill and learned training value; adult actions remain blocked through age 17. |
 | 7D — Household, inheritance, and lifecycle | Complete | Annual guardian support consumes real resources; retirement, seeded mortality, living-descendant inheritance, and inactive historical death create traceable turnover through schema v16. |
 | 7E — Cultural transmission | Complete | One bounded norm model moves through annual guardian contact, school access, and ordinary social-information encounters; relationship-weighted recipients accept, modify to uncertainty, or reject while raw exposure remains traceable through schema v17. |
-| 7F — Optional recurrence detection | Deferred to Phase 9 | Repository worlds are founder-only legacy snapshots; a bounded seven-year ordinary run produced G1 children but no adult descendants or G2, so recurrence analysis would manufacture its evidence. |
+| 7F — Optional recurrence detection | Deferred by Phase 9D gate | Repository worlds remain founder-only legacy snapshots; the live Phase 9D audit found no adult descendants or G2, so recurrence analysis would manufacture its evidence. |
 
 ## Phase 8 Progress
 
@@ -84,7 +84,8 @@ Await instruction for Phase 9D — Ouroboros Recurrence Gate:
 | 9A — Historical episodes | Complete | Stable `(agent_id, event_index)` references form bounded participant/explicit-causal episodes; nearby unrelated events remain separate, and same-seed/save-reload extraction is exact. The focused suite passes 7 tests, affected coverage passes 32, the full exit suite passes 243, and schema remains v22. |
 | 9B — Explicit causal history trace | Complete | Deterministic bounded ancestor/descendant traces preserve typed explicit edges and branching, surface missing/cyclic evidence and limit boundaries, and derive reverse indexes without persistence. Focused tests pass 8, affected coverage passes 54, the full exit suite passes 251, and schema remains v22. |
 | 9C — Historical trajectory comparison | Complete | The Phase 8G signature is publicly reused as source provenance; `trajectory-comparison-v1` adds named endpoint/window components, bounded scale-aware distances, explicit missing observations and equal-duration validation. Focused tests pass 6, affected coverage passes 21, the full exit suite passes 257, and schema remains v22. |
-| 9D — Ouroboros recurrence gate | Awaiting authorization | No recurrence implementation or empirical claim has begun. |
+| 9D — Ouroboros recurrence gate | Complete — data deferred | Both persisted worlds are schema-v1/v2 day-365 histories with ten G0 adults, zero adult descendants, zero G2+, and no family/development/culture/knowledge records. Phase 9C exposes 60 unavailable components per world. No detector or threshold was added; focused trajectory regression passes 6 and schema remains v22. |
+| 9E — Counterfactual historical divergence | Awaiting authorization | No Phase 9E implementation has begun. |
 
 ## Documentation Guide
 

@@ -280,6 +280,11 @@ requires equal-duration endpoint windows, filters timestamped histories,
 reports untimestamped or absent evidence as unavailable, and bounds every
 component distance to `[0, 1]`. It is an offline comparison utility, not a new
 metric framework or simulation mechanism.
+Phase 9D adds no runtime owner: its live data-readiness audit found only two
+schema-v1/v2 day-365 persisted worlds, each with ten G0 adults and no adult
+descendant, G2+, family, development, culture, or knowledge history. Recurrence
+therefore remains explicitly data-blocked; no detector, threshold, fixture,
+schema field, dependency, or long-running generation job exists.
 
 ## `social` — relationships and contact
 

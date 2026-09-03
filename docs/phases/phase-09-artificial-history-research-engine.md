@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.3
+**Document revision:** v1.0.4
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9C complete; awaiting authorization for Phase 9D
+**Status:** ACTIVE — Phase 9D gate complete with evidence-based deferral; awaiting authorization for Phase 9E
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -1297,7 +1297,7 @@ Verification at the exit gate:
 
 ## Status
 
-**CONDITIONAL RESEARCH GATE**
+**COMPLETE — OUTCOME B: OUROBOROS OBSERVATION STILL DATA-BLOCKED**
 
 Phase 7F explicitly deferred Ouroboros because the available world history did not contain enough separated adult generations.
 
@@ -1486,6 +1486,55 @@ The gate records exactly what data is missing and defers the empirical recurrenc
 Outcome B does **not** block the rest of Phase 9.
 
 Do not run years of expensive simulation merely to make a checklist green unless the human explicitly approves that research run.
+
+## 10.9 Gate record — 2026-09-03
+
+**Outcome B — Ouroboros observation still data-blocked.**
+
+The live repository audit found exactly two persisted candidate worlds:
+
+```text
+data/worlds/world_1947_before_phase3.db
+data/worlds/world_1947.db
+```
+
+They are schema-v1 and schema-v2 snapshots of seed 1947 at day 365. Each has
+ten agents, all generation G0 and all currently adult. Neither has an adult
+descendant, a G2-or-later agent, a family link, a development record, a
+cultural-transmission record or a knowledge record. Their event history spans
+only days 1–365. They therefore provide neither separated adult generations
+nor historically distinct, comparable descendant trajectories.
+
+Phase 9C can honestly project both worlds, producing ten subjects and 383
+named components per world, but 60 components are explicitly unavailable in
+each because the legacy histories contain no development or learned-training
+evidence. Missing fields are not treated as observed zero. A recurrence rank
+or threshold over these inputs would compare only unrelated G0 founders or
+ordinary same-generation resemblance; it could not answer the approved
+cross-generational research question.
+
+The audit loaded both databases through the current persistence layer, built
+their Phase 9C signatures and compared agent snapshots, RNG state and SHA-256
+file hashes before and after analysis. All four read-only checks remained
+exact for both worlds. The earlier bounded seven-year probe was not repeated:
+its recorded result had G1 children but no adult descendant or G2, and the
+brief expressly forbids an expensive run solely to make the gate pass.
+
+No detector, recurrence threshold, synthetic generation, forced fixture,
+event, schema field, dependency or simulation behavior was added. The current
+structured comparison remains available when a genuinely persisted,
+multi-adult-generation dataset exists. Phase 9D is complete through its
+approved insufficient-data outcome and does not block Phase 9E.
+
+Exit verification:
+
+- persisted-world readiness audit: 2 of 2 worlds inspected successfully;
+- qualifying adult-descendant trajectories: 0;
+- qualifying G2-or-later trajectories: 0;
+- Phase 9C focused regression: 6 passed;
+- SQLite schema remains v22;
+- the full repository suite remains reserved for the Phase 9G exit gate under
+  Section 19.3.
 
 ## Non-goals
 
