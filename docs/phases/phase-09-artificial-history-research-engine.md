@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.2
+**Document revision:** v1.0.3
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9B complete; awaiting authorization for Phase 9C
+**Status:** ACTIVE — Phase 9C complete; awaiting authorization for Phase 9D
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -1229,6 +1229,67 @@ Do not add:
 ## Exit condition
 
 The project can compare two historical trajectories through an inspectable deterministic representation and explain which structured dimensions produced the observed similarity/divergence.
+
+## 9.8 Implementation record
+
+Phase 9C canonizes the existing Phase 8G compact causal-state tuple rather
+than replacing it. `counterfactual.trajectory_signature()` is now the public
+name for that representation, with the original private entry point retained
+for compatibility. The read-only `trajectory-comparison-v1` projection keeps
+the Phase 8G tuple as source provenance and adds only the named components,
+availability state, normalization rule and inclusive comparison window needed
+for inspectable research comparison.
+
+The representation records separate baseline/comparison windows, source agent
+IDs, every component result, optional per-component normalized distance, an
+equal-weight arithmetic aggregate over available components, Phase 8G source
+signature equality and qualification warnings. A value is represented as
+either observed (including observed `0` and observed `None`) or unavailable
+with a reason. Missing values are never converted to zero or included in the
+aggregate.
+
+The declared window must end at the observed world day because the simulator
+does not retain arbitrary past state snapshots. Dated histories are filtered
+to the inclusive window. Endpoint fields describe state at that window end.
+Untimestamped cumulative action counters are exposed only for day-zero-origin
+windows; otherwise they are explicitly unavailable. Comparisons require equal
+window lengths and equal subject counts, preventing unequal-duration histories
+from being treated as directly comparable while permitting later same-length
+windows.
+
+Dimensions remain bounded and question-driven: life/generation context,
+capability, resources, opportunity, wellbeing, social position, belief and
+culture, event-kind frequencies, institutional/development access, learned
+training evidence and Phase 8 civilization participation. `[0, 1]` values use
+absolute distance, signed bounded values use half-range distance, unbounded
+money/salary/count fields use symmetric relative distance, frequency maps use
+normalized absolute count difference, and categorical or structured values
+use exact `0/1` distance. Every distance is therefore bounded by one, so money
+cannot dominate skill merely because its unit is larger.
+
+The controlled Phase 7 comparison retained identical child traits and sins but
+reported non-zero skill (`0.23701961157546333` versus observed `0.0`), school
+access rate (`0.6666666666666666` versus observed `0.0`), mean school
+opportunity, developmental skill gain, event profile, culture and learned
+training evidence. The missing learned value on the constrained path remained
+unavailable rather than becoming zero. Its aggregate distance was
+`0.16884346811804446` over comparable components.
+
+The Phase 8G fixture compared as exactly equivalent through day 3 with
+aggregate distance `0.0`. Over the equal day 4–7 post-fork windows it reported
+aggregate distance `0.11565277777777777` and named 20 changed components,
+including world civilization state, discoverer discovery/knowledge, adopter
+knowledge and learner skill/event profile. Identical fresh same-seed and
+save/reload signatures remained exact. All analysis checks preserved agent,
+Phase 8 and RNG snapshots.
+
+Verification at the exit gate:
+
+- focused Phase 9C tests: 6 passed;
+- Phase 9C plus directly affected counterfactual, development and Phase 8 exit
+  tests: 21 passed;
+- complete repository suite: 257 passed;
+- SQLite schema remains v22.
 
 ---
 

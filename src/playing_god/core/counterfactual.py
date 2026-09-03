@@ -284,8 +284,38 @@ def _today_events(agent, day: int) -> tuple[EventSnapshot, ...]:
     return tuple(reversed(events))
 
 
-def _trajectory_signature(world: World) -> tuple:
-    """Compare current causal state without rescanning full histories."""
+def trajectory_signature(
+    world: World,
+    *,
+    agent_ids: Iterable[str] | None = None,
+) -> tuple:
+    """Return the compact Phase 8G causal-state signature.
+
+    Phase 9C exposes the existing signature publicly and permits a stable
+    subject subset.  The default remains byte-for-byte equivalent to the
+    Phase 8G representation used by counterfactual comparisons.
+    """
+    if agent_ids is None:
+        selected_agents = tuple(world.agents)
+    else:
+        selected_ids = tuple(agent_ids)
+        if len(selected_ids) != len(set(selected_ids)):
+            raise ValueError("Trajectory agent IDs must be unique.")
+        agents_by_id = {agent.id: agent for agent in world.agents}
+        unknown = tuple(
+            agent_id
+            for agent_id in selected_ids
+            if agent_id not in agents_by_id
+        )
+        if unknown:
+            raise ValueError(
+                "Unknown trajectory agent IDs: "
+                + ", ".join(unknown)
+            )
+        selected_agents = tuple(
+            agents_by_id[agent_id]
+            for agent_id in selected_ids
+        )
     return (
         world.civilization,
         world.school.knowledge_evidence,
@@ -322,9 +352,14 @@ def _trajectory_signature(world: World) -> tuple:
                 agent.discovery,
                 _social_ties(world, agent.id),
             )
-            for agent in world.agents
+            for agent in selected_agents
         ),
     )
+
+
+def _trajectory_signature(world: World) -> tuple:
+    """Backward-compatible private name for the Phase 8G signature."""
+    return trajectory_signature(world)
 
 
 def _first_event_difference(
@@ -438,8 +473,8 @@ def compare_counterfactual(
 
         if (
             first_divergence_day is None
-            and _trajectory_signature(baseline_world)
-            != _trajectory_signature(intervention_world)
+            and trajectory_signature(baseline_world)
+            != trajectory_signature(intervention_world)
         ):
             first_divergence_day = baseline_world.day
 

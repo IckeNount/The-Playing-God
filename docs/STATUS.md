@@ -4,7 +4,7 @@
 
 **Current phase:** Phase 9 — Artificial History and Research Engine
 
-**Current position:** Phase 9B is complete. Bounded read-only traces now traverse explicitly recorded causal ancestry and consequences in either direction, preserving branches and exposing missing references, configured limits and cycles without inventing or mutating history. Schema remains v22.
+**Current position:** Phase 9C is complete. Existing Phase 8G trajectory signatures now have deterministic, window-qualified and component-level comparison with bounded normalization and explicit missing-data semantics. Schema remains v22.
 
 ## Phase Progress
 
@@ -18,7 +18,7 @@
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
 | 8 — Discovery and open-ended civilization | Complete | A causal problem can produce validated knowledge, bounded action-space expansion, local diffusion, and prospective institutional opportunity with reproducible counterfactual evidence. |
-| 9 — Artificial history and research | In progress | Phase 9A derives bounded episodes, and Phase 9B traces only explicit causal evidence without changing the world. |
+| 9 — Artificial history and research | In progress | Phase 9A derives bounded episodes, Phase 9B traces only explicit causal evidence, and Phase 9C compares declared trajectory windows without changing the world. |
 | 10–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains evidence-gated and Phase 10 consciousness work remains out of scope. |
 
 ## Phase 5 Progress
@@ -42,10 +42,10 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 9C — Historical Trajectory Comparison:
+Await instruction for Phase 9D — Ouroboros Recurrence Gate:
 
-1. Preserve the separation between episode association and explicit causality.
-2. Reuse existing Phase 8 trajectory signatures before extending them.
+1. Apply the documented data-readiness gate before any recurrence claim.
+2. Do not manufacture cross-generational evidence from the controlled fixtures.
 3. Do not begin recurrence detection or later research work without authorization.
 
 ## Phase 7 Progress
@@ -83,7 +83,8 @@ Await instruction for Phase 9C — Historical Trajectory Comparison:
 | 9.0 — Research contract | Complete | History is a deterministic, offline, read-only projection over authoritative events and existing causal records; Phase 8 research structures remain unchanged. |
 | 9A — Historical episodes | Complete | Stable `(agent_id, event_index)` references form bounded participant/explicit-causal episodes; nearby unrelated events remain separate, and same-seed/save-reload extraction is exact. The focused suite passes 7 tests, affected coverage passes 32, the full exit suite passes 243, and schema remains v22. |
 | 9B — Explicit causal history trace | Complete | Deterministic bounded ancestor/descendant traces preserve typed explicit edges and branching, surface missing/cyclic evidence and limit boundaries, and derive reverse indexes without persistence. Focused tests pass 8, affected coverage passes 54, the full exit suite passes 251, and schema remains v22. |
-| 9C — Historical trajectory comparison | Awaiting authorization | No Phase 9C implementation has begun. |
+| 9C — Historical trajectory comparison | Complete | The Phase 8G signature is publicly reused as source provenance; `trajectory-comparison-v1` adds named endpoint/window components, bounded scale-aware distances, explicit missing observations and equal-duration validation. Focused tests pass 6, affected coverage passes 21, the full exit suite passes 257, and schema remains v22. |
+| 9D — Ouroboros recurrence gate | Awaiting authorization | No recurrence implementation or empirical claim has begun. |
 
 ## Documentation Guide
 

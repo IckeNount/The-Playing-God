@@ -239,13 +239,15 @@ day-6 social exposure creates a second adopter, and day-7 peer training adds
 states or opportunities. Metrics scan authoritative records only on explicit
 request and consume no RNG. No benchmark harness existed, so none was added.
 
-## `artificial-history` — episodes and explicit causal traces
+## `artificial-history` — episodes, causal traces, and trajectories
 
 **Owns:** read-only flattening of authoritative per-agent events, stable source
 references, bounded participant/causal association, deterministic episode
 identity and ordering, transparent magnitude, and preservation of existing
-causal references; query-time forward/reverse causal indexes; and bounded,
-branch-preserving ancestor/descendant traces with visible gaps and corruption.
+causal references; query-time forward/reverse causal indexes; bounded,
+branch-preserving ancestor/descendant traces with visible gaps and corruption;
+and deterministic, window-qualified trajectory comparison over named
+components from the existing Phase 8G signature.
 
 **Entry points:**
 
@@ -254,10 +256,16 @@ branch-preserving ancestor/descendant traces with visible gaps and corruption.
 - `src/playing_god/core/causal_history.py` — authoritative event references,
   typed causal evidence derivation, `CausalTrace`, and deterministic ancestor
   and descendant traversal.
+- `src/playing_god/core/trajectory.py` — named signature projection, explicit
+  windows and missing observations, bounded component normalization, and
+  inspectable comparisons.
+- `src/playing_god/core/counterfactual.py` — the public Phase 8G compact
+  `trajectory_signature()` reused as trajectory source provenance.
 
-**Focused tests:** `tests/test_history.py`, `tests/test_causal_history.py`, plus
-the Phase 8 discovery, knowledge, institutional and persistence proofs used by
-explicit-reference and reload coverage.
+**Focused tests:** `tests/test_history.py`, `tests/test_causal_history.py`,
+`tests/test_trajectory.py`, plus the Phase 7 development and Phase 8
+counterfactual/persistence proofs reused by controlled divergence and reload
+coverage.
 
 **Important boundary:** Episodes are query-time projections, not events or
 world state. The module is not imported by simulation execution, consumes no
@@ -267,7 +275,11 @@ three-day adjacent gap, seven-day total duration and twelve events. Schema
 remains v22. `causal-trace-v1` uses only explicit structured evidence, derives
 its reverse index per query, defaults to depth 32 and 256 nodes, exposes every
 limit boundary, and reports unresolved or cyclic records without inventing or
-repairing history.
+repairing history. `trajectory-comparison-v1` retains the Phase 8G tuple,
+requires equal-duration endpoint windows, filters timestamped histories,
+reports untimestamped or absent evidence as unavailable, and bounds every
+component distance to `[0, 1]`. It is an offline comparison utility, not a new
+metric framework or simulation mechanism.
 
 ## `social` — relationships and contact
 
