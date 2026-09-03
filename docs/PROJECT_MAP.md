@@ -248,7 +248,8 @@ causal references; query-time forward/reverse causal indexes; bounded,
 branch-preserving ancestor/descendant traces with visible gaps and corruption;
 deterministic, window-qualified trajectory comparison over named components
 from the existing Phase 8G signature; and controlled historical-fork
-comparison composed from those existing representations.
+comparison composed from those existing representations; plus one bounded
+Python research façade and compact provenance-preserving packet.
 
 **Entry points:**
 
@@ -266,11 +267,15 @@ comparison composed from those existing representations.
   prefixes and branch continuity, locates first observed divergence, and
   composes episodes, explicit traces, trajectory components and Phase 8
   metrics without running or changing either branch.
+- `src/playing_god/core/research.py` — bounded episode, causal and trajectory
+  queries plus a compact counterfactual research packet with source-world
+  fingerprints, authoritative event references and visible truncation.
 
 **Focused tests:** `tests/test_history.py`, `tests/test_causal_history.py`,
-`tests/test_trajectory.py`, `tests/test_counterfactual_history.py`, plus the
-Phase 7 development and Phase 8 counterfactual/persistence proofs reused by
-controlled divergence and reload coverage.
+`tests/test_trajectory.py`, `tests/test_counterfactual_history.py`,
+`tests/test_research.py`, plus the Phase 7 development and Phase 8
+counterfactual/persistence proofs reused by controlled divergence and reload
+coverage.
 
 **Important boundary:** Episodes are query-time projections, not events or
 world state. The module is not imported by simulation execution, consumes no
@@ -296,6 +301,13 @@ observed difference, while Phase 9B alone supplies causal edges. Root-only or
 endpoint-only differences remain explicitly untraced. Invalid prefixes,
 changed branch configuration, missing components and unequal end windows are
 qualified or rejected rather than disguised as controlled evidence.
+`research-query-v1` is an offline Python façade, not a generic query system.
+Episode results, causal depth/nodes, trajectory subjects and packet selections
+have explicit hard bounds. `research-packet-v1` reuses the earlier immutable
+analysis types and records stable fingerprints, analysis versions, selection
+counts and source event references. It does not save, cache, advance or alter
+a world. Phase 9D exposed no recurrence detector, so the query surface does
+not fabricate a recurrence-candidate endpoint.
 
 ## `social` — relationships and contact
 

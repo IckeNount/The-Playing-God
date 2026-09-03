@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.5
+**Document revision:** v1.0.6
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9E complete; awaiting authorization for Phase 9F
+**Status:** ACTIVE — Phase 9F complete; awaiting authorization for Phase 9G
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -1977,6 +1977,59 @@ Do not add:
 ## Exit condition
 
 A researcher can obtain compact, deterministic, source-traceable history and comparison evidence through a small read-only interface.
+
+## 12.8 Implementation record
+
+Phase 9F adds `research-query-v1`, a Python-only façade over the completed
+Phase 9A–9E analyses. It exposes four explicit operations: episode queries,
+ancestor or descendant causal queries, subject-bounded trajectory comparison,
+and `research-packet-v1` counterfactual packet construction. There is no
+dispatcher, query language, server, export warehouse or analysis cache.
+
+Episode queries accept one optional subject, an inclusive day window and a
+result limit. They return the existing `HistoricalEpisode` objects with total
+match count and visible truncation. The default is 12 episodes and the hard
+ceiling is 64. Causal queries return the existing `CausalTrace`, default to
+depth 8 and 64 nodes, and cannot exceed Phase 9B's existing depth-32/node-256
+bounds. Trajectory queries return the existing Phase 9C comparison and accept
+at most eight subjects per side; larger worlds require an explicit subset.
+
+The counterfactual packet composes the existing Phase 9E result rather than
+running a fork. Defaults retain at most six episodes per branch, 12 divergent
+trajectory components and eight causal traces. Each selection stores its
+configured limits, source totals and truncation flags. Packet fields reuse
+the existing Phase 8 metrics, Phase 9A episodes, Phase 9B traces, Phase 9C
+component comparisons and Phase 9E first-divergence representation.
+
+Every result carries seed, observed day, schema, sorted agent IDs and a stable
+SHA-256 fingerprint derived from frozen snapshots and existing world context.
+The packet records all four source-world fingerprints, source analysis
+versions and the sorted authoritative event references retained by its bounded
+evidence. Its identifier is a deterministic hash of those sources, the fork,
+the selected references and configured selection. Concise explanation text is
+assembled only from the structured divergence day and evidence basis.
+
+The proving tests query the same world twice with exact results, compare full
+snapshots/context/RNG before and after, exercise episode and trace truncation,
+reject invalid bounds/windows/subjects/references, retain Phase 9C missing
+observations, and expose a legacy peer-training record's absent causal parent
+as unresolved rather than invented. The Phase 8G packet retains day-4 first
+divergence, post-fork distance `0.11565277777777777`, learner skill delta
+`+0.006`, selected episodes/traces/components and their source references.
+Fresh and save/reload packets, including packet IDs, are exact.
+
+Phase 9D recurrence remains evidence-deferred, so this surface deliberately
+provides no recurrence-candidate query. Adding an empty or synthetic detector
+would misrepresent unavailable analysis as a research result.
+
+Exit verification:
+
+- focused Phase 9F tests: 7 passed;
+- Phase 9F plus directly affected Phase 9A–9E and Phase 8 counterfactual tests:
+  45 passed;
+- SQLite schema remains v22;
+- the full repository suite remains reserved for the Phase 9G exit gate under
+  Section 19.3.
 
 ---
 
