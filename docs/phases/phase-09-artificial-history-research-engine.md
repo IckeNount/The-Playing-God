@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.6
+**Document revision:** v1.0.7
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9F complete; awaiting authorization for Phase 9G
+**Status:** COMPLETE — Phase 9 exit gate passed; recurrence remains evidence-deferred
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -2179,6 +2179,52 @@ Phase 9 is complete when:
 10. save/reload preserves the source truth needed to reproduce research output;
 11. the engine works offline without LLM or GPU;
 12. the complete approved repository suite passes.
+
+## 13.8 Exit record
+
+Phase 9G adds no research capability. One integration test module exercises
+the accepted Phase 9A–9F surface as a single workflow and closes the phase.
+
+The primary seed-1 demonstration constructs the existing Phase 8G day-3 fork,
+queries the day-4–7 discovery episode, traces descendants of the explicit
+problem-recognition event, compares the post-fork trajectories and produces
+the bounded counterfactual packet. It verifies pre-fork control, day-4 first
+observed divergence, trajectory distance `0.11565277777777777`, one discovery
+attempt versus none, learner skill delta `+0.006`, and the explicit chain
+through recognition, validation, knowledge exposure and peer training. The
+packet retains the selected episode, trace, component, metric and source-event
+provenance.
+
+A fresh same-seed construction and all four save/reloaded source worlds produce
+the exact same packet and packet identifier. The secondary Phase 7 comparison
+uses the same query surface to distinguish supported and constrained adults
+with identical priors through skill, school-access and learned-feedback
+components. This confirms that the research surface is not discovery-specific.
+
+The strong observer proof begins with two identical day-3 worlds, runs episode,
+causal, trajectory and packet queries against only one research path, then
+continues both through the same discovery history. Their complete agent and
+Phase 8 snapshots, economy/school context, interventions, information history
+and RNG state remain exact. Research observation therefore changes neither
+future simulation execution nor RNG allocation.
+
+One bounded in-memory run of the representative episode, six-node causal
+trace, trajectory comparison and 16-reference packet completed in `0.020856`
+seconds on the development laptop. It required neither GPU, cloud service,
+LLM, cache nor new dependency.
+
+The Ouroboros exit result is Outcome B: the Phase 9D data-readiness gate remains
+unsatisfied because the persisted repository histories contain no separated
+adult descendant generations. No recurrence fixture, detector or claim was
+manufactured.
+
+Exit verification:
+
+- focused Phase 9G integration tests: 3 passed;
+- Phase 9G plus directly affected Phase 7–9 tests: 45 passed;
+- complete repository suite: 274 passed in 26.304 seconds;
+- SQLite schema remains v22;
+- no integration defect or new research feature was introduced.
 
 ---
 

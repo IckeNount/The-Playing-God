@@ -275,7 +275,9 @@ Python research façade and compact provenance-preserving packet.
 `tests/test_trajectory.py`, `tests/test_counterfactual_history.py`,
 `tests/test_research.py`, plus the Phase 7 development and Phase 8
 counterfactual/persistence proofs reused by controlled divergence and reload
-coverage.
+coverage. `tests/test_phase9_exit.py` is the integrated closure proof spanning
+the complete Phase 9A–9F workflow, the Phase 7 comparison and future-execution
+non-interference.
 
 **Important boundary:** Episodes are query-time projections, not events or
 world state. The module is not imported by simulation execution, consumes no
@@ -308,6 +310,10 @@ analysis types and records stable fingerprints, analysis versions, selection
 counts and source event references. It does not save, cache, advance or alter
 a world. Phase 9D exposed no recurrence detector, so the query surface does
 not fabricate a recurrence-candidate endpoint.
+The Phase 9 exit demonstration adds no runtime owner or analysis feature. Its
+bounded seed-1 workflow completes on CPU in about 0.021 seconds, reproduces
+exactly after fresh construction and save/reload, and proves that querying one
+world before continuation leaves it identical to an unqueried control.
 
 ## `social` — relationships and contact
 

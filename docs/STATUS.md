@@ -2,9 +2,9 @@
 
 **Updated:** 2026-09-03
 
-**Current phase:** Phase 9 — Artificial History and Research Engine
+**Current phase:** Phase 9 — Artificial History and Research Engine — Complete
 
-**Current position:** Phase 9F is complete. A bounded Python-only research surface now returns source-traceable episodes, causal traces, trajectory comparisons and compact counterfactual packets without mutating worlds or consuming RNG. Schema remains v22.
+**Current position:** Phase 9 is complete. The integrated exit demonstration composes episodes, explicit causal traces, trajectory comparison, counterfactual history and bounded research packets with exact fresh/save-reload results and no effect on future simulation execution. The full 274-test repository suite passes and schema remains v22.
 
 ## Phase Progress
 
@@ -18,7 +18,7 @@
 | 6 — Society, information, and institutions | Complete | Shared scarcity, a capacity-limited institution, bounded information diffusion, and locally cascading collective action are implemented and inspectable. |
 | 7 — Development, adaptive cognition, reproduction, and generations | Complete | Later-generation adults can now arise from inherited priors, material development, institutions, learned experience, lifecycle turnover, and causal cultural exposure. Optional recurrence analysis is evidence-deferred. |
 | 8 — Discovery and open-ended civilization | Complete | A causal problem can produce validated knowledge, bounded action-space expansion, local diffusion, and prospective institutional opportunity with reproducible counterfactual evidence. |
-| 9 — Artificial history and research | In progress | Phase 9A derives episodes, Phase 9B traces explicit causes, Phase 9C compares trajectories, Phase 9D records recurrence as data-blocked, Phase 9E compares controlled historical forks, and Phase 9F exposes bounded research queries. |
+| 9 — Artificial history and research | Complete | Deterministic episodes, explicit causal traces, component trajectories, the evidence-gated recurrence outcome, controlled historical divergence and bounded provenance-preserving research queries pass the integrated exit gate. |
 | 10–11 — Recursive reality | Planned | Later roadmap phases; recurrence remains evidence-gated and Phase 10 consciousness work remains out of scope. |
 
 ## Phase 5 Progress
@@ -42,11 +42,11 @@
 
 ## What We Are Doing Next
 
-Await instruction for Phase 9G — Integrated Research Demonstration & Exit Gate:
+Phase 9 is closed. Await a separately authorized, human-reviewed Phase 10 direction:
 
-1. Demonstrate the complete Phase 8 denial/discovery research workflow through the Phase 9 surface.
-2. Repeat from saved/reloaded state and run the full repository exit suite.
-3. Do not begin Phase 9G without authorization.
+1. Preserve the completed Phase 9 research contract and schema-v22 baseline.
+2. Keep recurrence evidence-deferred until qualifying adult-generation data exists.
+3. Do not begin Phase 10 implementation without explicit authorization and its research boundary review.
 
 ## Phase 7 Progress
 
@@ -87,7 +87,7 @@ Await instruction for Phase 9G — Integrated Research Demonstration & Exit Gate
 | 9D — Ouroboros recurrence gate | Complete — data deferred | Both persisted worlds are schema-v1/v2 day-365 histories with ten G0 adults, zero adult descendants, zero G2+, and no family/development/culture/knowledge records. Phase 9C exposes 60 unavailable components per world. No detector or threshold was added; focused trajectory regression passes 6 and schema remains v22. |
 | 9E — Counterfactual historical divergence | Complete | `counterfactual-history-v1` validates frozen prefixes and branch continuity, locates first observed event divergence, and composes Phase 8 metrics with Phase 9A episodes, 9B explicit traces and 9C component distances. The Phase 8G fork diverges on day 4, yields post-fork distance `0.11565277777777777` and recovers learner skill delta `+0.006`; focused tests pass 7, affected coverage passes 38, and schema remains v22. |
 | 9F — Read-only research query surface | Complete | `research-query-v1` exposes bounded episode, explicit-causal and subject-limited trajectory queries; `research-packet-v1` composes bounded Phase 9E evidence with stable source fingerprints, event references and visible truncation. Focused tests pass 7, affected coverage passes 45, and schema remains v22. |
-| 9G — Integrated research demonstration and exit gate | Awaiting authorization | No Phase 9G implementation has begun. |
+| 9G — Integrated research demonstration and exit gate | Complete | The Phase 8 denial/discovery workflow and Phase 7 developmental comparison run through the shared research surface; fresh/save-reload packets are exact, querying does not change later execution, the bounded workflow takes `0.020856` seconds, focused tests pass 3, affected coverage passes 45, and the full repository suite passes 274 tests in 26.304 seconds. |
 
 ## Documentation Guide
 
