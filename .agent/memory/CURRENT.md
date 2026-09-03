@@ -4,7 +4,7 @@
 
 ## Current milestone
 
-Phases 4–8 and Phase 9A–9D are complete. Existing event histories project into deterministic bounded episodes and explicit bidirectional causal traces, while the reused Phase 8G signature supports named, window-qualified trajectory comparison with bounded normalization and explicit missing data. The Phase 9D gate re-audited the live persisted worlds and deferred recurrence without a detector because no separated adult generations exist. All analysis remains read-only and preserves RNG position.
+Phases 4–8 and Phase 9A–9E are complete. Existing event histories project into deterministic bounded episodes and explicit bidirectional causal traces, while the reused Phase 8G signature supports named, window-qualified trajectory comparison with bounded normalization and explicit missing data. Phase 9D defers recurrence because no separated adult generations exist. Phase 9E composes frozen prefixes and completed branches into inspectable historical-divergence evidence. All analysis remains read-only and preserves RNG position.
 
 ## Recent completed work
 
@@ -121,6 +121,7 @@ Phases 4–8 and Phase 9A–9D are complete. Existing event histories project in
 - Traversal defaults to depth 32 and 256 nodes, reports limit boundaries, and uses bounded iterative directed-cycle detection. The real Phase 8 chain is traversable backward and forward; repeated, fresh same-seed and save/reload traces match without RNG or snapshot mutation. Focused 9B tests pass 8, affected tests pass 54, the exit suite passes 251, and schema remains v22.
 - Phase 9C publicly reuses the Phase 8G compact trajectory signature and adds `trajectory-comparison-v1`, an offline named-component projection with inclusive endpoint windows, equal-duration validation, `[0, 1]` component distances, observed-versus-missing values, and qualification warnings. Phase 7 development and Phase 8 fork fixtures prove divergence while same-seed/reload signatures remain exact; schema stays v22.
 - Phase 9D closes through Outcome B. The only two persisted worlds are schema-v1/v2 seed-1947 snapshots at day 365 with ten G0 adults, zero adult descendants, zero G2+, and no family/development/culture/knowledge history. Each Phase 9C projection has 60 unavailable components. The read-only audit preserved agent snapshots, RNG state and database hashes; no detector, threshold, fixture, dependency, schema change or expensive replacement run was added.
+- Phase 9E adds `counterfactual-history-v1`, an offline composition over frozen pre-fork worlds and completed branches. It validates snapshots, signatures, episodes, causal references, RNG/context and branch continuity; then returns first observed divergence, post-fork episodes, Phase 9C components, Phase 8 metrics and only Phase 9B-supported downstream traces. The Phase 8G fork is equal through day 3, first differs on day 4, reaches distance `0.11565277777777777` and preserves learner `+0.006` skill. Fresh/save-reload results are exact; no experiment runner, causal-strength claim or schema change was added.
 
 ## Active architectural concern
 
@@ -128,8 +129,8 @@ The current world uses one seeded RNG stream. Same-seed branches have identical 
 
 ## Known failures and blockers
 
-- Phase 9D recurrence observation is data-blocked by the absence of persisted separated adult generations. This is the approved gate outcome, not an implementation failure. The Phase 9C focused regression passes 6 tests and schema remains v22.
+- No known Phase 9E failure. Focused coverage passes 7 tests, directly affected coverage passes 38 tests, and schema remains v22. Phase 9D recurrence remains evidence-deferred by design.
 
 ## Next logical task
 
-Await instruction for Phase 9E counterfactual historical divergence. Do not implement recurrence unless future persisted evidence satisfies the adult-generation readiness gate, and do not begin later Phase 9 work without authorization.
+Await instruction for Phase 9F read-only research queries. Do not implement recurrence unless future persisted evidence satisfies the adult-generation readiness gate, and do not begin later Phase 9 work without authorization.

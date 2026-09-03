@@ -246,8 +246,9 @@ references, bounded participant/causal association, deterministic episode
 identity and ordering, transparent magnitude, and preservation of existing
 causal references; query-time forward/reverse causal indexes; bounded,
 branch-preserving ancestor/descendant traces with visible gaps and corruption;
-and deterministic, window-qualified trajectory comparison over named
-components from the existing Phase 8G signature.
+deterministic, window-qualified trajectory comparison over named components
+from the existing Phase 8G signature; and controlled historical-fork
+comparison composed from those existing representations.
 
 **Entry points:**
 
@@ -261,11 +262,15 @@ components from the existing Phase 8G signature.
   inspectable comparisons.
 - `src/playing_god/core/counterfactual.py` — the public Phase 8G compact
   `trajectory_signature()` reused as trajectory source provenance.
+- `src/playing_god/core/counterfactual_history.py` — validates frozen shared
+  prefixes and branch continuity, locates first observed divergence, and
+  composes episodes, explicit traces, trajectory components and Phase 8
+  metrics without running or changing either branch.
 
 **Focused tests:** `tests/test_history.py`, `tests/test_causal_history.py`,
-`tests/test_trajectory.py`, plus the Phase 7 development and Phase 8
-counterfactual/persistence proofs reused by controlled divergence and reload
-coverage.
+`tests/test_trajectory.py`, `tests/test_counterfactual_history.py`, plus the
+Phase 7 development and Phase 8 counterfactual/persistence proofs reused by
+controlled divergence and reload coverage.
 
 **Important boundary:** Episodes are query-time projections, not events or
 world state. The module is not imported by simulation execution, consumes no
@@ -285,6 +290,12 @@ schema-v1/v2 day-365 persisted worlds, each with ten G0 adults and no adult
 descendant, G2+, family, development, culture, or knowledge history. Recurrence
 therefore remains explicitly data-blocked; no detector, threshold, fixture,
 schema field, dependency, or long-running generation job exists.
+`counterfactual-history-v1` accepts frozen prefixes and completed branches; it
+does not run experiments. Stable post-fork event references locate the first
+observed difference, while Phase 9B alone supplies causal edges. Root-only or
+endpoint-only differences remain explicitly untraced. Invalid prefixes,
+changed branch configuration, missing components and unequal end windows are
+qualified or rejected rather than disguised as controlled evidence.
 
 ## `social` — relationships and contact
 

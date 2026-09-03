@@ -1,11 +1,11 @@
 # THE PLAYING GOD — PHASE 9
 ## Artificial History & Research Engine
 
-**Document revision:** v1.0.4
+**Document revision:** v1.0.5
 **Prepared:** 2026-09-03
 **Project:** The Playing God
 **Project type:** Master of Computer Engineering thesis / artificial-life, artificial-society, artificial-history and counterfactual simulation
-**Status:** ACTIVE — Phase 9D gate complete with evidence-based deferral; awaiting authorization for Phase 9E
+**Status:** ACTIVE — Phase 9E complete; awaiting authorization for Phase 9F
 **Execution gate:** Human-approved execution only. Implement one authorized subphase at a time.
 **Canonical destination:** `docs/phases/phase-09-artificial-history-research-engine.md`
 
@@ -1745,6 +1745,61 @@ Those may become later thesis experiments only after the deterministic compariso
 ## Exit condition
 
 The system can produce an inspectable deterministic comparison of a baseline and controlled fork, showing pre-fork equivalence, post-fork divergence, metric/trajectory differences and explicit downstream causal evidence where available.
+
+## 11.8 Implementation record
+
+Phase 9E adds one offline composition,
+`counterfactual-history-v1`, rather than a second fork runner. The caller
+provides two frozen pre-fork worlds and their two completed branches plus the
+declared fork day. The comparison reuses existing `AgentSnapshot` and
+`Phase8StateSnapshot` values, Phase 9A `HistoricalEpisode` projections, Phase
+9B `CausalTrace` results, Phase 9C trajectory components and Phase 8 metrics.
+
+Pre-fork validation checks the declared day, simulation configuration, agent
+and Phase 8 snapshots, Phase 9C signature/source equivalence, episodes,
+explicit causal references, RNG state and current economy/school/intervention/
+information context. Each completed branch must preserve its prefix event
+history and configuration. Mismatches remain named qualifications rather than
+being silently accepted as a controlled pair.
+
+Post-fork event comparison aligns only stable `(agent_id, event_index)` source
+references after the shared boundary. It reports the earliest differing day
+as the **first observed divergence**, not an ultimate cause. Later event IDs
+are not force-matched. The result also retains both branches' post-fork
+episodes, all Phase 9C component differences and aggregate distance, and the
+existing Phase 8 discovery/opportunity/skill metrics.
+
+Phase 9B descendant traces begin only from source events that differ on the
+first observed day. A trace with explicit edges is returned unchanged. A
+root-only trace or endpoint-only difference is labeled `observed divergence,
+causal path unavailable`; chronology and component proximity never create an
+edge. Missing Phase 9C observations remain missing and qualified rather than
+becoming zero.
+
+The Phase 8G day-3 prefix passed every equivalence check with trajectory
+distance `0.0`. The first observed divergence was day 4: the discovery branch
+recorded another institutional denial and problem recognition while the
+formal-access branch recorded travel and admission. Over days 4–7, trajectory
+distance became `0.11565277777777777`. Existing metrics recovered one
+validated discovery attempt versus none, and learner `npc_003` retained the
+expected `+0.006` skill delta.
+
+The discovery branch's explicit traces connect the denial through recognition,
+attempt, validation, accepted knowledge exposure and both peer-training event
+branches. Its episodes retain the adoption event. The formal-access branch has
+no discovery attempt or discovery/adoption/training chain; its root-only
+differences are reported as unavailable causal paths rather than inferred
+absence-causes. Repeated fresh and save/reload comparisons are exact, and all
+four source worlds retain their snapshots and RNG states.
+
+Exit verification:
+
+- focused Phase 9E tests: 7 passed;
+- Phase 9E plus directly affected counterfactual, episode, causal trace,
+  trajectory and Phase 8 exit tests: 38 passed;
+- SQLite schema remains v22;
+- the full repository suite remains reserved for the Phase 9G exit gate under
+  Section 19.3.
 
 ---
 
